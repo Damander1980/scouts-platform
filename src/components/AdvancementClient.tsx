@@ -22,14 +22,35 @@ const ICONS: Record<string, string> = {
   cooking: "M7 2v9a2 2 0 002 2v9M5 2v6M9 2v6M17 2c-2 2-2 6 0 8v12",
   swimming: "M2 16c2-2 4-2 6 0s4 2 6 0 4-2 6 0M2 20c2-2 4-2 6 0s4 2 6 0 4-2 6 0M8 12l4-6 4 4",
   cycling: "M5 18a3 3 0 100-6 3 3 0 000 6zm14 0a3 3 0 100-6 3 3 0 000 6zM5 15l4-7h5l5 7M9 8l3 7",
-  citizenship_nation: "M5 21V4m0 0h11l-2 4 2 4H5",
-  citizenship_community: "M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6",
-  citizenship_world: "M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18",
+  citizenship_in_the_nation: "M5 21V4m0 0h11l-2 4 2 4H5",
+  citizenship_in_the_community: "M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6",
+  citizenship_in_the_world: "M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18",
   communication: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z",
   personal_fitness: "M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12",
   family_life: "M3 10l9-7 9 7v11H3z",
 };
-const DEFAULT_ICON = "M12 15a6 6 0 100-12 6 6 0 000 12zM8.5 14L7 22l5-3 5 3-1.5-8";
+const RANK_PDFS: Record<string, string> = {
+  scout: "Scout-Rank.pdf", tenderfoot: "Tenderfoot-Rank.pdf", second_class: "Second-Class-v2.pdf",
+  first_class: "First-Class.pdf", star: "Star-Rank.pdf", life: "Life-Rank.pdf",
+  eagle: "Scouts-BSA-Rank-Requirements.pdf",
+};
+
+function officialUrl(item: Item) {
+  if (item.kind === "rank") return `https://www.scouting.org/wp-content/uploads/2025/12/${RANK_PDFS[item.code] ?? "Scouts-BSA-Rank-Requirements.pdf"}`;
+  return `https://www.scouting.org/merit-badges/${item.code.replace(/_/g, "-")}/`;
+}
+
+function OfficialLink({ item }: { item: Item }) {
+  return (
+    <a href={officialUrl(item)} target="_blank" rel="noopener noreferrer"
+      className="text-[12px] font-bold no-underline inline-flex items-center gap-1" style={{ color: "#1F5F4A" }}>
+      Official requirements
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+    </a>
+  );
+}
+
+const DEFAULT_ICON ="M12 15a6 6 0 100-12 6 6 0 000 12zM8.5 14L7 22l5-3 5 3-1.5-8";
 
 function Icon({ code, size = 20 }: { code: string; size?: number }) {
   return (
@@ -322,6 +343,7 @@ export default function AdvancementClient({
                     {stats(r).done} / {stats(r).total} done · {stats(r).approved} signed off
                   </span>
                 </div>
+                <div className="mt-1"><OfficialLink item={r} /></div>
                 <RequirementList item={r} />
               </div>
             ))}
@@ -342,7 +364,7 @@ export default function AdvancementClient({
           {picker && (
             <div className="bg-white rounded-2xl border border-[#D5DFDA] p-4 flex flex-col gap-3">
               <input autoFocus value={pickSearch} onChange={(e) => setPickSearch(e.target.value)}
-                placeholder="Search 140 merit badges…"
+                placeholder={`Search ${badges.length} merit badges…`}
                 className="rounded-xl border border-[#D5DFDA] px-3 py-2 text-[14px] outline-none"
                 style={{ fontFamily: "inherit" }} />
               <div className="max-h-72 overflow-y-auto flex flex-col">
@@ -428,7 +450,10 @@ export default function AdvancementClient({
                   {isOpen && (
                     <div className="px-4 pb-4 border-t border-[#EAF0ED]">
                       <div className="flex items-center justify-between pt-3 text-[13px] font-bold" style={{ color: "#4D5F57" }}>
-                        <span>{s.done} of {s.total || "?"} done · {s.approved} signed off</span>
+                        <span className="flex items-center gap-3 flex-wrap">
+                          <span>{s.done} of {s.total || "?"} done · {s.approved} signed off</span>
+                          <OfficialLink item={b} />
+                        </span>
                         {!s.completed && (
                           <button onClick={() => removeBadge(b)} disabled={busy}
                             className="text-[12px] font-bold bg-transparent border-0 cursor-pointer"
@@ -447,7 +472,7 @@ export default function AdvancementClient({
         </section>
 
         <p className="text-[12px] m-0" style={{ color: "#9DB0A7" }}>
-          Requirements shown are short summaries. Always confirm against the current official Scouts BSA requirements.
+          Requirements follow the official 2026 numbering in plain-language summaries. Tap &ldquo;Official requirements&rdquo; for Scouting America&apos;s exact wording.
           Legend: dark green = signed off by a leader, light green = done by the scout, waiting on sign-off.
         </p>
       </div>

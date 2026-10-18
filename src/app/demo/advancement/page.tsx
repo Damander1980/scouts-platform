@@ -13,7 +13,7 @@ const DEMO: [string, number, number, Tracked["status"]][] = [
   ["hiking", 2, 1, "in_progress"],
   ["cooking", 3, 1, "in_progress"],
   ["swimming", 99, 0, "completed"],
-  ["citizenship_nation", 2, 0, "assigned"],
+  ["citizenship_in_the_nation", 2, 0, "assigned"],
   ["wilderness_survival", 0, 0, "in_progress"],
 ];
 
