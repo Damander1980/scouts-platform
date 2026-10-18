@@ -21,9 +21,10 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
   if (!scout) notFound();
 
   const { data: scoutMembership } = await supabase
-    .from("memberships").select("org_id").eq("person_id", id).eq("status", "active").single();
+    .from("memberships").select("org_id, organizations(type)").eq("person_id", id).eq("status", "active").single();
   if (!scoutMembership) notFound();
   const orgId = scoutMembership.org_id;
+  const orgType = (scoutMembership.organizations as unknown as { type: string } | null)?.type;
 
   const { data: viewerMembership } = await supabase
     .from("memberships").select("role").eq("person_id", viewer.id).eq("org_id", orgId).eq("status", "active").maybeSingle();
@@ -61,6 +62,7 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
       progress={progress}
       isLeader={isLeader}
       viewerPersonId={viewer.id}
+      program={orgType === "cubs" ? "cubs" : "scouts_bsa"}
     />
   );
 }

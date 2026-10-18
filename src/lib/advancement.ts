@@ -21,7 +21,7 @@ async function loadAllRequirements(supabase: SupabaseClient): Promise<ReqRow[]> 
 
 export async function loadCatalog(supabase: SupabaseClient): Promise<Item[]> {
   const [{ data: items, error: ie }, reqs] = await Promise.all([
-    supabase.from("advancement_items").select("id, kind, code, name, eagle_required, eagle_group, sort").order("sort"),
+    supabase.from("advancement_items").select("id, kind, code, name, eagle_required, eagle_group, sort, program, rank_code, required, electives_needed, grade, source_slug").order("sort"),
     loadAllRequirements(supabase),
   ]);
   if (ie) throw ie;
