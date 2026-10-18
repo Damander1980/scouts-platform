@@ -1,303 +1,166 @@
 "use client";
 
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
-const ROLE_LABELS: Record<string, string> = {
-  scoutmaster: "Scoutmaster",
-  assistant_scoutmaster: "Assistant Scoutmaster",
-  committee_chair: "Committee Chair",
-  cubmaster: "Cubmaster",
-  crew_advisor: "Crew Advisor",
-  skipper: "Skipper",
+export type SiteData = {
+  org: {
+    id: string; name: string; type: string; unit_number: string | null; city: string | null; state: string | null; slug: string; join_code: string;
+    site: { brand_color?: string; logo_path?: string; banner_path?: string; welcome_title?: string; welcome_text?: string; about?: string; facebook_url?: string; meeting_info?: string; chartered_org?: string };
+  };
+  contacts: { title: string; person_id: string; name: string }[];
+  events: { id: string; title: string; start_at: string; end_at: string | null; kind: string; deadline: string | null; location: string | null }[];
+  albums: { id: string; title: string; taken_on: string | null; photos: { path: string; caption: string | null }[] }[];
 };
 
-function formatDate(iso: string) {
-  const d = new Date(iso);
-  return {
-    mon: d.toLocaleString("en-US", { month: "short" }).toUpperCase(),
-    day: String(d.getDate()),
-    dow: d.toLocaleString("en-US", { weekday: "short" }),
-    time: d.toLocaleString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }),
-  };
-}
+const fmt = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 
-function isMultiDay(start: string, end: string | null) {
-  if (!end) return false;
-  const e = new Date(end);
-  const s = new Date(start);
-  return e.getTime() - s.getTime() > 20 * 60 * 60 * 1000;
-}
-
-function multiDayLabel(start: string, end: string) {
-  const s = new Date(start);
-  const e = new Date(end);
-  const days = Math.round((e.getTime() - s.getTime()) / (24 * 60 * 60 * 1000)) + 1;
-  const endDow = e.toLocaleString("en-US", { weekday: "short" });
-  return `${endDow} · ${days} days`;
-}
-
-export default function TroopPageClient({
-  org, events, leaders,
-}: {
-  org: {
-    id: string; name: string; type: string; unit_number: string;
-    city: string; state?: string; slug: string; settings: Record<string, unknown>;
-  };
-  events: { id: string; title: string; start_at: string; end_at: string | null; location: string | null; cost_cents: number }[];
-  leaders: { role: string; name: string }[];
-}) {
-  const [parentName, setParentName] = useState("");
-  const [email, setEmail] = useState("");
-  const [grade, setGrade] = useState("");
+export default function TroopPageClient({ data, storageUrl }: { data: SiteData; storageUrl: string }) {
+  const { org, contacts, events, albums } = data;
+  const site = org.site ?? {};
+  const word = org.type === "cubs" ? "Pack" : org.type === "venturing" ? "Crew" : org.type === "sea" ? "Ship" : "Troop";
+  const brand = site.brand_color && /^#[0-9a-f]{6}$/i.test(site.brand_color) ? site.brand_color : "#1F5F4A";
+  const [contactTo, setContactTo] = useState<string>(contacts[0]?.person_id ?? "");
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+  const [lightbox, setLightbox] = useState<{ album: number; i: number } | null>(null);
 
-  const unitWord = org.type === "cubs" ? "Pack"
-    : org.type === "venturing" ? "Crew"
-    : org.type === "sea" ? "Ship"
-    : "Troop";
-
-  const displayName = org.unit_number ? `${unitWord} ${org.unit_number}` : org.name;
-  const tagline = (org.settings as { tagline?: string }).tagline
-    ?? `A ${org.type === "cubs" ? "Cub Scouts" : org.type === "venturing" ? "Venturing" : org.type === "sea" ? "Sea Scouts" : "Scouts BSA"} unit based in ${org.city}. Come find out what Scouting is about.`;
-
-  async function handleJoin(e: React.FormEvent) {
+  async function send(e: React.FormEvent) {
     e.preventDefault();
-    setSending(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setSent(true);
-    setSending(false);
+    setError("");
+    const { error } = await createClient().rpc("submit_contact", {
+      p_slug: org.slug, p_to: contactTo || null, p_name: form.name, p_email: form.email, p_phone: form.phone, p_message: form.message,
+    });
+    if (error) setError(error.message); else setSent(true);
   }
 
-  return (
-    <div className="min-h-screen bg-paper" style={{ color: "#14211B", fontFamily: "'DM Sans', sans-serif" }}>
+  const groupedContacts = contacts.reduce<Record<string, typeof contacts>>((a, c) => ({ ...a, [c.title]: [...(a[c.title] ?? []), c] }), {});
 
-      {/* ── Nav ── */}
-      <header className="bg-forest text-white sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-5 py-3 flex flex-wrap items-center gap-x-6 gap-y-2">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            {/* Fleur-de-lis badge */}
-            <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center flex-none" style={{ color: "#1F5F4A" }}>
-              <svg width="26" height="26" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-                <path d="M18 3C18 3 14 9 14 14C14 17 16 18 18 18C20 18 22 17 22 14C22 9 18 3 18 3Z" fill="#1F5F4A"/>
-                <path d="M18 18C18 18 10 15 7 19C5 22 7 25 10 24C12 23 13 21 14 19" fill="#1F5F4A" opacity=".7"/>
-                <path d="M18 18C18 18 26 15 29 19C31 22 29 25 26 24C24 23 23 21 22 19" fill="#1F5F4A" opacity=".7"/>
-                <circle cx="18" cy="20" r="2" fill="#1F5F4A" opacity=".5"/>
-              </svg>
-            </div>
+  return (
+    <div className="min-h-screen" style={{ background: "#FBFAF5", color: "#14211B" }}>
+      <header style={{ background: brand }} className="text-white">
+        {site.banner_path ? (
+          <img src={storageUrl + site.banner_path} alt={org.name} className="w-full max-h-[260px] object-cover" />
+        ) : (
+          <div className="max-w-6xl mx-auto px-4 py-8 flex items-center gap-4">
+            {site.logo_path && <img src={storageUrl + site.logo_path} alt="" className="w-20 h-20 rounded-full bg-white object-contain" />}
             <div>
-              <div className="font-bold text-[17px] leading-tight">{displayName}</div>
-              <div className="text-sm" style={{ color: "#CFE3DA" }}>{org.city}{org.state ? `, ${org.state}` : ""}</div>
+              <div className="font-display font-extrabold text-[36px] leading-none">{word} {org.unit_number}</div>
+              <div className="text-[16px] opacity-90">{[org.city, org.state].filter(Boolean).join(", ")}</div>
             </div>
           </div>
-          <nav className="flex flex-wrap items-center gap-1">
-            {[["#about","About"],["#calendar","Calendar"],["#leaders","Leaders"]].map(([href, label]) => (
-              <a key={href} href={href}
-                className="text-white font-bold text-[15px] no-underline hover:underline min-h-[44px] flex items-center px-2">
-                {label}
-              </a>
-            ))}
-            <a href="#join"
-              className="ml-2 min-h-[44px] px-5 rounded-full font-bold text-[15px] flex items-center no-underline"
-              style={{ background: "#FF6A1A", color: "#14211B" }}>
-              Join us
-            </a>
-          </nav>
-        </div>
+        )}
+        <nav className="bg-black/15">
+          <div className="max-w-6xl mx-auto px-4 h-11 flex items-center gap-5 text-[14px] font-bold">
+            <a href="#welcome" className="text-white no-underline">Home</a>
+            <a href="#events" className="text-white no-underline">Calendar</a>
+            <a href="#photos" className="text-white no-underline">Photos</a>
+            <a href="#contact" className="text-white no-underline">Contact</a>
+            <a href={`/join/${org.slug}`} className="ml-auto px-4 py-1.5 rounded-full no-underline" style={{ background: "#FF6A1A", color: "#14211B" }}>Join us</a>
+            <a href="/login" className="text-white no-underline opacity-80">Member sign in</a>
+          </div>
+        </nav>
       </header>
 
-      {/* ── Hero ── */}
-      <div className="bg-forest text-white">
-        <div className="max-w-5xl mx-auto px-5 py-12 flex flex-wrap gap-8 items-stretch">
-          <div className="flex flex-col gap-5 justify-center" style={{ flex: "1 1 400px" }}>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-[13px] tracking-widest uppercase" style={{ color: "#9DB0A7" }}>
-                {org.city}{org.state ? `, ${org.state}` : ""}
-              </span>
-            </div>
-            <h1 className="font-display font-extrabold leading-none m-0" style={{ fontSize: "clamp(44px, 6vw, 64px)" }}>
-              {displayName}
-            </h1>
-            <p className="text-[18px] leading-relaxed m-0" style={{ color: "#CFE3DA", maxWidth: 480 }}>
-              {tagline}
+      <div className="max-w-6xl mx-auto px-4 py-8 grid lg:grid-cols-[1fr_220px_280px] gap-8">
+        <main className="flex flex-col gap-6 min-w-0">
+          <section id="welcome" className="flex flex-col gap-3">
+            <h1 className="font-display font-bold text-[34px] leading-tight m-0">{site.welcome_title || `Welcome to ${word} ${org.unit_number}!`}</h1>
+            <p className="text-[16px] leading-relaxed m-0 whitespace-pre-wrap">
+              {site.welcome_text || `${org.name} is a Scouting America unit in ${org.city ?? "our community"}. New families are always welcome.`}
             </p>
+            {site.meeting_info && <p className="text-[16px] m-0"><b>We meet:</b> {site.meeting_info}</p>}
+          </section>
 
-            {events[0] && (
-              <div className="rounded-2xl p-4 flex flex-col gap-1"
-                style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)" }}>
-                <span className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#9DB0A7" }}>
-                  Next event
-                </span>
-                <span className="font-display font-bold text-[22px]">{events[0].title}</span>
-                <span className="text-[15px]" style={{ color: "#CFE3DA" }}>
-                  {new Date(events[0].start_at).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-                  {" · "}{formatDate(events[0].start_at).time}
-                  {events[0].location ? ` · ${events[0].location}` : ""}
-                </span>
-              </div>
-            )}
-
-            <div className="flex gap-3 pt-1 flex-wrap">
-              <a href="#join"
-                className="min-h-[48px] px-6 rounded-full font-bold text-[16px] flex items-center no-underline"
-                style={{ background: "#FF6A1A", color: "#14211B" }}>
-                Request to join
-              </a>
-              <a href="#calendar"
-                className="min-h-[48px] px-6 rounded-full font-bold text-[16px] flex items-center no-underline"
-                style={{ border: "2px solid rgba(255,255,255,0.35)", color: "#FFFFFF" }}>
-                See events
-              </a>
+          {site.facebook_url && /^https:\/\/(www\.)?facebook\.com\//.test(site.facebook_url) && (
+            <div className="border-y border-[#E6E2D3] py-5 text-center">
+              <span className="font-display font-bold text-[26px]">Follow us on <a href={site.facebook_url} target="_blank" rel="noopener noreferrer" style={{ color: "#1877F2" }} className="no-underline">Facebook</a></span>
             </div>
-          </div>
+          )}
 
-          {/* Photo slot */}
-          <div className="rounded-3xl flex items-center justify-center text-center p-6"
-            style={{ flex: "1 1 320px", border: "2px dashed rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.07)", minHeight: 280 }}>
-            {(org.settings as { hero_photo?: string }).hero_photo
-              ? <img src={(org.settings as { hero_photo?: string }).hero_photo} alt={displayName}
-                  className="w-full h-full object-cover rounded-2xl" />
-              : <span style={{ color: "#9DB0A7", fontSize: 15 }}>Add your best troop photo in leader settings</span>}
-          </div>
-        </div>
-      </div>
-
-      {/* ── About ── */}
-      <section id="about" className="max-w-5xl mx-auto px-5 py-14 flex flex-col gap-4">
-        <h2 className="font-display font-extrabold text-[34px] m-0">About the troop</h2>
-        <p className="text-[18px] leading-relaxed max-w-2xl m-0 text-smoke">
-          {(org.settings as { about?: string }).about
-            ?? "Leaders can add their troop story in their settings — when the troop started, who sponsors it, what a typical month looks like, and what costs to expect."}
-        </p>
-      </section>
-
-      {/* ── Calendar ── */}
-      <div id="calendar" style={{ background: "#EAF0ED" }}>
-        <div className="max-w-5xl mx-auto px-5 py-14 flex flex-col gap-5">
-          <h2 className="font-display font-extrabold text-[34px] m-0">Coming up</h2>
-          <div className="bg-white border border-border rounded-2xl overflow-hidden max-w-2xl">
-            {events.length === 0 && (
-              <div className="p-5 text-smoke text-base">No upcoming events yet.</div>
-            )}
-            {events.map((ev, i) => {
-              const d = formatDate(ev.start_at);
-              const multi = isMultiDay(ev.start_at, ev.end_at);
-              return (
-                <div key={ev.id}
-                  className="flex gap-4 p-4 items-start"
-                  style={{ borderBottom: i < events.length - 1 ? "1px solid #E6ECE9" : "none" }}>
-                  <div className="flex flex-col items-center w-12 flex-none">
-                    <span className="text-[11px] font-bold text-smoke uppercase tracking-wide">{d.mon}</span>
-                    <span className="font-display font-extrabold text-[30px] leading-none">{d.day}</span>
-                    <span className="text-[11px] text-smoke">{d.dow}</span>
-                  </div>
-                  <div className="flex flex-col gap-1 flex-1 pt-1">
-                    <span className="font-bold text-[18px]">{ev.title}</span>
-                    <span className="text-smoke text-[15px]">
-                      {d.time}{ev.location ? ` · ${ev.location}` : ""}
-                    </span>
-                    {multi && ev.end_at && (
-                      <span className="inline-flex items-center h-6 rounded-full text-ink text-[13px] font-bold px-3 self-start"
-                        style={{ background: "#FF6A1A" }}>
-                        {multiDayLabel(ev.start_at, ev.end_at)}
-                      </span>
-                    )}
-                    {ev.cost_cents > 0 && (
-                      <span className="inline-flex items-center h-6 rounded-full text-[13px] font-bold px-3 self-start"
-                        style={{ background: "#EAF0ED", color: "#1F5F4A" }}>
-                        ${(ev.cost_cents / 100).toFixed(0)} per person
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Leaders ── */}
-      <section id="leaders" className="max-w-5xl mx-auto px-5 py-14 flex flex-col gap-5">
-        <h2 className="font-display font-extrabold text-[34px] m-0">Leaders</h2>
-        {leaders.length === 0 && <p className="text-smoke">Leader list coming soon.</p>}
-        <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))" }}>
-          {leaders.map((l, i) => (
-            <div key={i} className="bg-white border border-border rounded-2xl p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-forest text-white flex items-center justify-center font-display font-bold text-[16px] flex-none">
-                {l.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="font-bold text-[17px]">{l.name}</span>
-                <span className="text-smoke text-[14px]">{ROLE_LABELS[l.role] ?? l.role}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <p className="text-sm text-smoke m-0">
-          Contact leaders through the form below. Personal emails are never shown.
-        </p>
-      </section>
-
-      {/* ── Join CTA ── */}
-      <section id="join" className="max-w-5xl mx-auto px-5 pb-16">
-        <div className="rounded-3xl p-8 flex flex-wrap gap-8" style={{ background: "#14211B", color: "#FFFFFF" }}>
-          <div className="flex flex-col gap-4 justify-center" style={{ flex: "1 1 260px" }}>
-            <svg width="44" height="44" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-              <path d="M18 2C18 2 14 8 14 13C14 16 16 17 18 17C20 17 22 16 22 13C22 8 18 2 18 2Z" fill="#FF6A1A"/>
-              <path d="M18 17C18 17 10 14 7 18C5 21 7 24 10 23C12 22 13 20 14 18" fill="#FF6A1A" opacity=".8"/>
-              <path d="M18 17C18 17 26 14 29 18C31 21 29 24 26 23C24 22 23 20 22 18" fill="#FF6A1A" opacity=".8"/>
-              <circle cx="18" cy="19" r="2.5" fill="#FFFFFF"/>
-            </svg>
-            <h2 className="font-display font-extrabold text-[34px] leading-tight m-0">Come to a meeting</h2>
-            <p className="text-[17px] leading-relaxed m-0" style={{ color: "#D5DFDA" }}>
-              Tell us a little about your family and a leader will reply within 24 hours with what to bring and when to show up.
-            </p>
-          </div>
-          <div style={{ flex: "1 1 320px" }}>
-            {sent ? (
-              <div className="flex flex-col items-center gap-4 text-center py-8">
-                <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#FF6A1A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-                </svg>
-                <p className="font-bold text-[18px] m-0">Request sent!</p>
-                <p className="text-[15px] m-0" style={{ color: "#9DB0A7" }}>A leader will be in touch soon. We&apos;re looking forward to meeting your family.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleJoin} className="flex flex-col gap-3">
-                {[
-                  { id: "pn", label: "Parent name", type: "text", val: parentName, set: setParentName, placeholder: "Jane Smith" },
-                  { id: "em", label: "Email", type: "email", val: email, set: setEmail, placeholder: "jane@example.com" },
-                  { id: "gr", label: "Scout's grade", type: "text", val: grade, set: setGrade, placeholder: "5th grade" },
-                ].map((f) => (
-                  <div key={f.id} className="flex flex-col gap-1.5">
-                    <label htmlFor={f.id} className="font-bold text-[15px]">{f.label}</label>
-                    <input id={f.id} type={f.type} required placeholder={f.placeholder} value={f.val}
-                      onChange={(e) => f.set(e.target.value)}
-                      className="min-h-[48px] rounded-xl px-4 text-[16px]"
-                      style={{ border: "2px solid #4D5F57", background: "rgba(255,255,255,0.08)", color: "#FFFFFF", fontFamily: "inherit" }} />
+          {contacts.length > 0 && (
+            <section id="contact" className="flex flex-col gap-3">
+              <p className="font-bold m-0">Questions about our {word.toLowerCase()}? Send a message to:</p>
+              <div className="grid gap-1 text-[15px]">
+                {Object.entries(groupedContacts).map(([title, list]) => (
+                  <div key={title} className="flex gap-2 flex-wrap">
+                    <b>{title}:</b>
+                    {list.map((c) => (
+                      <button key={c.person_id} onClick={() => { setContactTo(c.person_id); document.getElementById("contact-form")?.scrollIntoView({ behavior: "smooth" }); }}
+                        className="bg-transparent border-0 p-0 cursor-pointer font-sans text-[15px] underline" style={{ color: "#1F5F9F" }}>{c.name}</button>
+                    ))}
                   </div>
                 ))}
-                <button type="submit" disabled={sending}
-                  className="min-h-[52px] rounded-full font-bold text-[17px] border-none cursor-pointer disabled:opacity-50 mt-1"
-                  style={{ background: "#FF6A1A", color: "#14211B", fontFamily: "inherit" }}>
-                  {sending ? "Sending…" : "Request to join"}
-                </button>
+              </div>
+              <form id="contact-form" onSubmit={send} className="rounded-2xl border border-[#E6E2D3] bg-white p-4 flex flex-col gap-3">
+                {sent ? <div className="font-bold">Thanks! A leader will get back to you soon.</div> : (
+                  <>
+                    <select className="input" value={contactTo} onChange={(e) => setContactTo(e.target.value)}>
+                      {contacts.map((c) => <option key={c.person_id} value={c.person_id}>{c.title}: {c.name}</option>)}
+                    </select>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <input className="input" placeholder="Your name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                      <input className="input" type="email" placeholder="Your email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                    </div>
+                    <textarea className="input py-3 min-h-[100px]" placeholder="Your message" required value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
+                    {error && <div className="text-[14px] font-bold" style={{ color: "#A52A1C" }}>{error}</div>}
+                    <button className="btn-primary self-start">Send message</button>
+                  </>
+                )}
               </form>
-            )}
-          </div>
-        </div>
-      </section>
+            </section>
+          )}
 
-      {/* ── Footer ── */}
-      <footer style={{ background: "#1F5F4A", color: "#CFE3DA" }}>
-        <div className="max-w-5xl mx-auto px-5 py-5 flex flex-wrap gap-4 items-center justify-between text-sm">
-          <span>{org.slug}</span>
-          <div className="flex gap-4 items-center">
-            <span>Powered by ScoutPlatform</span>
-            <a href="/login" className="underline" style={{ color: "#CFE3DA" }}>Leader sign in</a>
-          </div>
-        </div>
+          <section className="flex flex-col gap-3 border-t border-[#E6E2D3] pt-6">
+            <h2 className="font-display font-bold text-[28px] text-center m-0">About Our {word}</h2>
+            <div className="text-[16px] leading-relaxed whitespace-pre-wrap">
+              {site.about || `The mission of Scouting America is to prepare young people to make ethical and moral choices over their lifetimes by instilling in them the values of the Scout Oath and Scout Law.`}
+            </div>
+            {site.chartered_org && <p className="m-0 text-[15px]"><b>Chartered organization:</b> {site.chartered_org}</p>}
+            <a href={`/join/${org.slug}`} className="btn-primary no-underline self-start">Interested? Join us</a>
+          </section>
+        </main>
+
+        <aside id="photos" className="flex flex-col gap-4">
+          {albums.map((a, ai) => a.photos.length > 0 && (
+            <button key={a.id} onClick={() => setLightbox({ album: ai, i: 0 })} className="bg-transparent border-0 p-0 cursor-pointer text-center font-sans">
+              <img src={storageUrl + a.photos[0].path} alt={a.title} className="w-full aspect-[4/3] object-cover rounded-lg" loading="lazy" />
+              <div className="text-[14px] mt-1" style={{ color: "#1F5F9F" }}>{a.title}{a.taken_on ? ` (${new Date(a.taken_on).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" })})` : ""}</div>
+            </button>
+          ))}
+        </aside>
+
+        <aside id="events" className="flex flex-col gap-4 text-center">
+          <h2 className="font-display font-bold text-[24px] italic m-0">Upcoming Events</h2>
+          {events.length === 0 && <div className="text-smoke">Check back soon.</div>}
+          {events.map((e) => (
+            <div key={e.id} className="flex flex-col">
+              <a href={`/events/${e.id}`} className="font-bold no-underline" style={{ color: e.deadline ? "#1E8A3E" : "#1F5F9F" }}>{e.title}</a>
+              <span className="text-[14px]">({fmt(e.start_at)})</span>
+              {e.deadline && <span className="text-[14px]">Sign up by {new Date(e.deadline).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}</span>}
+            </div>
+          ))}
+        </aside>
+      </div>
+
+      <footer className="border-t border-[#E6E2D3] py-6 text-center text-[13px] text-smoke">
+        {org.name} · Powered by ScoutPlatform · Not affiliated with Scouting America
       </footer>
+
+      {lightbox && (() => {
+        const a = albums[lightbox.album]; const ph = a.photos[lightbox.i];
+        return (
+          <div className="fixed inset-0 bg-black/85 z-50 flex flex-col items-center justify-center p-4 gap-3" onClick={() => setLightbox(null)}>
+            <img src={storageUrl + ph.path} alt={ph.caption ?? a.title} className="max-h-[80vh] max-w-full rounded-lg" onClick={(e) => e.stopPropagation()} />
+            <div className="text-white text-[15px]">{ph.caption ?? a.title} · {lightbox.i + 1} / {a.photos.length}</div>
+            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+              <button className="btn-secondary" disabled={lightbox.i === 0} onClick={() => setLightbox({ ...lightbox, i: lightbox.i - 1 })}>Previous</button>
+              <button className="btn-secondary" disabled={lightbox.i === a.photos.length - 1} onClick={() => setLightbox({ ...lightbox, i: lightbox.i + 1 })}>Next</button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

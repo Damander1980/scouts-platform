@@ -4,6 +4,7 @@ import Shell from "@/components/Shell";
 import { Chip, LinkButton, PageTitle, SectionLabel, money } from "@/components/ui";
 import { householdBalance, loadFamily } from "@/lib/family";
 import FamilyTools from "./FamilyTools";
+import PhotoConsent from "./PhotoConsent";
 
 function age(b: string | null) {
   if (!b) return null;
@@ -23,7 +24,10 @@ export default async function FamilyPage() {
     supabase.from("scout_certifications").select("person_id, status, certifications(name)").eq("org_id", orgId).in("person_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]),
   ]);
 
-  const formChip = (pid: string, type: string, label: string) => {
+  const { data: consents } = ids.length ? await supabase.from("persons").select("id, photo_consent").in("id", ids) : { data: [] };
+  const consentOf = Object.fromEntries((consents ?? []).map((c) => [c.id, c.photo_consent as boolean | null]));
+
+  const formChip =(pid: string, type: string, label: string) => {
     const f = (forms ?? []).find((x) => x.person_id === pid && x.type === type);
     if (!f) return <Chip tone="orange">{label} needed</Chip>;
     if (f.expires_at && new Date(f.expires_at) < new Date()) return <Chip tone="red">{label} expired</Chip>;
@@ -74,6 +78,7 @@ export default async function FamilyPage() {
                   {p.type === "youth" && a !== null && a >= 18 && <Chip tone="orange">Turned 18: ask a leader to update role</Chip>}
                 </div>
               )}
+              {p.type === "youth" && <PhotoConsent personId={p.id} name={p.first_name} initial={consentOf[p.id] ?? null} />}
             </div>
           );
         })}
