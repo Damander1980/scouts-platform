@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
   // Protect app routes
   const APP_PREFIXES = [
     "/home", "/welcome", "/dashboard", "/events", "/roster", "/pay", "/family", "/setup",
-    "/admin", "/scout/", "/messages", "/settings", "/patrols", "/forms", "/advancement", "/checkin/",
+    "/admin", "/scout/", "/messages", "/settings", "/patrols", "/forms", "/advancement", "/checkin/", "/counselor", "/pay", "/gear", "/trips",
   ];
   const path = request.nextUrl.pathname;
   const isAppRoute = APP_PREFIXES.some((p) => path === p || path.startsWith(p.endsWith("/") ? p : p + "/") || path === p.replace(/\/$/, ""));

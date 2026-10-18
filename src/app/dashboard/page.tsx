@@ -148,6 +148,13 @@ export default async function DashboardPage() {
         )}
       </section>
 
+      {current.role === "merit_badge_counselor" && (
+        <Link href="/counselor" className="card no-underline text-ink flex items-center justify-between">
+          <div><div className="font-bold text-[16px]">Merit badge counselor</div><div className="text-[13px] text-smoke">Your Scouts and sign-offs</div></div>
+          <Chip tone="dark">Open</Chip>
+        </Link>
+      )}
+
       <section className="grid grid-cols-2 gap-2">
         {inTroop.filter((p) => p.type === "youth").map((p) => (
           <Link key={p.id} href={`/scout/${p.id}/advancement`} className="card no-underline text-ink">

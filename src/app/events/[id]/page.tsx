@@ -18,6 +18,10 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const { data: ev } = await supabase.from("events").select("*").eq("id", id).eq("org_id", orgId).maybeSingle();
   if (!ev) notFound();
 
+  const { data: tripPlan } = await supabase.from("trip_plans").select("itinerary, packing").eq("event_id", id).maybeSingle();
+  const packing = ((tripPlan?.packing ?? []) as { id: string; text: string }[]);
+  const itinerary = ((tripPlan?.itinerary ?? []) as { id: string; day?: string; time?: string; text: string }[]);
+
   const [{ data: rsvps }, { data: roster }, { data: patrolRows }, family, { data: orgForms }] = await Promise.all([
     supabase.from("rsvps").select("person_id, status, notes, driver_seats, dietary, answers").eq("event_id", id),
     supabase.from("memberships").select("person_id, role, ypt_expires, persons(first_name, last_name, type, birthdate)").eq("org_id", orgId).eq("status", "active"),
@@ -128,6 +132,23 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
       {!ev.canceled && myFamily.length > 0 && (
         <RsvpPanel eventId={ev.id} costCents={ev.cost_cents} questions={(ev.questions ?? []) as string[]} family={famRsvps} />
+      )}
+
+      {(itinerary.length > 0 || packing.length > 0) && (
+        <section className="grid md:grid-cols-2 gap-3">
+          {itinerary.length > 0 && (
+            <div className="card flex flex-col gap-1">
+              <div className="font-bold text-[15px]">Schedule</div>
+              {itinerary.map((i) => <div key={i.id} className="text-[14px]"><b>{[i.day, i.time].filter(Boolean).join(" ")}</b> {i.text}</div>)}
+            </div>
+          )}
+          {packing.length > 0 && (
+            <div className="card flex flex-col gap-1">
+              <div className="font-bold text-[15px]">What to bring</div>
+              <ul className="m-0 pl-5 text-[14px]">{packing.map((p) => <li key={p.id}>{p.text}</li>)}</ul>
+            </div>
+          )}
+        </section>
       )}
 
       {isLeader && going.length > 0 && (
