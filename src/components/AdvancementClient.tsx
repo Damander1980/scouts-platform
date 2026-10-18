@@ -79,9 +79,10 @@ function SegmentBar({ total, done, approved }: { total: number; done: number; ap
 
 export default function AdvancementClient({
   scout, orgId, items, tracked: initialTracked, progress: initialProgress,
-  isLeader, viewerPersonId, demo = false, program = "scouts_bsa",
+  isLeader, viewerPersonId, demo = false, program = "scouts_bsa", counselorBadgeIds = [],
 }: {
   program?: Program;
+  counselorBadgeIds?: string[];
   scout: { id: string; first_name: string; last_name: string };
   orgId: string;
   items: Item[];
@@ -107,6 +108,8 @@ export default function AdvancementClient({
   const adventures = items.filter((i) => i.kind === "adventure");
   const badges = items.filter((i) => i.kind === "badge");
   const trackedMap = Object.fromEntries(tracked.map((t) => [t.item_id, t]));
+  const counselorSet = new Set(counselorBadgeIds);
+  const canSign = (item: Item) => isLeader || (item.kind === "badge" && counselorSet.has(item.id));
 
   const stats = (item: Item) => {
     const total = item.requirements.length;
@@ -213,7 +216,7 @@ export default function AdvancementClient({
       {item.requirements.length === 0 && (
         <div className="rounded-xl px-4 py-3 text-[13px]" style={{ background: "#F4F6F5", color: "#4D5F57" }}>
           Detailed requirements for this badge aren&apos;t loaded yet. Work with your merit badge counselor using the official pamphlet.
-          {isLeader && !stats(item).completed && (
+          {canSign(item) && !stats(item).completed && (
             <button onClick={() => run(() => setStatus(item, "completed"))} disabled={busy}
               className="ml-2 font-bold underline bg-transparent border-0 cursor-pointer p-0"
               style={{ color: "#1F5F4A", fontFamily: "inherit" }}>
@@ -226,7 +229,7 @@ export default function AdvancementClient({
         const p = progress[r.id];
         const done = !!p?.completed_at;
         const signed = !!p?.approved_by;
-        const canToggle = !signed || isLeader;
+        const canToggle = !signed || canSign(item);
         return (
           <div key={r.id} className="flex items-start gap-3 rounded-xl px-3 py-2.5"
             style={{ background: signed ? "#EAF0ED" : done ? "#F4F8F6" : "#FFFFFF", border: "1px solid #E3EAE6" }}>
@@ -254,7 +257,7 @@ export default function AdvancementClient({
                 ) : (
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#F4F6F5", color: "#4D5F57" }}>Not started</span>
                 )}
-                {isLeader && !signed && (
+                {canSign(item) && !signed && (
                   <button onClick={() => signOff(item, r)} disabled={busy}
                     className="text-[11px] font-bold px-2.5 py-0.5 rounded-full border cursor-pointer"
                     style={{ borderColor: "#1F5F4A", color: "#1F5F4A", background: "white", fontFamily: "inherit" }}>

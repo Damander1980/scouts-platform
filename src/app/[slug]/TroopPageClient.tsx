@@ -152,9 +152,8 @@ export default function TroopPageClient({
           </div>
 
           {/* Photo slot */}
-          <div style={{ flex: "1 1 320px", minHeight: 280 }}
-            className="rounded-3xl flex items-center justify-center text-center p-6"
-            style={{ border: "2px dashed rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.07)", minHeight: 280 }}>
+          <div className="rounded-3xl flex items-center justify-center text-center p-6"
+            style={{ flex: "1 1 320px", border: "2px dashed rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.07)", minHeight: 280 }}>
             {(org.settings as { hero_photo?: string }).hero_photo
               ? <img src={(org.settings as { hero_photo?: string }).hero_photo} alt={displayName}
                   className="w-full h-full object-cover rounded-2xl" />

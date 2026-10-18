@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import MembersClient from "./MembersClient";
+import MembersClient, { type Member } from "./MembersClient";
 
 export default async function MembersPage() {
   const supabase = await createClient();
@@ -23,5 +23,18 @@ export default async function MembersPage() {
     .eq("org_id", membership.org_id)
     .order("joined_at", { ascending: false });
 
-  return <MembersClient members={members ?? []} orgId={membership.org_id} myRole={membership.role} />;
+  const [{ data: badges }, { data: counselorAssignments }] = await Promise.all([
+    supabase.from("advancement_items").select("id, name, eagle_required").eq("kind", "badge").order("name"),
+    supabase.from("merit_badge_counselors").select("person_id, item_id").eq("org_id", membership.org_id),
+  ]);
+
+  return (
+    <MembersClient
+      members={(members ?? []) as unknown as Member[]}
+      orgId={membership.org_id}
+      myRole={membership.role}
+      badges={badges ?? []}
+      counselorAssignments={counselorAssignments ?? []}
+    />
+  );
 }

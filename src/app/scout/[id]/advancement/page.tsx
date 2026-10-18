@@ -30,7 +30,11 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
     .from("memberships").select("role").eq("person_id", viewer.id).eq("org_id", orgId).eq("status", "active").maybeSingle();
   const isLeader = !!viewerMembership && LEADER_ROLES.includes(viewerMembership.role);
 
-  let allowed = isLeader || viewer.id === id;
+  const { data: counselorRows } = await supabase
+    .from("merit_badge_counselors").select("item_id").eq("org_id", orgId).eq("person_id", viewer.id);
+  const counselorBadgeIds = (counselorRows ?? []).map((r) => r.item_id as string);
+
+  let allowed = isLeader || viewer.id === id || (!!viewerMembership && counselorBadgeIds.length > 0);
   if (!allowed) {
     const { data: myHouseholds } = await supabase
       .from("household_members").select("household_id").eq("person_id", viewer.id).eq("is_guardian", true);
@@ -63,6 +67,7 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
       isLeader={isLeader}
       viewerPersonId={viewer.id}
       program={orgType === "cubs" ? "cubs" : "scouts_bsa"}
+      counselorBadgeIds={counselorBadgeIds}
     />
   );
 }

@@ -2,13 +2,16 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import TroopPageClient from "./TroopPageClient";
 
-export default async function TroopPublicPage({ params }: { params: { slug: string } }) {
+type Person = { first_name: string; last_name: string };
+
+export default async function TroopPublicPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const supabase = await createClient();
 
   const { data: org } = await supabase
     .from("organizations")
     .select("id, name, type, unit_number, city, state, slug, join_code, settings")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .single();
 
   if (!org) notFound();
@@ -40,10 +43,10 @@ export default async function TroopPublicPage({ params }: { params: { slug: stri
     <TroopPageClient
       org={org}
       events={events ?? []}
-      leaders={(leaders ?? []).map((m) => ({
-        role: m.role,
-        name: `${(m.persons as { first_name: string; last_name: string })?.first_name} ${(m.persons as { first_name: string; last_name: string })?.last_name}`,
-      }))}
+      leaders={(leaders ?? []).map((m) => {
+        const p = m.persons as unknown as Person | null;
+        return { role: m.role, name: p ? `${p.first_name} ${p.last_name}` : "" };
+      })}
     />
   );
 }

@@ -31,7 +31,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   ];
   if (!leaderRoles.includes(membership.role)) redirect("/dashboard");
 
-  const org = membership.organizations as {
+  const org = membership.organizations as unknown as {
     id: string; name: string; type: string; unit_number: string; city: string; join_code: string;
   };
 

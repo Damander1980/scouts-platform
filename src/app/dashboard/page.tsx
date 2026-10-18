@@ -27,7 +27,7 @@ export default async function DashboardPage() {
 
   // Use first org for now (multi-org switcher is future)
   const membership = memberships[0];
-  const org = membership.organizations as {
+  const org = membership.organizations as unknown as {
     id: string; name: string; type: string; unit_number: string; city: string; join_code: string;
   };
 

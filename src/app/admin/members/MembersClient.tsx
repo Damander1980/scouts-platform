@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 const ROLES = [
   "scout","parent_guardian","scoutmaster","assistant_scoutmaster","committee_chair",
   "committee_member","treasurer","advancement_chair","chartered_org_rep",
-  "den_leader","cubmaster","crew_advisor","skipper",
+  "den_leader","cubmaster","crew_advisor","skipper","merit_badge_counselor",
 ];
 const ROLE_LABEL: Record<string, string> = {
   scout: "Scout", parent_guardian: "Parent/Guardian", scoutmaster: "Scoutmaster",
@@ -14,19 +14,45 @@ const ROLE_LABEL: Record<string, string> = {
   committee_member: "Committee Member", treasurer: "Treasurer",
   advancement_chair: "Advancement Chair", chartered_org_rep: "Chartered Org Rep",
   den_leader: "Den Leader", cubmaster: "Cubmaster", crew_advisor: "Crew Advisor",
-  skipper: "Skipper",
+  skipper: "Skipper", merit_badge_counselor: "Merit Badge Counselor",
 };
 
-type Member = {
+export type Member = {
   id: string; role: string; status: string; joined_at: string; ypt_expires: string | null;
   persons: { id: string; first_name: string; last_name: string; type: string; birthdate: string | null; user_id: string | null };
 };
 
-export default function MembersClient({ members: initial, orgId, myRole }: {
+export type Badge = { id: string; name: string; eagle_required: boolean };
+export type CounselorAssignment = { person_id: string; item_id: string };
+
+export default function MembersClient({ members: initial, orgId, myRole, badges = [], counselorAssignments = [], demo = false }: {
   members: Member[]; orgId: string; myRole: string;
+  badges?: Badge[]; counselorAssignments?: CounselorAssignment[]; demo?: boolean;
 }) {
   const supabase = createClient();
   const [members, setMembers] = useState(initial);
+  const [assignments, setAssignments] = useState(counselorAssignments);
+  const [editingCounselor, setEditingCounselor] = useState<string | null>(null);
+  const [badgeSearch, setBadgeSearch] = useState("");
+  const badgeName = Object.fromEntries(badges.map((b) => [b.id, b.name]));
+
+  const toggleCounselorBadge = async (personId: string, itemId: string) => {
+    const has = assignments.some((a) => a.person_id === personId && a.item_id === itemId);
+    setBusy(true); setError("");
+    try {
+      if (!demo) {
+        const q = has
+          ? supabase.from("merit_badge_counselors").delete().eq("org_id", orgId).eq("person_id", personId).eq("item_id", itemId)
+          : supabase.from("merit_badge_counselors").insert({ org_id: orgId, person_id: personId, item_id: itemId });
+        const { error } = await q;
+        if (error) throw error;
+      }
+      setAssignments((cur) => has
+        ? cur.filter((a) => !(a.person_id === personId && a.item_id === itemId))
+        : [...cur, { person_id: personId, item_id: itemId }]);
+    } catch (e: any) { setError(e.message); }
+    setBusy(false);
+  };
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -46,7 +72,7 @@ export default function MembersClient({ members: initial, orgId, myRole }: {
       .select("id, role, status, joined_at, ypt_expires, persons(id, first_name, last_name, type, birthdate, user_id)")
       .eq("org_id", orgId)
       .order("joined_at", { ascending: false });
-    setMembers((data as Member[]) ?? []);
+    setMembers((data ?? []) as unknown as Member[]);
   };
 
   const addMember = async (e: React.FormEvent) => {
@@ -218,6 +244,47 @@ export default function MembersClient({ members: initial, orgId, myRole }: {
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "#EAF0ED", color: "#1F5F4A" }}>Account</span>
                     )}
                   </div>
+                  {m.persons.type === "youth" && (
+                    <a href={`/scout/${m.persons.id}/advancement`} className="text-[12px] font-bold no-underline ml-10" style={{ color: "#1F5F4A" }}>
+                      Advancement
+                    </a>
+                  )}
+                  {m.role === "merit_badge_counselor" && (
+                    <div className="ml-10 mt-1 flex flex-wrap gap-1 items-center">
+                      {assignments.filter((a) => a.person_id === m.persons.id).map((a) => (
+                        <span key={a.item_id} className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#EAF0ED", color: "#1F5F4A" }}>
+                          {badgeName[a.item_id] ?? "Badge"}
+                        </span>
+                      ))}
+                      <button onClick={() => { setEditingCounselor(editingCounselor === m.persons.id ? null : m.persons.id); setBadgeSearch(""); }}
+                        className="text-[11px] font-bold px-2 py-0.5 rounded-full border cursor-pointer bg-white"
+                        style={{ borderColor: "#1F5F4A", color: "#1F5F4A", fontFamily: "inherit" }}>
+                        {editingCounselor === m.persons.id ? "Done" : "Edit badges"}
+                      </button>
+                    </div>
+                  )}
+                  {editingCounselor === m.persons.id && (
+                    <div className="ml-10 mt-2 p-3 rounded-xl border border-[#D5DFDA] bg-[#F4F6F5] flex flex-col gap-2 max-w-md">
+                      <div className="text-[12px]" style={{ color: "#4D5F57" }}>
+                        Check the badges this counselor is approved to counsel. They can sign off only these.
+                      </div>
+                      <input value={badgeSearch} onChange={(e) => setBadgeSearch(e.target.value)} placeholder="Search badges…"
+                        className="rounded-lg border border-[#D5DFDA] px-2 py-1.5 text-[13px] outline-none bg-white" style={{ fontFamily: "inherit" }} />
+                      <div className="max-h-56 overflow-y-auto flex flex-col">
+                        {badges.filter((b) => !badgeSearch || b.name.toLowerCase().includes(badgeSearch.toLowerCase())).map((b) => {
+                          const checked = assignments.some((a) => a.person_id === m.persons.id && a.item_id === b.id);
+                          return (
+                            <label key={b.id} className="flex items-center gap-2 py-1 text-[13px] cursor-pointer">
+                              <input type="checkbox" checked={checked} disabled={busy}
+                                onChange={() => toggleCounselorBadge(m.persons.id, b.id)} />
+                              {b.name}
+                              {b.eagle_required && <span className="text-[10px] font-bold" style={{ color: "#7A2E00" }}>Eagle</span>}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-[13px] capitalize" style={{ color: "#4D5F57" }}>{m.persons.type}</td>
                 <td className="px-4 py-3">
