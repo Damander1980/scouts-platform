@@ -16,7 +16,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   let q = supabase.from("events").select("id, title, start_at, end_at, location, cost_cents, kind, canceled, cap")
     .eq("org_id", current.org.id);
   q = past ? q.lt("start_at", now).order("start_at", { ascending: false }).limit(50) : q.gte("start_at", now).order("start_at").limit(100);
-  const { data: events } = await q;
+  const [{ data: events }, { data: calToken }] = await Promise.all([q, supabase.rpc("org_calendar_token", { p_org: current.org.id })]);
 
   const ids = (events ?? []).map((e) => e.id);
   const { data: going } = ids.length
@@ -40,7 +40,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
           style={{ background: !past ? "#1F5F4A" : "white", color: !past ? "white" : "#4D5F57", borderColor: !past ? "#1F5F4A" : "#D5DFDA" }}>Upcoming</Link>
         <Link href="/events?past=1" className="px-3 py-1.5 rounded-full text-[13px] font-bold no-underline border"
           style={{ background: past ? "#1F5F4A" : "white", color: past ? "white" : "#4D5F57", borderColor: past ? "#1F5F4A" : "#D5DFDA" }}>Past</Link>
-        <a href={`/api/calendar/${current.org.id}`} className="ml-auto px-3 py-1.5 rounded-full text-[13px] font-bold no-underline border border-border bg-white text-smoke">
+        <a href={`webcal://${process.env.NEXT_PUBLIC_SITE_HOST ?? "localhost:3000"}/api/calendar/${current.org.id}?t=${calToken ?? ""}`} className="ml-auto px-3 py-1.5 rounded-full text-[13px] font-bold no-underline border border-border bg-white text-smoke">
           Add to my calendar
         </a>
       </div>

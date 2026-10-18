@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Chip, ErrorBox, Field } from "@/components/ui";
 
 const ROLES = [
-  "scout","parent_guardian","scoutmaster","assistant_scoutmaster","committee_chair",
-  "committee_member","treasurer","advancement_chair","chartered_org_rep",
-  "den_leader","cubmaster","crew_advisor","skipper","merit_badge_counselor",
+  "scout", "parent_guardian", "scoutmaster", "assistant_scoutmaster", "committee_chair",
+  "committee_member", "treasurer", "advancement_chair", "chartered_org_rep",
+  "den_leader", "cubmaster", "crew_advisor", "skipper", "merit_badge_counselor",
 ];
 const ROLE_LABEL: Record<string, string> = {
   scout: "Scout", parent_guardian: "Parent/Guardian", scoutmaster: "Scoutmaster",
@@ -19,323 +21,305 @@ const ROLE_LABEL: Record<string, string> = {
 
 export type Member = {
   id: string; role: string; status: string; joined_at: string; ypt_expires: string | null;
+  is_admin?: boolean; is_designated_leader?: boolean; position?: string | null; registration_expires?: string | null;
   persons: { id: string; first_name: string; last_name: string; type: string; birthdate: string | null; user_id: string | null };
 };
-
 export type Badge = { id: string; name: string; eagle_required: boolean };
 export type CounselorAssignment = { person_id: string; item_id: string };
+export type JoinRequest = { id: string; created_at: string; requester: string; people: { id: string; name: string; type: string; birthdate: string | null }[] };
 
-export default function MembersClient({ members: initial, orgId, myRole, badges = [], counselorAssignments = [], demo = false }: {
-  members: Member[]; orgId: string; myRole: string;
+function age(b: string | null) {
+  if (!b) return null;
+  const d = new Date(b), n = new Date();
+  return n.getFullYear() - d.getFullYear() - (n < new Date(n.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0);
+}
+
+export default function MembersClient({
+  members: initial, orgId, myRole, badges = [], counselorAssignments = [], demo = false,
+  joinCode = "", slug = "", isAdmin = true, myPersonId = "", joinRequests = [], patrolOf = {}, initialTab = "members",
+}: {
+  members: Member[]; orgId: string; myRole?: string;
   badges?: Badge[]; counselorAssignments?: CounselorAssignment[]; demo?: boolean;
+  joinCode?: string; slug?: string; isAdmin?: boolean; myPersonId?: string;
+  joinRequests?: JoinRequest[]; patrolOf?: Record<string, string>; initialTab?: "members" | "requests";
 }) {
+  void myRole;
   const supabase = createClient();
+  const router = useRouter();
   const [members, setMembers] = useState(initial);
+  const [tab, setTab] = useState(initialTab);
+  const [requests, setRequests] = useState(joinRequests);
   const [assignments, setAssignments] = useState(counselorAssignments);
-  const [editingCounselor, setEditingCounselor] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
   const [badgeSearch, setBadgeSearch] = useState("");
-  const badgeName = Object.fromEntries(badges.map((b) => [b.id, b.name]));
-
-  const toggleCounselorBadge = async (personId: string, itemId: string) => {
-    const has = assignments.some((a) => a.person_id === personId && a.item_id === itemId);
-    setBusy(true); setError("");
-    try {
-      if (!demo) {
-        const q = has
-          ? supabase.from("merit_badge_counselors").delete().eq("org_id", orgId).eq("person_id", personId).eq("item_id", itemId)
-          : supabase.from("merit_badge_counselors").insert({ org_id: orgId, person_id: personId, item_id: itemId });
-        const { error } = await q;
-        if (error) throw error;
-      }
-      setAssignments((cur) => has
-        ? cur.filter((a) => !(a.person_id === personId && a.item_id === itemId))
-        : [...cur, { person_id: personId, item_id: itemId }]);
-    } catch (e: any) { setError(e.message); }
-    setBusy(false);
-  };
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
-
-  // Add member form
+  const [filter, setFilter] = useState("active");
   const [showAdd, setShowAdd] = useState(false);
-  const [addFirst, setAddFirst] = useState("");
-  const [addLast, setAddLast] = useState("");
-  const [addType, setAddType] = useState<"adult" | "youth">("youth");
-  const [addRole, setAddRole] = useState("scout");
-  const [addBirth, setAddBirth] = useState("");
+  const [add, setAdd] = useState({ first: "", last: "", type: "youth", role: "scout", birth: "" });
+  const [claim, setClaim] = useState<{ pid: string; code: string } | null>(null);
+  const badgeName = Object.fromEntries(badges.map((b) => [b.id, b.name]));
+  const site = typeof window !== "undefined" ? window.location.origin : "";
 
-  const reload = async () => {
-    const { data } = await supabase
-      .from("memberships")
-      .select("id, role, status, joined_at, ypt_expires, persons(id, first_name, last_name, type, birthdate, user_id)")
-      .eq("org_id", orgId)
-      .order("joined_at", { ascending: false });
-    setMembers((data ?? []) as unknown as Member[]);
-  };
-
-  const addMember = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const run = async (fn: () => Promise<void>) => {
     setBusy(true); setError("");
-    try {
-      const { data: newPerson, error: pe } = await supabase
-        .from("persons")
-        .insert({ first_name: addFirst, last_name: addLast, type: addType, birthdate: addBirth || null })
-        .select("id").single();
-      if (pe) throw pe;
-
-      const { error: me } = await supabase
-        .from("memberships")
-        .insert({ org_id: orgId, person_id: newPerson.id, role: addRole, status: "active" });
-      if (me) throw me;
-
-      setAddFirst(""); setAddLast(""); setAddBirth(""); setAddRole("scout"); setAddType("youth");
-      setShowAdd(false);
-      await reload();
-    } catch (e: any) { setError(e.message); }
+    try { await fn(); } catch (e: any) { setError(e.message ?? String(e)); }
     setBusy(false);
   };
 
-  const changeRole = async (membershipId: string, role: string) => {
-    setBusy(true); setError("");
-    const { error } = await supabase.from("memberships").update({ role }).eq("id", membershipId);
-    if (error) setError(error.message);
-    else await reload();
-    setBusy(false);
-  };
-
-  const changeStatus = async (membershipId: string, status: string) => {
-    setBusy(true); setError("");
-    const { error } = await supabase.from("memberships").update({ status }).eq("id", membershipId);
-    if (error) setError(error.message);
-    else await reload();
-    setBusy(false);
-  };
-
-  const filtered = members.filter((m) => {
-    const name = `${m.persons.first_name} ${m.persons.last_name}`.toLowerCase();
-    const matchSearch = !search || name.includes(search.toLowerCase());
-    const matchFilter = filter === "all" || m.status === filter || m.persons.type === filter;
-    return matchSearch && matchFilter;
+  const patch = (id: string, values: Partial<Member>) => run(async () => {
+    if (!demo) {
+      const { error } = await supabase.from("memberships").update(values).eq("id", id);
+      if (error) throw error;
+    }
+    setMembers((ms) => ms.map((m) => (m.id === id ? { ...m, ...values } : m)));
   });
 
-  const yptExpired = (iso: string | null) => iso && new Date(iso) < new Date();
+  const decide = (rid: string, approve: boolean) => run(async () => {
+    const { error } = await supabase.rpc("decide_join", { p_request: rid, p_approve: approve });
+    if (error) throw error;
+    setRequests((rs) => rs.filter((r) => r.id !== rid));
+    router.refresh();
+  });
+
+  const addPerson = (e: React.FormEvent) => {
+    e.preventDefault();
+    run(async () => {
+      const { error } = await supabase.rpc("admin_add_person", {
+        p_org: orgId, p_first: add.first, p_last: add.last, p_type: add.type, p_birthdate: add.birth || null, p_role: add.role, p_household: null,
+      });
+      if (error) throw error;
+      setAdd({ first: "", last: add.last, type: "youth", role: "scout", birth: "" });
+      setShowAdd(false);
+      router.refresh();
+    });
+  };
+
+  const toggleCounselorBadge = (personId: string, itemId: string) => run(async () => {
+    const has = assignments.some((a) => a.person_id === personId && a.item_id === itemId);
+    if (!demo) {
+      const { error } = has
+        ? await supabase.from("merit_badge_counselors").delete().eq("org_id", orgId).eq("person_id", personId).eq("item_id", itemId)
+        : await supabase.from("merit_badge_counselors").insert({ org_id: orgId, person_id: personId, item_id: itemId });
+      if (error) throw error;
+    }
+    setAssignments((cur) => has ? cur.filter((a) => !(a.person_id === personId && a.item_id === itemId)) : [...cur, { person_id: personId, item_id: itemId }]);
+  });
+
+  const shown = members.filter((m) => {
+    const name = `${m.persons.first_name} ${m.persons.last_name}`.toLowerCase();
+    if (search && !name.includes(search.toLowerCase())) return false;
+    if (filter === "active") return m.status === "active";
+    if (filter === "inactive") return m.status !== "active";
+    if (filter === "youth" || filter === "adult") return m.persons.type === filter && m.status === "active";
+    if (filter === "leaders") return m.status === "active" && !["scout", "parent_guardian"].includes(m.role);
+    return true;
+  }).sort((a, b) => a.persons.last_name.localeCompare(b.persons.last_name) || a.persons.first_name.localeCompare(b.persons.first_name));
+
+  const expired = (d?: string | null) => !!d && new Date(d) < new Date();
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="font-display font-extrabold text-[28px] m-0">Members</h1>
-          <p className="text-[14px] m-0 mt-1" style={{ color: "#4D5F57" }}>{members.filter(m => m.status === "active").length} active members</p>
+          <p className="text-[14px] m-0 mt-1 text-smoke">{members.filter((m) => m.status === "active").length} active · role changes are logged</p>
         </div>
-        <button onClick={() => setShowAdd(!showAdd)}
-          className="min-h-[40px] px-5 rounded-full font-bold text-[14px] border-0 cursor-pointer"
-          style={{ background: "#FF6A1A", color: "#14211B", fontFamily: "inherit" }}>
-          + Add member
-        </button>
+        <div className="flex gap-2">
+          <a href="/api/export/roster.csv" className="btn-secondary no-underline">Export CSV</a>
+          {isAdmin && <button onClick={() => setShowAdd(!showAdd)} className="btn-primary">+ Add member</button>}
+        </div>
       </div>
 
-      {error && <div className="rounded-xl px-4 py-3 text-[14px] font-bold" style={{ background: "#FFF1E6", color: "#7A2E00" }}>{error}</div>}
+      <ErrorBox>{error}</ErrorBox>
 
-      {/* Add form */}
+      {joinCode && (
+        <div className="card flex flex-col md:flex-row md:items-center gap-3" style={{ background: "#F4F8F6" }}>
+          <div className="flex-1">
+            <div className="font-bold text-[15px]">Invite families</div>
+            <div className="text-[13px] text-smoke">Share the link or code. Families sign in, add their kids, and request to join. You approve them here.</div>
+          </div>
+          <div className="font-display font-extrabold text-[22px] tracking-widest">{joinCode.toUpperCase()}</div>
+          <button className="btn-secondary" onClick={() => navigator.clipboard.writeText(`${site}/join/${slug}`)}>Copy invite link</button>
+        </div>
+      )}
+
       {showAdd && (
-        <form onSubmit={addMember} className="bg-white rounded-2xl border border-[#D5DFDA] p-5 flex flex-col gap-4">
-          <div className="font-bold text-[16px]">Add a member</div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "#4D5F57" }}>First name</label>
-              <input value={addFirst} onChange={e => setAddFirst(e.target.value)} required
-                className="rounded-xl border border-[#D5DFDA] px-3 py-2 text-[14px] outline-none focus:border-forest"
-                style={{ fontFamily: "inherit" }} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "#4D5F57" }}>Last name</label>
-              <input value={addLast} onChange={e => setAddLast(e.target.value)} required
-                className="rounded-xl border border-[#D5DFDA] px-3 py-2 text-[14px] outline-none focus:border-forest"
-                style={{ fontFamily: "inherit" }} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "#4D5F57" }}>Type</label>
-              <select value={addType} onChange={e => setAddType(e.target.value as "adult" | "youth")}
-                className="rounded-xl border border-[#D5DFDA] px-3 py-2 text-[14px] outline-none"
-                style={{ fontFamily: "inherit" }}>
-                <option value="youth">Youth (Scout)</option>
-                <option value="adult">Adult (Leader / Parent)</option>
+        <form onSubmit={addPerson} className="card flex flex-col gap-3">
+          <div className="font-bold text-[16px]">Add a member directly</div>
+          <p className="text-[13px] text-smoke m-0">For people without an account yet. Give their parent a claim code later so they can take over the record.</p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field label="First name"><input className="input" value={add.first} onChange={(e) => setAdd({ ...add, first: e.target.value })} required /></Field>
+            <Field label="Last name"><input className="input" value={add.last} onChange={(e) => setAdd({ ...add, last: e.target.value })} required /></Field>
+            <Field label="Youth or adult">
+              <select className="input" value={add.type} onChange={(e) => setAdd({ ...add, type: e.target.value, role: e.target.value === "youth" ? "scout" : "parent_guardian" })}>
+                <option value="youth">Youth</option><option value="adult">Adult</option>
               </select>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "#4D5F57" }}>Role</label>
-              <select value={addRole} onChange={e => setAddRole(e.target.value)}
-                className="rounded-xl border border-[#D5DFDA] px-3 py-2 text-[14px] outline-none"
-                style={{ fontFamily: "inherit" }}>
-                {ROLES.map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+            </Field>
+            <Field label="Role">
+              <select className="input" value={add.role} onChange={(e) => setAdd({ ...add, role: e.target.value })}>
+                {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
               </select>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "#4D5F57" }}>Birthdate (optional)</label>
-              <input type="date" value={addBirth} onChange={e => setAddBirth(e.target.value)}
-                className="rounded-xl border border-[#D5DFDA] px-3 py-2 text-[14px] outline-none"
-                style={{ fontFamily: "inherit" }} />
-            </div>
+            </Field>
+            <Field label="Birthday"><input className="input" type="date" value={add.birth} onChange={(e) => setAdd({ ...add, birth: e.target.value })} /></Field>
           </div>
-          <div className="flex gap-2">
-            <button type="submit" disabled={busy}
-              className="min-h-[38px] px-5 rounded-full font-bold text-[14px] border-0 cursor-pointer"
-              style={{ background: "#1F5F4A", color: "#fff", fontFamily: "inherit" }}>
-              {busy ? "Adding…" : "Add member"}
-            </button>
-            <button type="button" onClick={() => setShowAdd(false)}
-              className="min-h-[38px] px-5 rounded-full font-bold text-[14px] border border-[#D5DFDA] bg-white cursor-pointer"
-              style={{ fontFamily: "inherit", color: "#14211B" }}>
-              Cancel
-            </button>
-          </div>
+          <div className="flex gap-2"><button className="btn-primary" disabled={busy}>Add</button><button type="button" className="btn-secondary" onClick={() => setShowAdd(false)}>Cancel</button></div>
         </form>
       )}
 
-      {/* Filters */}
-      <div className="flex items-center gap-3">
-        <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search by name…"
-          className="rounded-xl border border-[#D5DFDA] px-3 py-2 text-[14px] outline-none w-56"
-          style={{ fontFamily: "inherit" }} />
-        <div className="flex gap-1">
-          {["all","active","inactive","youth","adult"].map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              className="px-3 py-1.5 rounded-full text-[12px] font-bold border cursor-pointer capitalize"
-              style={{
-                fontFamily: "inherit",
-                background: filter === f ? "#1F5F4A" : "white",
-                color: filter === f ? "white" : "#4D5F57",
-                borderColor: filter === f ? "#1F5F4A" : "#D5DFDA",
-              }}>
-              {f === "all" ? "All" : f}
-            </button>
-          ))}
-        </div>
+      <div className="flex gap-2">
+        {(["members", "requests"] as const).map((t) => (
+          <button key={t} onClick={() => setTab(t)} className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
+            style={{ background: tab === t ? "#1F5F4A" : "white", color: tab === t ? "white" : "#4D5F57", borderColor: tab === t ? "#1F5F4A" : "#D5DFDA" }}>
+            {t === "members" ? "Members" : `Join requests${requests.length ? ` (${requests.length})` : ""}`}
+          </button>
+        ))}
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-[#D5DFDA] overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr style={{ borderBottom: "1px solid #EAF0ED" }}>
-              {["Name", "Type", "Role", "YPT", "Status", "Joined", ""].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide" style={{ color: "#9DB0A7" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-[14px]" style={{ color: "#9DB0A7" }}>No members found</td></tr>
-            )}
-            {filtered.map((m) => (
-              <tr key={m.id} className="border-b border-[#EAF0ED] last:border-0"
-                style={{ opacity: m.status === "inactive" ? 0.5 : 1 }}>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold flex-none text-white"
-                      style={{ background: m.persons.type === "youth" ? "#1F5F4A" : "#4D5F57" }}>
-                      {m.persons.first_name[0]}{m.persons.last_name[0]}
-                    </div>
-                    <span className="font-bold text-[14px]">{m.persons.first_name} {m.persons.last_name}</span>
-                    {m.persons.user_id && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "#EAF0ED", color: "#1F5F4A" }}>Account</span>
-                    )}
+      {tab === "requests" && (
+        <div className="flex flex-col gap-2">
+          {requests.length === 0 && <div className="card text-smoke">No pending requests.</div>}
+          {requests.map((r) => (
+            <div key={r.id} className="card flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div><b>{r.requester}</b> <span className="text-smoke text-[13px]">asked {new Date(r.created_at).toLocaleDateString()}</span></div>
+                {isAdmin ? (
+                  <div className="flex gap-2">
+                    <button className="btn-primary" disabled={busy} onClick={() => decide(r.id, true)}>Approve</button>
+                    <button className="btn-secondary" disabled={busy} onClick={() => decide(r.id, false)}>Decline</button>
                   </div>
-                  {m.persons.type === "youth" && (
-                    <a href={`/scout/${m.persons.id}/advancement`} className="text-[12px] font-bold no-underline ml-10" style={{ color: "#1F5F4A" }}>
-                      Advancement
-                    </a>
-                  )}
-                  {m.role === "merit_badge_counselor" && (
-                    <div className="ml-10 mt-1 flex flex-wrap gap-1 items-center">
-                      {assignments.filter((a) => a.person_id === m.persons.id).map((a) => (
-                        <span key={a.item_id} className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#EAF0ED", color: "#1F5F4A" }}>
-                          {badgeName[a.item_id] ?? "Badge"}
-                        </span>
-                      ))}
-                      <button onClick={() => { setEditingCounselor(editingCounselor === m.persons.id ? null : m.persons.id); setBadgeSearch(""); }}
-                        className="text-[11px] font-bold px-2 py-0.5 rounded-full border cursor-pointer bg-white"
-                        style={{ borderColor: "#1F5F4A", color: "#1F5F4A", fontFamily: "inherit" }}>
-                        {editingCounselor === m.persons.id ? "Done" : "Edit badges"}
-                      </button>
-                    </div>
-                  )}
-                  {editingCounselor === m.persons.id && (
-                    <div className="ml-10 mt-2 p-3 rounded-xl border border-[#D5DFDA] bg-[#F4F6F5] flex flex-col gap-2 max-w-md">
-                      <div className="text-[12px]" style={{ color: "#4D5F57" }}>
-                        Check the badges this counselor is approved to counsel. They can sign off only these.
-                      </div>
-                      <input value={badgeSearch} onChange={(e) => setBadgeSearch(e.target.value)} placeholder="Search badges…"
-                        className="rounded-lg border border-[#D5DFDA] px-2 py-1.5 text-[13px] outline-none bg-white" style={{ fontFamily: "inherit" }} />
-                      <div className="max-h-56 overflow-y-auto flex flex-col">
-                        {badges.filter((b) => !badgeSearch || b.name.toLowerCase().includes(badgeSearch.toLowerCase())).map((b) => {
-                          const checked = assignments.some((a) => a.person_id === m.persons.id && a.item_id === b.id);
-                          return (
-                            <label key={b.id} className="flex items-center gap-2 py-1 text-[13px] cursor-pointer">
-                              <input type="checkbox" checked={checked} disabled={busy}
-                                onChange={() => toggleCounselorBadge(m.persons.id, b.id)} />
-                              {b.name}
-                              {b.eagle_required && <span className="text-[10px] font-bold" style={{ color: "#7A2E00" }}>Eagle</span>}
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-[13px] capitalize" style={{ color: "#4D5F57" }}>{m.persons.type}</td>
-                <td className="px-4 py-3">
-                  <select value={m.role} disabled={busy}
-                    onChange={e => changeRole(m.id, e.target.value)}
-                    className="rounded-lg border border-[#D5DFDA] px-2 py-1 text-[13px] outline-none"
-                    style={{ fontFamily: "inherit" }}>
-                    {ROLES.map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
-                  </select>
-                </td>
-                <td className="px-4 py-3 text-[13px]">
-                  {m.persons.type === "adult" ? (
-                    m.ypt_expires ? (
-                      <span style={{ color: yptExpired(m.ypt_expires) ? "#C0392B" : "#1F5F4A" }} className="font-bold text-[12px]">
-                        {yptExpired(m.ypt_expires) ? "Expired" : new Date(m.ypt_expires).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-                      </span>
-                    ) : <span style={{ color: "#9DB0A7" }}>—</span>
-                  ) : <span style={{ color: "#9DB0A7" }}>N/A</span>}
-                </td>
-                <td className="px-4 py-3">
-                  <span className="text-[12px] font-bold px-2 py-0.5 rounded-full"
-                    style={{
-                      background: m.status === "active" ? "#EAF0ED" : "#F4F6F5",
-                      color: m.status === "active" ? "#1F5F4A" : "#9DB0A7",
-                    }}>
-                    {m.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-[13px]" style={{ color: "#4D5F57" }}>
-                  {new Date(m.joined_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  {m.status === "active" ? (
-                    <button onClick={() => changeStatus(m.id, "inactive")} disabled={busy}
-                      className="text-[12px] font-bold px-3 py-1.5 rounded-full border cursor-pointer"
-                      style={{ fontFamily: "inherit", borderColor: "#D5DFDA", color: "#C0392B", background: "white" }}>
-                      Deactivate
-                    </button>
-                  ) : (
-                    <button onClick={() => changeStatus(m.id, "active")} disabled={busy}
-                      className="text-[12px] font-bold px-3 py-1.5 rounded-full border cursor-pointer"
-                      style={{ fontFamily: "inherit", borderColor: "#D5DFDA", color: "#1F5F4A", background: "white" }}>
-                      Restore
-                    </button>
-                  )}
-                </td>
-              </tr>
+                ) : <Chip>An admin will approve</Chip>}
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {r.people.map((p) => <Chip key={p.id} tone={p.type === "youth" ? "green" : "gray"}>{p.name}{p.type === "youth" && age(p.birthdate) !== null ? `, ${age(p.birthdate)}` : p.type === "adult" ? " (adult)" : ""}</Chip>)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === "members" && (
+        <>
+          <div className="flex items-center gap-2 flex-wrap">
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name" className="input w-56" />
+            {["active", "youth", "adult", "leaders", "inactive", "all"].map((f) => (
+              <button key={f} onClick={() => setFilter(f)} className="px-3 py-1.5 rounded-full text-[12px] font-bold border cursor-pointer capitalize font-sans"
+                style={{ background: filter === f ? "#1F5F4A" : "white", color: filter === f ? "white" : "#4D5F57", borderColor: filter === f ? "#1F5F4A" : "#D5DFDA" }}>{f}</button>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {shown.length === 0 && <div className="card text-smoke">No members match.</div>}
+            {shown.map((m) => {
+              const a = age(m.persons.birthdate);
+              const isOpen = editing === m.id;
+              return (
+                <div key={m.id} className="card flex flex-col gap-2" style={{ opacity: m.status === "active" ? 1 : 0.55 }}>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-[13px] flex-none"
+                      style={{ background: m.persons.type === "youth" ? "#1F5F4A" : "#4D5F57" }}>{m.persons.first_name[0]}{m.persons.last_name[0]}</div>
+                    <div className="flex-1 min-w-[160px]">
+                      <div className="font-bold text-[15px]">{m.persons.first_name} {m.persons.last_name}</div>
+                      <div className="text-[13px] text-smoke">
+                        {ROLE_LABEL[m.role] ?? m.role}{m.position ? ` · ${m.position}` : ""}{patrolOf[m.persons.id] ? ` · ${patrolOf[m.persons.id]}` : ""}
+                        {m.persons.type === "youth" && a !== null ? ` · age ${a}` : ""}
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {m.is_admin && <Chip tone="dark">Admin</Chip>}
+                      {m.is_designated_leader && <Chip tone="green">Designated leader</Chip>}
+                      {m.persons.user_id && <Chip>Has login</Chip>}
+                      {m.persons.type === "adult" && !["parent_guardian", "scout"].includes(m.role) && (
+                        m.ypt_expires ? <Chip tone={expired(m.ypt_expires) ? "red" : "green"}>YPT {expired(m.ypt_expires) ? "expired" : `to ${new Date(m.ypt_expires).toLocaleDateString("en-US", { month: "short", year: "numeric" })}`}</Chip>
+                          : <Chip tone="orange">YPT not recorded</Chip>
+                      )}
+                      {m.persons.type === "youth" && a !== null && a >= 18 && <Chip tone="orange">Turned 18</Chip>}
+                    </div>
+                    {m.persons.type === "youth" && <a href={`/scout/${m.persons.id}/advancement`} className="text-[13px] font-bold text-forest no-underline">Advancement</a>}
+                    {isAdmin && <button className="btn-ghost" onClick={() => setEditing(isOpen ? null : m.id)}>{isOpen ? "Done" : "Edit"}</button>}
+                  </div>
+
+                  {m.role === "merit_badge_counselor" && (
+                    <div className="flex flex-wrap gap-1 items-center pl-[52px]">
+                      {assignments.filter((x) => x.person_id === m.persons.id).map((x) => <Chip key={x.item_id} tone="green">{badgeName[x.item_id] ?? "Badge"}</Chip>)}
+                      {!assignments.some((x) => x.person_id === m.persons.id) && <span className="text-[12px] text-smoke">No badges approved yet</span>}
+                    </div>
+                  )}
+
+                  {isOpen && (
+                    <div className="grid md:grid-cols-2 gap-3 pt-2 border-t border-[#EAF0ED]">
+                      <Field label="Role">
+                        <select className="input" value={m.role} disabled={busy} onChange={(e) => patch(m.id, { role: e.target.value })}>
+                          {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+                        </select>
+                      </Field>
+                      <Field label="Troop position" hint="Youth positions of responsibility are tracked on Patrols & positions.">
+                        <input className="input" defaultValue={m.position ?? ""} placeholder="e.g. Committee secretary"
+                          onBlur={(e) => e.target.value !== (m.position ?? "") && patch(m.id, { position: e.target.value || null })} />
+                      </Field>
+                      {m.persons.type === "adult" && (
+                        <>
+                          <Field label="Youth Protection Training expires">
+                            <input className="input" type="date" defaultValue={m.ypt_expires ?? ""} onBlur={(e) => patch(m.id, { ypt_expires: e.target.value || null })} />
+                          </Field>
+                          <Field label="Registration expires">
+                            <input className="input" type="date" defaultValue={m.registration_expires ?? ""} onBlur={(e) => patch(m.id, { registration_expires: e.target.value || null })} />
+                          </Field>
+                          <label className="flex items-center gap-3 text-[15px]">
+                            <input type="checkbox" className="w-5 h-5" checked={!!m.is_admin} disabled={busy}
+                              onChange={(e) => patch(m.id, { is_admin: e.target.checked })} /> Unit admin (approves families, changes roles)
+                          </label>
+                          <label className="flex items-center gap-3 text-[15px]">
+                            <input type="checkbox" className="w-5 h-5" checked={!!m.is_designated_leader} disabled={busy}
+                              onChange={(e) => patch(m.id, { is_designated_leader: e.target.checked })} /> Designated leader (copied on messages to Scouts, records forms)
+                          </label>
+                        </>
+                      )}
+                      {m.role === "merit_badge_counselor" && (
+                        <div className="md:col-span-2 flex flex-col gap-2">
+                          <div className="font-bold text-[14px]">Badges this counselor may sign off</div>
+                          <input value={badgeSearch} onChange={(e) => setBadgeSearch(e.target.value)} placeholder="Search badges" className="input" />
+                          <div className="max-h-56 overflow-y-auto grid sm:grid-cols-2">
+                            {badges.filter((b) => !badgeSearch || b.name.toLowerCase().includes(badgeSearch.toLowerCase())).map((b) => (
+                              <label key={b.id} className="flex items-center gap-2 py-1 text-[13px]">
+                                <input type="checkbox" checked={assignments.some((x) => x.person_id === m.persons.id && x.item_id === b.id)}
+                                  onChange={() => toggleCounselorBadge(m.persons.id, b.id)} disabled={busy} />
+                                {b.name}{b.eagle_required && <span className="text-[10px] font-bold" style={{ color: "#7A2E00" }}>Eagle</span>}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <div className="md:col-span-2 flex gap-2 flex-wrap">
+                        {m.status === "active"
+                          ? <button className="btn-secondary" disabled={busy || m.persons.id === myPersonId} onClick={() => patch(m.id, { status: "inactive" })}>Deactivate</button>
+                          : <button className="btn-secondary" disabled={busy} onClick={() => patch(m.id, { status: "active" })}>Restore</button>}
+                        {!m.persons.user_id && (
+                          claim?.pid === m.persons.id
+                            ? <span className="font-bold text-[14px] self-center">Claim code: <span className="tracking-widest">{claim.code}</span></span>
+                            : <button className="btn-ghost" disabled={busy} onClick={() => run(async () => {
+                                const { data, error } = await supabase.rpc("create_claim_code", { p_org: orgId, p_person: m.persons.id });
+                                if (error) throw error;
+                                setClaim({ pid: m.persons.id, code: String(data) });
+                              })}>Make a claim code for this family</button>
+                        )}
+                        {m.persons.type === "youth" && a !== null && a >= 18 && (
+                          <button className="btn-ghost" disabled={busy} onClick={() => run(async () => {
+                            const { error } = await supabase.rpc("convert_to_adult", { p_org: orgId, p_person: m.persons.id, p_role: "assistant_scoutmaster" });
+                            if (error) throw error;
+                            router.refresh();
+                          })}>Convert to adult leader (ASM)</button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }

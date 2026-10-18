@@ -155,6 +155,22 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
             </form>
 
             <details className="card">
+              <summary className="font-bold text-[15px] cursor-pointer">Did your leader give you a claim code?</summary>
+              <div className="flex flex-col gap-3 mt-3">
+                <p className="text-[13px] text-smoke m-0">Use it if your troop already added your family. You will be linked to your existing record.</p>
+                <div className="flex gap-2">
+                  <input className="input flex-1" value={familyCode} onChange={(e) => setFamilyCode(e.target.value)} placeholder="Claim code" />
+                  <button type="button" className="btn-secondary" disabled={busy || !familyCode} onClick={() => run(async () => {
+                    const { error } = await supabase.rpc("claim_record", { p_code: familyCode });
+                    if (error) throw error;
+                    setFamilyCode("");
+                    router.push("/home");
+                  })}>Claim</button>
+                </div>
+              </div>
+            </details>
+
+            <details className="card">
               <summary className="font-bold text-[15px] cursor-pointer">Joining your spouse or co-parent&apos;s family?</summary>
               <div className="flex flex-col gap-3 mt-3">
                 <p className="text-[13px] text-smoke m-0">Ask them for a family code from their Family page.</p>
