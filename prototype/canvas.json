@@ -1,0 +1,19 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-16T22:55:00Z" },
+  "title": "Troop 999 Prototype",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 390, "h": 844, "title": "Parent home", "is_interactive": true },
+    "Rsvp.dc.html": { "x": 470, "y": 0, "w": 390, "h": 844, "title": "RSVP and pay", "is_interactive": true },
+    "Roster.dc.html": { "x": 940, "y": 0, "w": 390, "h": 844, "title": "Leader roster", "is_interactive": true },
+    "Start.dc.html": { "x": 1410, "y": 0, "w": 390, "h": 844, "title": "Troop setup", "is_interactive": true },
+    "TroopPage.dc.html": { "x": 0, "y": 964, "w": 1280, "h": 1700, "title": "Troop public page", "expand": "fill" }
+  },
+  "order": ["Main.dc.html", "Rsvp.dc.html", "Roster.dc.html", "Start.dc.html", "TroopPage.dc.html"],
+  "notes": {
+    "t1": { "x": 0, "y": -300, "text": "Troop 999 Plano: parent and leader flows (sample data)", "kind": "title1", "maxW": 1800 }
+  },
+  "designSystems": []
+}

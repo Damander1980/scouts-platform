@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RSVP and pay</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&amp;family=DM+Sans:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #FF6A1A;outline-offset:2px}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;display:flex;flex-direction:column;background:#F4F6F5;color:#14211B;font-family:'DM Sans',sans-serif;overflow:hidden">
+
+<div style="background:#1F5F4A;color:#FFFFFF;padding:10px 20px 20px;display:flex;flex-direction:column;gap:10px">
+<a href="Main.dc.html" style="min-height:44px;display:flex;align-items:center;gap:6px;color:#FFFFFF;font-weight:700;font-size:15px;text-decoration:none">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+Home
+</a>
+<h1 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:28px;line-height:1.05">Caprock Canyons campout</h1>
+<div style="font-size:15px;color:#CFE3DA">Fri Oct 23 – Sun Oct 25 · RSVP by Sun, Oct 18</div>
+</div>
+
+<div style="flex:1;overflow-y:auto;padding:16px 16px 12px;display:flex;flex-direction:column;gap:16px">
+
+<sc-if value="{{showStep1}}" hint-placeholder-val="{{true}}">
+<div style="display:flex;flex-direction:column;gap:10px">
+<h2 style="margin:0;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#4D5F57;font-weight:700">Who is going?</h2>
+<sc-for list="{{people}}" as="p" hint-placeholder-count="3">
+<button type="button" onClick="{{p.toggle}}" aria-pressed="{{p.on}}" style="min-height:64px;border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;text-align:left;font-family:inherit;color:#14211B;cursor:pointer;background:{{p.bg}};border:2px solid {{p.border}}">
+<span style="width:28px;height:28px;border-radius:14px;flex:none;display:flex;align-items:center;justify-content:center;background:{{p.boxBg}};color:#FFFFFF;border:2px solid {{p.boxBorder}}">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.check}}"></path></svg>
+</span>
+<span style="flex:1;display:flex;flex-direction:column;gap:2px">
+<span style="font-weight:700;font-size:16px">{{p.name}}</span>
+<span style="font-size:13px;color:#4D5F57">{{p.role}}</span>
+</span>
+<span style="font-weight:700;font-size:16px">{{p.priceLabel}}</span>
+</button>
+</sc-for>
+</div>
+
+<sc-if value="{{showSeats}}" hint-placeholder-val="{{true}}">
+<div style="background:#FFFFFF;border:1px solid #D5DFDA;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px">
+<div style="flex:1;display:flex;flex-direction:column;gap:2px">
+<span style="font-weight:700;font-size:16px">Can you drive?</span>
+<span style="font-size:14px;color:#4D5F57">Seats you can offer other Scouts</span>
+</div>
+<button type="button" onClick="{{fewer}}" aria-label="Fewer seats" style="width:44px;height:44px;border-radius:22px;border:2px solid #14211B;background:#FFFFFF;color:#14211B;font-size:22px;font-weight:700;font-family:inherit">−</button>
+<span style="min-width:20px;text-align:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:24px">{{seats}}</span>
+<button type="button" onClick="{{more}}" aria-label="More seats" style="width:44px;height:44px;border-radius:22px;border:2px solid #14211B;background:#FFFFFF;color:#14211B;font-size:22px;font-weight:700;font-family:inherit">+</button>
+</div>
+</sc-if>
+
+<div style="background:#FFFFFF;border:1px solid #D5DFDA;border-radius:16px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:10px;padding:14px;border-bottom:1px solid #E6ECE9">
+<span style="width:24px;height:24px;border-radius:12px;background:#1F5F4A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;flex:none">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+</span>
+<span style="font-size:15px">Permission slip signed for this year</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:14px">
+<span style="width:24px;height:24px;border-radius:12px;background:#1F5F4A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;flex:none">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+</span>
+<span style="font-size:15px;line-height:1.35">Health forms on file (Parts A and B), valid for this trip</span>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:6px">
+<label for="diet" style="font-weight:700;font-size:15px">Anything the leaders should know?</label>
+<input id="diet" type="text" placeholder="Dietary needs, rides, questions" style="min-height:48px;border-radius:12px;border:2px solid #9DB0A7;padding:0 14px;font-size:16px;font-family:inherit;background:#FFFFFF;color:#14211B">
+</div>
+<div style="font-size:14px;color:#4D5F57;line-height:1.4">Change your mind? Use this same link until Oct 20 for a full credit.</div>
+</sc-if>
+
+<sc-if value="{{showStep2}}" hint-placeholder-val="{{false}}">
+<div style="background:#FFFFFF;border:1px solid #D5DFDA;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<h2 style="margin:0;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#4D5F57;font-weight:700">Your order</h2>
+<sc-for list="{{lines}}" as="l" hint-placeholder-count="2">
+<div style="display:flex;justify-content:space-between;font-size:16px">
+<span>{{l.name}}</span>
+<span style="font-weight:700">{{l.priceLabel}}</span>
+</div>
+</sc-for>
+<sc-if value="{{creditOn}}" hint-placeholder-val="{{false}}">
+<div style="display:flex;justify-content:space-between;font-size:16px;color:#1F5F4A">
+<span>Maya's fundraiser earnings</span>
+<span style="font-weight:700">{{creditLabel}}</span>
+</div>
+</sc-if>
+<div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid #E6ECE9;padding-top:12px">
+<span style="font-weight:700;font-size:16px">Total</span>
+<span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:30px">{{totalLabel}}</span>
+</div>
+</div>
+<sc-if value="{{showCredit}}" hint-placeholder-val="{{true}}">
+<button type="button" onClick="{{toggleCredit}}" aria-pressed="{{creditOn}}" style="min-height:72px;border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;text-align:left;font-family:inherit;color:#14211B;cursor:pointer;background:{{creditBg}};border:2px solid {{creditBorder}}">
+<span style="flex:1;display:flex;flex-direction:column;gap:2px">
+<span style="font-weight:700;font-size:16px">Use Maya's fundraiser earnings</span>
+<span style="font-size:14px;color:#4D5F57">{{creditSub}}</span>
+</span>
+<span style="width:48px;height:28px;border-radius:14px;flex:none;position:relative;background:{{swBg}}">
+<span style="position:absolute;top:3px;left:{{swLeft}};width:22px;height:22px;border-radius:11px;background:#FFFFFF"></span>
+</span>
+</button>
+</sc-if>
+<div style="display:flex;gap:10px">
+<button type="button" style="flex:1;min-height:52px;border-radius:26px;background:#FFFFFF;border:2px solid #14211B;color:#14211B;font-family:inherit;font-weight:700;font-size:16px">Apple Pay</button>
+<button type="button" style="flex:1;min-height:52px;border-radius:26px;background:#FFFFFF;border:2px solid #14211B;color:#14211B;font-family:inherit;font-weight:700;font-size:16px">Google Pay</button>
+</div>
+<div style="font-size:13px;color:#4D5F57;line-height:1.4">Payments go straight to Troop 999's account through Stripe. Full credit if you cancel before Oct 20.</div>
+</sc-if>
+
+<sc-if value="{{showStep3}}" hint-placeholder-val="{{false}}">
+<div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px 8px 8px;text-align:center">
+<div style="width:84px;height:84px;border-radius:42px;background:#1F5F4A;color:#FFFFFF;display:flex;align-items:center;justify-content:center">
+<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+</div>
+<div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:34px;line-height:1">You're in.</div>
+<div style="font-size:16px;color:#4D5F57">{{goingCount}} going · {{totalLabel}} paid</div>
+</div>
+<div style="background:#FFFFFF;border:1px solid #D5DFDA;border-radius:16px;overflow:hidden">
+<div style="padding:14px;border-bottom:1px solid #E6ECE9;font-size:15px">Receipt sent to your email</div>
+<div style="padding:14px;border-bottom:1px solid #E6ECE9;font-size:15px">Packing list and trip plan are ready</div>
+<div style="padding:14px;font-size:15px;line-height:1.35">Need to change plans? Use this same link until Oct 20 for a full credit.</div>
+</div>
+</sc-if>
+
+</div>
+
+<div style="background:#FFFFFF;border-top:1px solid #D5DFDA;padding:12px 16px 16px;display:flex;align-items:center;gap:12px">
+<sc-if value="{{showStep1}}" hint-placeholder-val="{{true}}">
+<div style="display:flex;flex-direction:column">
+<span style="font-size:13px;color:#4D5F57">Total</span>
+<span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;line-height:1">{{totalLabel}}</span>
+</div>
+<button type="button" onClick="{{toPay}}" style="flex:1;min-height:52px;border-radius:26px;background:#FF6A1A;border:none;color:#14211B;font-family:inherit;font-weight:700;font-size:17px">Continue to pay</button>
+</sc-if>
+<sc-if value="{{showStep2}}" hint-placeholder-val="{{false}}">
+<button type="button" onClick="{{toStep1}}" style="min-height:52px;padding:0 20px;border-radius:26px;background:#FFFFFF;border:2px solid #14211B;color:#14211B;font-family:inherit;font-weight:700;font-size:16px">Back</button>
+<button type="button" onClick="{{pay}}" style="flex:1;min-height:52px;border-radius:26px;background:#FF6A1A;border:none;color:#14211B;font-family:inherit;font-weight:700;font-size:16px">Pay {{totalLabel}} with card ••4242</button>
+</sc-if>
+<sc-if value="{{showStep3}}" hint-placeholder-val="{{false}}">
+<a href="Main.dc.html" style="flex:1;min-height:52px;border-radius:26px;background:#FF6A1A;color:#14211B;font-weight:700;font-size:17px;display:flex;align-items:center;justify-content:center;text-decoration:none">Back to home</a>
+</sc-if>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const s = this.state || {};
+const step = s.step ?? 1;
+const going = s.going ?? { maya: true, eli: false, sam: true };
+const seats = s.seats ?? 3;
+const defs = [
+{ id: 'maya', name: 'Maya Rivera', role: 'Scout', price: 45 },
+{ id: 'eli', name: 'Eli Rivera', role: 'Scout', price: 45 },
+{ id: 'sam', name: 'Sam Rivera', role: 'Adult', price: 25 }
+];
+const picked = defs.filter((d) => going[d.id]);
+const useCredit = s.credit ?? false;
+const available = 60;
+const creditAmt = useCredit && going.maya ? Math.min(available, 45) : 0;
+const total = picked.reduce((sum, d) => sum + d.price, 0) - creditAmt;
+return {
+showCredit: !!going.maya,
+creditOn: creditAmt > 0,
+creditLabel: '−$' + creditAmt,
+creditSub: creditAmt > 0 ? '$' + available + ' in her Scout account · $' + (available - creditAmt) + ' left after' : '$' + available + ' in her Scout account',
+creditBg: creditAmt > 0 ? '#EAF0ED' : '#FFFFFF',
+creditBorder: creditAmt > 0 ? '#1F5F4A' : '#D5DFDA',
+swBg: creditAmt > 0 ? '#1F5F4A' : '#9DB0A7',
+swLeft: creditAmt > 0 ? '23px' : '3px',
+toggleCredit: () => this.setState({ credit: !useCredit }),
+showStep1: step === 1,
+showStep2: step === 2,
+showStep3: step === 3,
+people: defs.map((d) => ({
+name: d.name, role: d.role, priceLabel: '$' + d.price,
+on: !!going[d.id],
+bg: going[d.id] ? '#EAF0ED' : '#FFFFFF',
+border: going[d.id] ? '#1F5F4A' : '#D5DFDA',
+boxBg: going[d.id] ? '#1F5F4A' : '#FFFFFF',
+boxBorder: going[d.id] ? '#1F5F4A' : '#9DB0A7',
+check: going[d.id] ? 'M5 12l5 5 9-10' : 'M12 12',
+toggle: () => this.setState({ going: { ...going, [d.id]: !going[d.id] } })
+})),
+showSeats: !!going.sam,
+seats: seats,
+fewer: () => this.setState({ seats: Math.max(0, seats - 1) }),
+more: () => this.setState({ seats: Math.min(6, seats + 1) }),
+lines: picked.map((d) => ({ name: d.name, priceLabel: '$' + d.price })),
+goingCount: picked.length,
+totalLabel: '$' + total,
+toPay: () => this.setState({ step: 2 }),
+toStep1: () => this.setState({ step: 1 }),
+pay: () => this.setState({ step: 3 })
+};
+}
+}
+</script>
+</body>
+</html>

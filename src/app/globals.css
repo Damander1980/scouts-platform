@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply min-h-[44px] px-6 rounded-full bg-orange border-none text-ink font-bold text-base font-sans cursor-pointer flex items-center justify-center gap-2 transition-opacity hover:opacity-90 active:opacity-80;
+  }
+
+  .btn-secondary {
+    @apply min-h-[44px] px-6 rounded-full bg-white border-2 border-ink text-ink font-bold text-base font-sans cursor-pointer flex items-center justify-center gap-2 transition-opacity hover:opacity-90;
+  }
+
+  .btn-ghost {
+    @apply min-h-[44px] px-4 rounded-full bg-transparent border-none text-forest font-bold text-base font-sans cursor-pointer flex items-center justify-center gap-2 underline;
+  }
+
+  .card {
+    @apply bg-white border border-border rounded-2xl p-4;
+  }
+
+  .chip {
+    @apply px-2.5 py-1 rounded-xl text-xs font-bold;
+  }
+
+  .chip-green {
+    @apply chip bg-mist text-forest-deep;
+  }
+
+  .chip-red {
+    @apply chip bg-orange-light text-orange-dark;
+  }
+
+  .input {
+    @apply min-h-[48px] rounded-xl border-2 border-sage px-3.5 text-[17px] font-sans bg-white text-ink focus:outline-none focus:border-forest;
+  }
+}
