@@ -16,7 +16,8 @@ const ROSTER_FIELDS: Record<string, string[]> = {
   birthdate: ["birthdate", "birth date", "dob", "date of birth", "birthday"],
   role: ["role", "position", "leader position"],
   patrol: ["patrol", "patrol name", "den"],
-  household: ["household", "family", "family id", "parent email", "parent 1 email", "email"],
+  household: ["household", "family", "family id"],
+  email: ["email", "e-mail", "email address", "parent email", "parent 1 email", "primary email"],
 };
 const ADV_FIELDS: Record<string, string[]> = {
   first: ["first name", "first", "firstname"],
@@ -67,7 +68,7 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
     const mapped = parsed.map((r) => mapRow(r, kind === "roster" ? ROSTER_FIELDS : ADV_FIELDS)).filter((r) => r.first && r.last);
     if (!mapped.length) { setError("We couldn't find First name and Last name columns. Check the header row."); return; }
     setRows(mapped.map((r) => kind === "roster"
-      ? { ...r, birthdate: toIsoDate(r.birthdate), role: ROLE_MAP[r.role?.toLowerCase()] ?? "", type: r.type || (ROLE_MAP[r.role?.toLowerCase()] && !["scout"].includes(ROLE_MAP[r.role?.toLowerCase()]) ? "adult" : "youth") }
+      ? { ...r, household: r.household || r.email, birthdate: toIsoDate(r.birthdate), role: ROLE_MAP[r.role?.toLowerCase()] ?? "", type: r.type || (ROLE_MAP[r.role?.toLowerCase()] && !["scout"].includes(ROLE_MAP[r.role?.toLowerCase()]) ? "adult" : "youth") }
       : { ...r, date: toIsoDate(r.date), ...parseAdvancement(r.item, r.type) }));
   }
 
@@ -99,7 +100,7 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
   }
 
   const template = kind === "roster"
-    ? "First name,Last name,Type,Birthdate,Role,Patrol,Family\nJake,Garcia,Youth,2012-05-14,Scout,Eagles,garcia\nTom,Garcia,Adult,,Parent,,garcia\n"
+    ? "First name,Last name,Type,Birthdate,Role,Patrol,Family,Email\nJake,Garcia,Youth,2012-05-14,Scout,Eagles,garcia,\nTom,Garcia,Adult,,Parent,,garcia,tom@example.com\n"
     : "First name,Last name,Advancement Type,Advancement,Date Completed\nJake,Garcia,Rank,Tenderfoot,2025-03-01\nJake,Garcia,Merit Badge,First Aid,2025-06-12\nJake,Garcia,Rank Requirement,Second Class #1a,2025-04-02\n";
 
   return (

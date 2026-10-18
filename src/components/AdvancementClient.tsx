@@ -2,9 +2,18 @@
 
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { rankChecks } from "@/lib/rankRules";
 
 export type Requirement = { id: string; number: string; text: string; sort: number };
 export type Program = "scouts_bsa" | "cubs";
+export type Extras = {
+  birthdate: string | null;
+  rankEarned: Record<string, string | null>;
+  positions: { title: string; start_date: string; end_date: string | null; counts_for_rank: boolean }[];
+  credits: { nights: number; service: number; miles: number; events: number };
+  serviceEvents: { at: string; hours: number }[];
+  counselors: { id: string; name: string; items: string[] }[];
+};
 export type Item = {
   id: string; kind: "rank" | "badge" | "adventure"; code: string; name: string;
   eagle_required: boolean; eagle_group: string | null; sort: number;
@@ -12,7 +21,7 @@ export type Item = {
   electives_needed: number | null; grade: string | null; source_slug: string | null;
   requirements: Requirement[];
 };
-export type Tracked = { item_id: string; status: "assigned" | "in_progress" | "completed"; assigned_by: string | null };
+export type Tracked = { id?: string; item_id: string; status: "requested" | "assigned" | "in_progress" | "completed" | "declined"; assigned_by: string | null; counselor_id?: string | null };
 export type Progress = Record<string, { completed_at: string | null; approved_by: string | null }>;
 
 const EAGLE_SLOTS = 14;
@@ -79,10 +88,11 @@ function SegmentBar({ total, done, approved }: { total: number; done: number; ap
 
 export default function AdvancementClient({
   scout, orgId, items, tracked: initialTracked, progress: initialProgress,
-  isLeader, viewerPersonId, demo = false, program = "scouts_bsa", counselorBadgeIds = [],
+  isLeader, viewerPersonId, demo = false, program = "scouts_bsa", counselorBadgeIds = [], extras,
 }: {
   program?: Program;
   counselorBadgeIds?: string[];
+  extras?: Extras;
   scout: { id: string; first_name: string; last_name: string };
   orgId: string;
   items: Item[];
@@ -188,8 +198,9 @@ export default function AdvancementClient({
     });
   };
 
+  // Blue card: a Scout requests a merit badge; a unit leader approves it and assigns a counselor.
   const addBadge = (item: Item) => run(async () => {
-    const status = isLeader && viewerPersonId !== scout.id ? "assigned" : "in_progress";
+    const status: Tracked["status"] = isLeader ? "assigned" : item.kind === "badge" ? "requested" : "in_progress";
     const assigned_by = isLeader ? viewerPersonId : null;
     if (!demo) {
       const { error } = await supabase!.from("scout_advancement").insert(
@@ -197,7 +208,7 @@ export default function AdvancementClient({
       );
       if (error) throw error;
     }
-    setTracked((t) => [...t, { item_id: item.id, status, assigned_by }]);
+    setTracked((t) => [...t, { item_id: item.id, status, assigned_by, counselor_id: null }]);
     setPicker(false); setPickSearch(""); setOpen(item.id);
   });
 
@@ -451,6 +462,17 @@ export default function AdvancementClient({
 
         {error && <div className="rounded-xl px-4 py-3 text-[14px] font-bold" style={{ background: "#FFF1E6", color: "#7A2E00" }}>{error}</div>}
 
+        {extras && (
+          <div className="bg-white rounded-2xl border border-[#D5DFDA] p-4 flex flex-wrap gap-x-6 gap-y-2 items-center">
+            <span className="text-[11px] font-bold tracking-widest uppercase" style={{ color: "#4D5F57" }}>From attendance</span>
+            <span className="text-[15px]"><b>{extras.credits.nights}</b> nights camped</span>
+            <span className="text-[15px]"><b>{extras.credits.service}</b> service hours</span>
+            <span className="text-[15px]"><b>{extras.credits.miles}</b> miles</span>
+            <span className="text-[15px]"><b>{extras.credits.events}</b> events</span>
+            <span className="text-[12px]" style={{ color: "#9DB0A7" }}>Camping merit badge needs 20 nights at Scouting events.</span>
+          </div>
+        )}
+
         {/* Rank trail */}
         <section className="flex flex-col gap-3">
           <h2 className="font-bold text-[13px] tracking-widest uppercase m-0" style={{ color: "#4D5F57" }}>Rank trail</h2>
@@ -492,6 +514,24 @@ export default function AdvancementClient({
                   </span>
                 </div>
                 <div className="mt-1"><OfficialLink item={r} /></div>
+                {extras && (() => {
+                  const checks = rankChecks(r.code, {
+                    birthdate: extras.birthdate, rankEarned: extras.rankEarned, positions: extras.positions,
+                    badgesEarned: earnedBadges.map((b) => ({ eagle_required: b.eagle_required, eagle_group: b.eagle_group, code: b.code })),
+                    serviceHoursSince: (since) => extras.serviceEvents.filter((e) => !since || e.at >= since).reduce((s, e) => s + e.hours, 0),
+                  });
+                  return checks.length > 0 && (
+                    <div className="mt-3 rounded-xl p-3 flex flex-col gap-1.5" style={{ background: "#F4F8F6" }}>
+                      <div className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#4D5F57" }}>Automatic checks</div>
+                      {checks.map((c) => (
+                        <div key={c.label} className="flex items-center gap-2 text-[14px]">
+                          <span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-none" style={{ background: c.ok ? "#1F5F4A" : "#C0392B" }}>{c.ok ? "✓" : "!"}</span>
+                          <span className="font-bold">{c.label}</span><span style={{ color: "#4D5F57" }}>{c.detail}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
                 <RequirementList item={r} />
               </div>
             ))}
@@ -581,6 +621,14 @@ export default function AdvancementClient({
                         {t?.status === "assigned" && (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-none" style={{ background: "#EAF0ED", color: "#1F5F4A" }}>Assigned by leader</span>
                         )}
+                        {t?.status === "requested" && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-none" style={{ background: "#FFF1E6", color: "#7A2E00" }}>Waiting for leader OK</span>
+                        )}
+                        {t?.counselor_id && extras && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-none" style={{ background: "#F4F6F5", color: "#4D5F57" }}>
+                            Counselor: {extras.counselors.find((c) => c.id === t.counselor_id)?.name ?? "assigned"}
+                          </span>
+                        )}
                         {s.completed && (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-none" style={{ background: "#1F5F4A", color: "white" }}>Earned</span>
                         )}
@@ -610,6 +658,31 @@ export default function AdvancementClient({
                           </button>
                         )}
                       </div>
+                      {isLeader && t && ["requested", "assigned"].includes(t.status) && !t.counselor_id && (
+                        <div className="mt-3 rounded-xl p-3 flex flex-col gap-2" style={{ background: "#FFF1E6" }}>
+                          <div className="text-[14px] font-bold">Approve the start (blue card) and assign a counselor</div>
+                          {(extras?.counselors ?? []).filter((c) => c.items.includes(b.id)).length === 0 ? (
+                            <div className="text-[13px]">No approved counselor for {b.name} yet. Add one on the Members page.</div>
+                          ) : (
+                            <div className="flex gap-2 flex-wrap">
+                              {(extras?.counselors ?? []).filter((c) => c.items.includes(b.id)).map((c) => (
+                                <button key={c.id} disabled={busy} className="text-[13px] font-bold px-3 py-1.5 rounded-full border cursor-pointer bg-white"
+                                  style={{ borderColor: "#1F5F4A", color: "#1F5F4A", fontFamily: "inherit" }}
+                                  onClick={() => run(async () => {
+                                    if (!demo && t.id) {
+                                      const { error } = await supabase!.rpc("approve_badge_start", { p_adv: t.id, p_counselor: c.id });
+                                      if (error) throw error;
+                                    }
+                                    setTracked((all) => all.map((x) => (x.item_id === b.id ? { ...x, status: "in_progress", counselor_id: c.id } : x)));
+                                  })}>
+                                  {c.name}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          <div className="text-[12px]" style={{ color: "#4D5F57" }}>Remind the Scout: bring a buddy to every counselor meeting (no one-on-one contact).</div>
+                        </div>
+                      )}
                       <RequirementList item={b} />
                     </div>
                   )}

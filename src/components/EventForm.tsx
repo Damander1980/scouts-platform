@@ -44,6 +44,7 @@ export default function EventForm({ orgId, initial }: { orgId: string; initial?:
     hours: initial ? String(initial.service_hours) : "",
     miles: initial ? String(initial.miles) : "",
     questions: (initial?.questions ?? []).join("\n"),
+    repeatUntil: "",
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -61,6 +62,17 @@ export default function EventForm({ orgId, initial }: { orgId: string; initial?:
     setBusy(true); setError("");
     try {
       if (f.end && f.start && new Date(f.end) < new Date(f.start)) throw new Error("The end must be after the start.");
+      if (!initial?.id && f.kind === "meeting" && f.repeatUntil) {
+        const minutes = f.end ? Math.round((new Date(f.end).getTime() - new Date(f.start).getTime()) / 60000) : 90;
+        const { error } = await supabase.rpc("create_weekly_series", {
+          p_org: orgId, p_title: f.title.trim(), p_location: f.location.trim() || null,
+          p_first: fromLocal(f.start), p_minutes: minutes, p_until: f.repeatUntil,
+        });
+        if (error) throw error;
+        router.push("/events");
+        router.refresh();
+        return;
+      }
       const row = {
         org_id: orgId,
         title: f.title.trim(),
@@ -101,6 +113,11 @@ export default function EventForm({ orgId, initial }: { orgId: string; initial?:
         <Field label="Starts"><input className="input" type="datetime-local" value={f.start} onChange={set("start")} required /></Field>
         <Field label="Ends" hint="Multi-day trips show as one bar on the calendar."><input className="input" type="datetime-local" value={f.end} onChange={set("end")} /></Field>
       </div>
+      {!initial?.id && f.kind === "meeting" && (
+        <Field label="Repeat every week until (optional)" hint="Creates one meeting per week so attendance can be taken at each.">
+          <input className="input" type="date" value={f.repeatUntil} onChange={set("repeatUntil")} />
+        </Field>
+      )}
       <Field label="Where"><input className="input" value={f.location} onChange={set("location")} placeholder="Caprock Canyons State Park" /></Field>
       <Field label="Details for families"><textarea className="input py-3 min-h-[100px]" value={f.description} onChange={set("description")} placeholder="Meet at the church parking lot at 5:30 PM Friday." /></Field>
 

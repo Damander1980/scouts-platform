@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LEADER_ROLES, requireOrg } from "@/lib/context";
+import { requireOrg } from "@/lib/context";
 import Shell from "@/components/Shell";
 import { Chip, SectionLabel, fmtDate, fmtTime, money } from "@/components/ui";
 import { loadFamily } from "@/lib/family";
@@ -18,11 +18,12 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const { data: ev } = await supabase.from("events").select("*").eq("id", id).eq("org_id", orgId).maybeSingle();
   if (!ev) notFound();
 
-  const [{ data: rsvps }, { data: roster }, { data: patrolRows }, family] = await Promise.all([
+  const [{ data: rsvps }, { data: roster }, { data: patrolRows }, family, { data: orgForms }] = await Promise.all([
     supabase.from("rsvps").select("person_id, status, notes, driver_seats, dietary, answers").eq("event_id", id),
     supabase.from("memberships").select("person_id, role, ypt_expires, persons(first_name, last_name, type, birthdate)").eq("org_id", orgId).eq("status", "active"),
     supabase.from("patrol_members").select("person_id, patrols(name)").eq("org_id", orgId).is("end_date", null),
     loadFamily(supabase, orgId),
+    isLeader ? supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId) : Promise.resolve({ data: [] as { person_id: string; type: string; expires_at: string | null }[] }),
   ]);
 
   const people = (roster ?? []) as unknown as Roster[];
@@ -35,11 +36,32 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const notGoing = people.filter((p) => byPerson[p.person_id]?.status === "not_going");
   const noReply = people.filter((p) => !byPerson[p.person_id]);
 
-  // Youth protection: at least two registered adults, with at least one trained leader, on any youth activity.
-  const adultsGoing = going.filter((p) => p.persons.type === "adult");
-  const trainedLeaders = adultsGoing.filter((p) => LEADER_ROLES.includes(p.role) && p.ypt_expires && new Date(p.ypt_expires) > new Date(ev.start_at));
+  // Youth protection (Scouting America): two registered adults 21 or older on every youth activity,
+  // every adult with current Youth Protection Training.
+  const ageOn = (b: string | null, at: string) => {
+    if (!b) return null;
+    const d = new Date(b), n = new Date(at);
+    return n.getFullYear() - d.getFullYear() - (n < new Date(n.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0);
+  };
+  const adultsGoing = going.filter((p) => p.persons.type === "adult" && (ageOn(p.persons.birthdate, ev.start_at) ?? 21) >= 21);
+  const trainedLeaders = adultsGoing.filter((p) => p.ypt_expires && new Date(p.ypt_expires) > new Date(ev.end_at ?? ev.start_at));
+
+  // Health record: Parts A and B for every activity; Part C (physician exam) for events over 72 hours
+  // or high adventure. Forms must be valid through the end of the event.
+  const endAt = new Date(ev.end_at ?? ev.start_at);
+  const needsC = (ev.end_at && endAt.getTime() - new Date(ev.start_at).getTime() > 72 * 3600000) || ev.kind === "high_adventure";
+  const formValid = (pid: string, t: string) => (orgForms ?? []).some((f) => f.person_id === pid && f.type === t && (!f.expires_at || new Date(f.expires_at) >= endAt));
+  const readiness = going.map((p) => ({
+    p,
+    missing: [
+      !formValid(p.person_id, "health_ab") && "Health A+B",
+      needsC && !formValid(p.person_id, "health_c") && "Health C",
+      ev.needs_permission && p.persons.type === "youth" && !formValid(p.person_id, "permission") && "Permission",
+      p.persons.type === "adult" && !(p.ypt_expires && new Date(p.ypt_expires) > endAt) && "YPT",
+    ].filter(Boolean) as string[],
+  })).filter((r) => r.missing.length);
   const youthGoing = going.filter((p) => p.persons.type === "youth");
-  const ratioOk = youthGoing.length === 0 || (adultsGoing.length >= 2 && trainedLeaders.length >= 1);
+  const ratioOk = youthGoing.length === 0 || (adultsGoing.length >= 2 && trainedLeaders.length >= 2);
   const seats = going.reduce((s, p) => s + (byPerson[p.person_id]?.driver_seats ?? 0), 0);
 
   const multi = ev.end_at && new Date(ev.end_at).toDateString() !== new Date(ev.start_at).toDateString();
@@ -106,6 +128,22 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
       {!ev.canceled && myFamily.length > 0 && (
         <RsvpPanel eventId={ev.id} costCents={ev.cost_cents} questions={(ev.questions ?? []) as string[]} family={famRsvps} />
+      )}
+
+      {isLeader && going.length > 0 && (
+        <section className="card flex flex-col gap-2" style={{ borderColor: readiness.length ? "#FFD6B8" : "#CFE3DA" }}>
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-bold text-[15px]">Ready to go?</span>
+            <Chip tone={readiness.length ? "orange" : "green"}>{readiness.length ? `${readiness.length} not ready` : "Everyone ready"}</Chip>
+          </div>
+          {needsC && <div className="text-[13px] text-smoke">Over 72 hours or high adventure: everyone needs Part C (physician exam) too.</div>}
+          {readiness.map((r) => (
+            <div key={r.p.person_id} className="flex items-center gap-2 flex-wrap text-[14px]">
+              <b>{r.p.persons.first_name} {r.p.persons.last_name}</b>
+              {r.missing.map((m) => <Chip key={m} tone="orange">Needs {m}</Chip>)}
+            </div>
+          ))}
+        </section>
       )}
 
       {isLeader && (

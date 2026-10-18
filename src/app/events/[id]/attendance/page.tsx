@@ -11,13 +11,13 @@ export default async function AttendancePage({ params }: { params: Promise<{ id:
   const { supabase, current } = ctx;
   const orgId = current.org.id;
 
-  const { data: ev } = await supabase.from("events").select("id, title, start_at, overnight_nights, service_hours, miles").eq("id", id).eq("org_id", orgId).maybeSingle();
+  const { data: ev } = await supabase.from("events").select("id, title, start_at, overnight_nights, service_hours, miles, checkin_code").eq("id", id).eq("org_id", orgId).maybeSingle();
   if (!ev) notFound();
 
   const [{ data: members }, { data: rsvps }, { data: att }, { data: patrols }] = await Promise.all([
     supabase.from("memberships").select("person_id, persons(first_name, last_name, type)").eq("org_id", orgId).eq("status", "active"),
     supabase.from("rsvps").select("person_id, status").eq("event_id", id),
-    supabase.from("attendance").select("person_id, present").eq("event_id", id),
+    supabase.from("attendance").select("person_id, present, method, confirmed").eq("event_id", id),
     supabase.from("patrol_members").select("person_id, patrols(name)").eq("org_id", orgId).is("end_date", null),
   ]);
 
@@ -36,8 +36,8 @@ export default async function AttendancePage({ params }: { params: Promise<{ id:
           {fmtDate(ev.start_at)} · Present Scouts are credited {ev.overnight_nights} nights, {ev.service_hours} service hours, {ev.miles} miles automatically.
         </p>
       </div>
-      <AttendanceClient orgId={orgId} eventId={id} people={people}
-        initial={Object.fromEntries((att ?? []).map((a) => [a.person_id, a.present]))} />
+      <AttendanceClient orgId={orgId} eventId={id} people={people} checkinCode={ev.checkin_code}
+        initial={Object.fromEntries((att ?? []).map((a) => [a.person_id, { present: a.present, method: a.method, confirmed: a.confirmed }]))} />
     </Shell>
   );
 }

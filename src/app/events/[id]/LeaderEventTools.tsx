@@ -24,8 +24,8 @@ export default function LeaderEventTools({ eventId, canceled, ratioOk, adults, t
       <div className="rounded-xl px-3 py-2 text-[14px] font-bold"
         style={{ background: ratioOk ? "#EAF0ED" : "#FDECEA", color: ratioOk ? "#1F5F4A" : "#A52A1C" }}>
         {ratioOk
-          ? `Two-deep OK: ${adults} adults going (${trained} with current Youth Protection Training) for ${youth} youth.`
-          : `Not ready: youth activities need at least 2 registered adults and a trained leader. Now: ${adults} adults, ${trained} trained.`}
+          ? `Two-deep leadership met: ${adults} adults 21+ going, ${trained} with current Youth Protection Training, for ${youth} youth.`
+          : `Not ready: Scouting America requires at least 2 registered adults age 21+, with current Youth Protection Training, at every youth activity. Now: ${adults} adults, ${trained} trained.`}
       </div>
       {seats > 0 && <div className="text-[14px]">Driver seats offered: <b>{seats}</b> for {youth} youth.</div>}
       {error && <div className="text-[14px] font-bold" style={{ color: "#A52A1C" }}>{error}</div>}

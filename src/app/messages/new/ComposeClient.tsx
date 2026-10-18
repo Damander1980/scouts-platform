@@ -23,7 +23,7 @@ export default function ComposeClient({ orgId, isLeader, patrols, events, member
   const [error, setError] = useState("");
 
   const options = [
-    ...(isLeader ? [["troop", "Whole unit"], ["event", "Everyone going to an event"], ["nonresponders", "Families who haven't replied to an event"], ["people", "Pick people"]] : []),
+    ...(isLeader ? [["troop", "Everyone active in the unit"], ["event", "Everyone going to an event"], ["nonresponders", "Families who haven't replied to an event"], ["people", "Pick people"]] : []),
     ...(patrols.length ? [["patrol", "A patrol"]] : []),
     ["leaders", "My leaders"],
   ];
@@ -82,7 +82,9 @@ export default function ComposeClient({ orgId, isLeader, patrols, events, member
       <Field label="Subject (optional)"><input className="input" value={subject} onChange={(e) => setSubject(e.target.value)} /></Field>
       <Field label="Message"><textarea className="input py-3 min-h-[160px]" value={body} onChange={(e) => setBody(e.target.value)} required /></Field>
       <p className="text-[13px] text-smoke m-0">
-        Email and text alerts only say a message is waiting, with a link. The message itself stays in the app.
+        {isLeader
+          ? "Sent by email to every adult with an email on file (Scouts are reached through their parents), and saved in the app. Families can reply-all from the email."
+          : "Delivered inside the app and saved. Your leaders get an email that a message is waiting."}
       </p>
       <button className="btn-primary" disabled={busy || !body.trim() || (audience === "people" && !people.length)}>{busy ? "Sending…" : "Send"}</button>
     </form>
