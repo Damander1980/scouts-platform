@@ -32,6 +32,8 @@ export default function SetupPage() {
   const [unitId, setUnitId] = useState("scouts_bsa");
   const [number, setNumber] = useState("");
   const [city, setCity] = useState("");
+  const [state, setState] = useState("TX");
+  const [nextAction, setNextAction] = useState<"import" | "dashboard">("dashboard");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -43,57 +45,26 @@ export default function SetupPage() {
     setError("");
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push("/login"); return; }
+      if (!user) { router.push("/login?next=/setup"); return; }
 
-      // Create org
-      const { data: org, error: orgErr } = await supabase
-        .from("organizations")
-        .insert({
-          name: `${unit.word} ${number} ${city}`.trim(),
-          type: unitId,
-          unit_number: number,
-          city,
-          slug: slug.toLowerCase(),
-        })
-        .select()
-        .single();
-      if (orgErr) throw orgErr;
-
-      // Ensure person record exists for this user
-      let { data: person } = await supabase
-        .from("persons")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!person) {
-        const meta = user.user_metadata;
-        const { data: newPerson, error: pErr } = await supabase
-          .from("persons")
-          .insert({
-            user_id: user.id,
-            first_name: meta?.full_name?.split(" ")[0] ?? "Leader",
-            last_name: meta?.full_name?.split(" ").slice(1).join(" ") ?? "",
-            type: "adult",
-          })
-          .select()
-          .single();
+      const { data: me } = await supabase.from("persons").select("id").eq("user_id", user.id).maybeSingle();
+      if (!me) {
+        const meta = user.user_metadata ?? {};
+        const full = String(meta.full_name ?? "").trim();
+        const { error: pErr } = await supabase.rpc("ensure_person", {
+          p_first: full.split(" ")[0] || "Leader", p_last: full.split(" ").slice(1).join(" "),
+        });
         if (pErr) throw pErr;
-        person = newPerson;
       }
 
-      // Add membership as scoutmaster
-      const { error: mErr } = await supabase
-        .from("memberships")
-        .insert({
-          org_id: org.id,
-          person_id: person!.id,
-          role: "scoutmaster",
-          status: "active",
-        });
-      if (mErr) throw mErr;
+      const { data: orgId, error: orgErr } = await supabase.rpc("create_organization", {
+        p_type: unitId, p_number: number, p_city: city, p_state: state, p_word: unit.word,
+      });
+      if (orgErr) throw orgErr;
 
-      router.push("/dashboard");
+      await fetch("/api/switch-org", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orgId }) });
+      router.push(nextAction === "import" ? "/admin/import" : "/dashboard");
+      router.refresh();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
@@ -180,6 +151,11 @@ export default function SetupPage() {
                 className="input w-full"
               />
             </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="state" className="font-bold text-sm">State</label>
+              <input id="state" type="text" maxLength={2} value={state}
+                onChange={(e) => setState(e.target.value.toUpperCase())} placeholder="TX" className="input w-full" />
+            </div>
             {(number || city) && (
               <div className="card flex flex-col gap-1.5">
                 <span className="text-xs font-bold tracking-widest uppercase text-smoke">
@@ -208,12 +184,12 @@ export default function SetupPage() {
                   <span className="text-sm text-smoke leading-relaxed">
                     Export from Scoutbook Plus: roster report, scout advancement, activity log. Then add them here.
                   </span>
-                  <button type="button" className="btn-primary">
+                  <button type="button" className={nextAction === "import" ? "btn-primary" : "btn-secondary"} onClick={() => setNextAction("import")}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                       strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
                     </svg>
-                    Choose files
+                    {nextAction === "import" ? "Import right after setup" : "Import my files"}
                   </button>
                   <span className="text-xs text-smoke">
                     We never ask for your Scoutbook password.
@@ -221,8 +197,11 @@ export default function SetupPage() {
                 </div>
                 <div className="card flex flex-col gap-3">
                   <span className="font-bold text-base">Or start from a spreadsheet</span>
-                  <button type="button" className="btn-secondary">Upload a CSV</button>
+                  <button type="button" className="btn-secondary" onClick={() => setNextAction("import")}>Upload a CSV after setup</button>
                 </div>
+                <button type="button" className="btn-ghost" onClick={() => setNextAction("dashboard")}>
+                  {nextAction === "dashboard" ? "Skipping import, add people later" : "Skip import for now"}
+                </button>
               </>
             ) : (
               <>
@@ -234,7 +213,7 @@ export default function SetupPage() {
                   <span className="text-sm text-smoke leading-relaxed">
                     Upload your roster as a CSV. Ranks and badges are set up in the next step with a checklist builder.
                   </span>
-                  <button type="button" className="btn-primary">Upload a CSV</button>
+                  <button type="button" className="btn-primary" onClick={() => setNextAction("import")}>Upload a CSV after setup</button>
                 </div>
               </>
             )}

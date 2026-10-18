@@ -31,19 +31,17 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
 
   // Protect app routes
-  const isAppRoute =
-    request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/events") ||
-    request.nextUrl.pathname.startsWith("/roster") ||
-    request.nextUrl.pathname.startsWith("/pay") ||
-    request.nextUrl.pathname.startsWith("/family") ||
-    request.nextUrl.pathname.startsWith("/setup") ||
-    request.nextUrl.pathname.startsWith("/admin") ||
-    request.nextUrl.pathname.startsWith("/scout/");
+  const APP_PREFIXES = [
+    "/home", "/welcome", "/dashboard", "/events", "/roster", "/pay", "/family", "/setup",
+    "/admin", "/scout/", "/messages", "/settings", "/patrols", "/forms", "/advancement",
+  ];
+  const path = request.nextUrl.pathname;
+  const isAppRoute = APP_PREFIXES.some((p) => path === p || path.startsWith(p.endsWith("/") ? p : p + "/") || path === p.replace(/\/$/, ""));
 
   if (isAppRoute && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    url.search = `?next=${encodeURIComponent(path + request.nextUrl.search)}`;
     return NextResponse.redirect(url);
   }
 
