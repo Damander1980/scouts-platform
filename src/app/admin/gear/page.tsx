@@ -1,8 +1,8 @@
-import { requireLeader } from "@/lib/context";
+import { requirePerm } from "@/lib/context";
 import GearClient from "./GearClient";
 
 export default async function GearPage() {
-  const { supabase, current } = await requireLeader();
+  const { supabase, current } = await requirePerm("leader", "gear.manage", "docs.manage");
   const orgId = current.org.id;
   const [{ data: items }, { data: outs }, { data: members }, { data: docs }] = await Promise.all([
     supabase.from("equipment").select("id, name, category, tag, condition, notes").eq("org_id", orgId).order("category").order("name"),

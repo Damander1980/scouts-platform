@@ -12,9 +12,11 @@ const ROLE_LABELS: Record<string, string> = {
   cubmaster: "Cubmaster", crew_advisor: "Crew Advisor", skipper: "Skipper",
 };
 
-const NAV = [
+// `need`: show the item if the person holds any of these permissions (omitted = everyone with tools).
+// Hiding is convenience only; each page and the database enforce access themselves.
+const NAV: { path: string; label: string; icon: string; need?: string[] }[] = [
   { path: "/admin", label: "Overview", icon: "M3 12l9-8 9 8M5 10v10h5v-6h4v6h5V10" },
-  { path: "/admin/members", label: "Members", icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" },
+  { path: "/admin/members", label: "Members", need: ["leader", "members.manage", "members.private"], icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" },
   { path: "/admin/patrols", label: "Patrols & positions", icon: "M4 21V5m0 0h11l-2 4 2 4H4" },
   { path: "/events", label: "Events", icon: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" },
   { path: "/admin/attendance", label: "Attendance", icon: "M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" },
@@ -27,17 +29,42 @@ const NAV = [
   { path: "/admin/import", label: "Import & export", icon: "M12 3v12M7 10l5 5 5-5M4 21h16" },
   { path: "/admin/site", label: "Website", icon: "M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" },
   { path: "/admin/settings", label: "Unit settings", icon: "M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z" },
+  { path: "/admin/positions", label: "Positions & access", icon: "M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6zM9 12l2 2 4-4" },
 ];
 
+const NEED: Record<string, string[]> = {
+  "/admin/patrols": ["leader"],
+  "/events": ["leader", "events.manage"],
+  "/admin/attendance": ["leader"],
+  "/admin/advancement": ["leader"],
+  "/admin/forms": ["leader", "medical.view", "medical.record"],
+  "/admin/money": ["money.view", "money.manage", "fundraising.manage"],
+  "/admin/volunteer": ["leader", "volunteer.manage"],
+  "/admin/gear": ["leader", "gear.manage", "docs.manage"],
+  "/admin/import": ["leader", "members.private"],
+  "/admin/site": ["leader", "site.edit"],
+};
+
+const PERM_LABELS: Record<string, string> = {
+  "members.private": "private member details", "medical.view": "health form status",
+  "medical.record": "recording health forms", "messages.audit": "the full message log",
+};
 
 export default function AdminLayoutClient({
-  children, person, org, role,
+  children, person, org, role, perms, isAdmin, yptBlocked,
 }: {
   children: React.ReactNode;
   person: { id: string; first_name: string; last_name: string };
   org: { id: string; name: string; type: string; unit_number: string | null; city: string | null };
   role: string;
+  perms: string[];
+  isAdmin: boolean;
+  yptBlocked: string[];
 }) {
+  const nav = NAV.filter((n) => {
+    const need = n.need ?? NEED[n.path];
+    return isAdmin || !need || need.some((p) => perms.includes(p));
+  });
   const pathname = usePathname();
   const supabase = createClient();
   const unitWord = org.type === "cubs" ? "Pack" : org.type === "venturing" ? "Crew" : org.type === "sea" ? "Ship" : "Troop";
@@ -51,7 +78,7 @@ export default function AdminLayoutClient({
           <div className="text-[12px] mt-0.5" style={{ color: "#9DB0A7" }}>Leader tools · {org.city}</div>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-0.5">
-          {NAV.map((n) => (
+          {nav.map((n) => (
             <Link key={n.path} href={n.path}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-bold no-underline ${isActive(n.path) ? "bg-white/15 text-white" : "text-white/70 hover:text-white hover:bg-white/10"}`}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={n.icon}/></svg>
@@ -74,7 +101,7 @@ export default function AdminLayoutClient({
           <span className="font-bold text-[15px]">{unitWord} {org.unit_number} · Leaders</span>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-2">
-          {NAV.map((n) => (
+          {nav.map((n) => (
             <Link key={n.path} href={n.path}
               className="px-3 py-1.5 rounded-full text-[13px] font-bold no-underline whitespace-nowrap"
               style={{ background: isActive(n.path) ? "rgba(255,255,255,0.2)" : "transparent", color: isActive(n.path) ? "white" : "#CFE0D7" }}>
@@ -84,7 +111,15 @@ export default function AdminLayoutClient({
         </nav>
       </div>
 
-      <main className="flex-1 min-w-0 px-4 md:px-8 py-6 md:py-8 max-w-6xl flex flex-col gap-5">{children}</main>
+      <main className="flex-1 min-w-0 px-4 md:px-8 py-6 md:py-8 max-w-6xl flex flex-col gap-5">
+        {yptBlocked.length > 0 && (
+          <div className="card" style={{ background: "#FFF1E6", borderColor: "#FFD6B8" }}>
+            <b>Youth Protection Training needed.</b> Your position includes {yptBlocked.map((p) => PERM_LABELS[p] ?? p).join(", ")}, but
+            no current YPT date is on file for you. Ask a unit admin to record your YPT completion date to turn these on.
+          </div>
+        )}
+        {children}
+      </main>
     </div>
   );
 }

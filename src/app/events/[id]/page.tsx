@@ -7,12 +7,13 @@ import { loadFamily } from "@/lib/family";
 import RsvpPanel, { type RsvpRow } from "./RsvpPanel";
 import LeaderEventTools from "./LeaderEventTools";
 
-type Roster = { person_id: string; role: string; ypt_expires: string | null; persons: { first_name: string; last_name: string; type: string; birthdate: string | null } };
+type Roster = { person_id: string; role: string; ypt_expires: string | null; persons: { first_name: string; last_name: string; type: string } };
 
 export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const ctx = await requireOrg();
-  const { supabase, current, isLeader } = ctx;
+  const { supabase, current, isLeader, can } = ctx;
+  const seesForms = can("medical.view", "medical.record");
   const orgId = current.org.id;
 
   const { data: ev } = await supabase.from("events").select("*").eq("id", id).eq("org_id", orgId).maybeSingle();
@@ -22,13 +23,15 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const packing = ((tripPlan?.packing ?? []) as { id: string; text: string }[]);
   const itinerary = ((tripPlan?.itinerary ?? []) as { id: string; day?: string; time?: string; text: string }[]);
 
-  const [{ data: rsvps }, { data: roster }, { data: patrolRows }, family, { data: orgForms }] = await Promise.all([
+  const [{ data: rsvps }, { data: roster }, { data: patrolRows }, family, { data: orgForms }, { data: ageFlags }] = await Promise.all([
     supabase.from("rsvps").select("person_id, status, notes, driver_seats, dietary, answers").eq("event_id", id),
-    supabase.from("memberships").select("person_id, role, ypt_expires, persons(first_name, last_name, type, birthdate)").eq("org_id", orgId).eq("status", "active"),
+    supabase.from("memberships").select("person_id, role, ypt_expires, persons(first_name, last_name, type)").eq("org_id", orgId).eq("status", "active"),
     supabase.from("patrol_members").select("person_id, patrols(name)").eq("org_id", orgId).is("end_date", null),
     loadFamily(supabase, orgId),
-    isLeader ? supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId) : Promise.resolve({ data: [] as { person_id: string; type: string; expires_at: string | null }[] }),
+    seesForms ? supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId) : Promise.resolve({ data: [] as { person_id: string; type: string; expires_at: string | null }[] }),
+    supabase.rpc("member_age_flags", { p_org: orgId, p_on: ev.start_at.slice(0, 10) }),
   ]);
+  const over21 = new Set(((ageFlags ?? []) as { person_id: string; adult_21: boolean }[]).filter((a) => a.adult_21).map((a) => a.person_id));
 
   const people = (roster ?? []) as unknown as Roster[];
   const patrolOf = Object.fromEntries((patrolRows ?? []).map((p) => [p.person_id, (p.patrols as unknown as { name: string })?.name]));
@@ -41,13 +44,9 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const noReply = people.filter((p) => !byPerson[p.person_id]);
 
   // Youth protection (Scouting America): two registered adults 21 or older on every youth activity,
-  // every adult with current Youth Protection Training.
-  const ageOn = (b: string | null, at: string) => {
-    if (!b) return null;
-    const d = new Date(b), n = new Date(at);
-    return n.getFullYear() - d.getFullYear() - (n < new Date(n.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0);
-  };
-  const adultsGoing = going.filter((p) => p.persons.type === "adult" && (ageOn(p.persons.birthdate, ev.start_at) ?? 21) >= 21);
+  // every adult with current Youth Protection Training. Ages come as a yes/no flag so nobody's
+  // birthdate leaves the database (an adult with no birthdate on file counts as 21+, as before).
+  const adultsGoing = going.filter((p) => p.persons.type === "adult" && over21.has(p.person_id));
   const trainedLeaders = adultsGoing.filter((p) => p.ypt_expires && new Date(p.ypt_expires) > new Date(ev.end_at ?? ev.start_at));
 
   // Health record: Parts A and B for every activity; Part C (physician exam) for events over 72 hours
@@ -151,7 +150,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         </section>
       )}
 
-      {isLeader && going.length > 0 && (
+      {seesForms && going.length > 0 && (
         <section className="card flex flex-col gap-2" style={{ borderColor: readiness.length ? "#FFD6B8" : "#CFE3DA" }}>
           <div className="flex items-center justify-between gap-2">
             <span className="font-bold text-[15px]">Ready to go?</span>

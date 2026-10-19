@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { requireLeader } from "@/lib/context";
+import { requireStaff } from "@/lib/context";
 import { Chip, PageTitle } from "@/components/ui";
 
 export default async function MessageLogPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams;
-  const { supabase, current, isAdmin } = await requireLeader();
+  const { supabase, current, isAdmin } = await requireStaff();
   const orgId = current.org.id;
   if (isAdmin) await supabase.rpc("log_message_view", { p_org: orgId });
 

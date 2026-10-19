@@ -11,7 +11,7 @@ export default async function Shell({ ctx, children }: {
   ctx: {
     supabase: import("@supabase/supabase-js").SupabaseClient;
     person: { id: string; first_name: string; last_name: string };
-    memberships: Membership[]; current: Membership; isLeader: boolean;
+    memberships: Membership[]; current: Membership; isLeader: boolean; isStaff?: boolean;
   };
   children: ReactNode;
 }) {
@@ -25,7 +25,7 @@ export default async function Shell({ ctx, children }: {
       orgs={ctx.memberships.map((m) => ({ id: m.org.id, label: orgLabel(m.org) }))}
       currentOrgId={ctx.current.org.id}
       initials={`${ctx.person.first_name[0] ?? ""}${ctx.person.last_name[0] ?? ""}`.toUpperCase()}
-      isLeader={ctx.isLeader}
+      isLeader={ctx.isStaff ?? ctx.isLeader}
       unread={count ?? 0}
     >
       {children}

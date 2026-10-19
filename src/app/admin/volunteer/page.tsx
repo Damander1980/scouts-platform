@@ -1,8 +1,8 @@
-import { requireLeader } from "@/lib/context";
+import { requirePerm } from "@/lib/context";
 import VolunteerAdmin from "./VolunteerAdmin";
 
 export default async function VolunteerPage() {
-  const { supabase, current } = await requireLeader();
+  const { supabase, current } = await requirePerm("leader", "volunteer.manage");
   const orgId = current.org.id;
   const [{ data: shifts }, { data: signups }, { data: polls }, { data: votes }, { data: members }] = await Promise.all([
     supabase.from("shifts").select("id, title, location, starts_at, ends_at, slots").eq("org_id", orgId).gte("ends_at", new Date(Date.now() - 86400000).toISOString()).order("starts_at"),

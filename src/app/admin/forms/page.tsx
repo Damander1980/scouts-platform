@@ -1,8 +1,8 @@
-import { requireLeader } from "@/lib/context";
+import { requirePerm } from "@/lib/context";
 import FormsClient from "./FormsClient";
 
 export default async function AdminFormsPage() {
-  const { supabase, current } = await requireLeader();
+  const { supabase, current } = await requirePerm("leader", "medical.view", "medical.record");
   const orgId = current.org.id;
   const [{ data: members }, { data: forms }, { data: certs }, { data: scoutCerts }, { data: designated }] = await Promise.all([
     supabase.from("memberships").select("person_id, role, ypt_expires, swim_class, persons(first_name, last_name, type)").eq("org_id", orgId).eq("status", "active"),

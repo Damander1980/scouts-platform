@@ -10,7 +10,8 @@ const KIND_LABEL: Record<string, string> = {
 export default async function EventsPage({ searchParams }: { searchParams: Promise<{ past?: string }> }) {
   const { past } = await searchParams;
   const ctx = await requireOrg();
-  const { supabase, current, isLeader } = ctx;
+  const { supabase, current } = ctx;
+  const isLeader = ctx.can("leader", "events.manage");
   const now = new Date().toISOString();
 
   let q = supabase.from("events").select("id, title, start_at, end_at, location, cost_cents, kind, canceled, cap")

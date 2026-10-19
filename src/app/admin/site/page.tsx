@@ -1,8 +1,8 @@
-import { requireLeader } from "@/lib/context";
+import { requirePerm } from "@/lib/context";
 import SiteEditor from "./SiteEditor";
 
 export default async function SitePage() {
-  const { supabase, current, isAdmin } = await requireLeader();
+  const { supabase, current, isAdmin } = await requirePerm("leader", "site.edit");
   const orgId = current.org.id;
   const [{ data: org }, { data: members }, { data: albums }, { data: requests }] = await Promise.all([
     supabase.from("organizations").select("settings, slug").eq("id", orgId).single(),

@@ -2,6 +2,14 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+// Abilities come from positions (migration 0034), checked in the database by has_perm().
+// These mirror permission_catalog.key; the database is the authority, the app only hides UI.
+export type Perm =
+  | "leader" | "events.manage" | "gear.manage" | "docs.manage" | "volunteer.manage" | "site.edit"
+  | "members.manage" | "members.private" | "medical.view" | "medical.record"
+  | "money.view" | "money.manage" | "fundraising.manage" | "messages.audit";
+
+// Legacy role list. Kept for labels only; do NOT use it to decide access.
 export const LEADER_ROLES = [
   "scoutmaster", "assistant_scoutmaster", "committee_chair", "committee_member", "treasurer",
   "advancement_chair", "chartered_org_rep", "den_leader", "cubmaster", "crew_advisor", "skipper",
@@ -52,9 +60,23 @@ export async function getContext() {
   const cookieStore = await cookies();
   const wanted = cookieStore.get(ORG_COOKIE)?.value;
   const current = memberships.find((m) => m.org.id === wanted) ?? memberships[0] ?? null;
-  const isLeader = !!current && (LEADER_ROLES.includes(current.role) || current.is_admin);
+  let perms: Perm[] = [];
+  let yptBlocked: Perm[] = [];
+  if (current) {
+    const [{ data: p }, { data: b }] = await Promise.all([
+      supabase.rpc("my_permissions", { p_org: current.org.id }),
+      supabase.rpc("my_ypt_blocked", { p_org: current.org.id }),
+    ]);
+    perms = (p ?? []) as Perm[];
+    yptBlocked = (b ?? []) as Perm[];
+  }
+  const can = (...any: Perm[]) => any.some((x) => perms.includes(x));
+  const isLeader = can("leader");
 
-  return { supabase, user, person, memberships, current, householdId, isLeader, isAdmin: !!current?.is_admin };
+  return {
+    supabase, user, person, memberships, current, householdId, isLeader, isAdmin: !!current?.is_admin,
+    perms, can, yptBlocked, isStaff: perms.length > 0,
+  };
 }
 
 // For pages that require a troop membership.
@@ -66,7 +88,19 @@ export async function requireOrg() {
 }
 
 export async function requireLeader() {
+  return requirePerm("leader");
+}
+
+// Page needs at least one of these permissions.
+export async function requirePerm(...any: Perm[]) {
   const ctx = await requireOrg();
-  if (!ctx.isLeader) redirect("/dashboard");
+  if (!ctx.can(...any)) redirect(ctx.isStaff ? "/admin" : "/dashboard");
+  return ctx;
+}
+
+// Anyone holding any position ability can open the unit tools area.
+export async function requireStaff() {
+  const ctx = await requireOrg();
+  if (!ctx.isStaff) redirect("/dashboard");
   return ctx;
 }

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { LEADER_ROLES, requireLeader } from "@/lib/context";
+import { LEADER_ROLES, requireStaff } from "@/lib/context";
 import { Chip, PageTitle, SectionLabel, Stat, fmtDate, money } from "@/components/ui";
 
 export default async function AdminOverview() {
-  const { supabase, current } = await requireLeader();
+  const { supabase, current } = await requireStaff();
   const orgId = current.org.id;
   const now = new Date();
   const in60 = new Date(Date.now() + 60 * 86400000).toISOString();

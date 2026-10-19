@@ -1,10 +1,10 @@
-import { requireLeader } from "@/lib/context";
+import { requirePerm } from "@/lib/context";
 import { paymentsEnabled } from "@/lib/stripe";
 import MoneyClient from "./MoneyClient";
 
 export default async function MoneyPage({ searchParams }: { searchParams: Promise<{ tab?: string; connect?: string }> }) {
   const { tab, connect } = await searchParams;
-  const { supabase, current, person } = await requireLeader();
+  const { supabase, current, person } = await requirePerm("money.view", "money.manage", "fundraising.manage");
   const orgId = current.org.id;
 
   const year = new Date().getFullYear();

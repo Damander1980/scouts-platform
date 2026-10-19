@@ -28,7 +28,7 @@ export default async function TripPlanPage({ params }: { params: Promise<{ id: s
     <Shell ctx={ctx}>
       <Link href={`/events/${id}`} className="text-[13px] font-bold text-forest no-underline">← {ev.title}</Link>
       <TripPlanClient
-        eventId={id} orgId={current.org.id} canEdit={isLeader} title={ev.title} costCents={ev.cost_cents}
+        eventId={id} orgId={current.org.id} canEdit={isLeader || ctx.can("events.manage")} title={ev.title} costCents={ev.cost_cents}
         plan={(plan as Plan | null) ?? { itinerary: [], costs: [], meals: [], packing: [], tasks: [], permits: [] }}
         youthGoing={goingRows.filter((g) => g.persons.type === "youth").length}
         adultsGoing={goingRows.filter((g) => g.persons.type === "adult").length}

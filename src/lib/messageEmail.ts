@@ -1,9 +1,6 @@
 import crypto from "crypto";
 import { adminClient, SITE_URL } from "./admin";
 
-const LEADER_ROLES = ["scoutmaster", "assistant_scoutmaster", "committee_chair", "committee_member", "treasurer",
-  "advancement_chair", "chartered_org_rep", "den_leader", "cubmaster", "crew_advisor", "skipper"];
-
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 // One-click unsubscribe without signing in: a signed token for the person.
@@ -47,7 +44,10 @@ export async function deliverMessage(messageId: string) {
   ]);
   if (!org || !sender) return { delivered: 0, reason: "missing data" };
 
-  const senderIsLeader = !!senderMs && (LEADER_ROLES.includes(senderMs.role) || senderMs.is_admin);
+  // Service-role client has no signed-in user, so has_perm() can't run here; read positions directly.
+  const { data: leaderPos } = await db.from("position_holders").select("unit_positions!inner(permissions)")
+    .eq("org_id", msg.org_id).eq("person_id", msg.sender_id).contains("unit_positions.permissions", ["leader"]).limit(1);
+  const senderIsLeader = sender.type === "adult" && (!!senderMs?.is_admin || (leaderPos ?? []).length > 0);
   const fullEmail = senderIsLeader && (org.settings as { email_mode?: string } | null)?.email_mode !== "notice";
   type R = { person_id: string; copy_reason: string; persons: { id: string; first_name: string; last_name: string; type: string; email: string | null; users: { email: string } | null } };
   const all = ((recips ?? []) as unknown as R[]).filter((r) => r.copy_reason !== "sender");

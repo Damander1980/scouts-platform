@@ -3,23 +3,26 @@ import { toCsv } from "@/lib/csv";
 
 export async function GET() {
   const ctx = await getContext();
-  if (!ctx.current || !ctx.isLeader) return new Response("Forbidden", { status: 403 });
+  // A full roster with birthdates is youth data: adults with private-details access only.
+  if (!ctx.current || !ctx.can("members.private")) return new Response("Forbidden", { status: 403 });
   const orgId = ctx.current.org.id;
   const { supabase } = ctx;
 
   const [{ data: ms }, { data: patrols }, { data: forms }, { data: positions }] = await Promise.all([
-    supabase.from("memberships").select("person_id, role, status, position, ypt_expires, registration_expires, joined_at, persons(first_name, last_name, type, birthdate)").eq("org_id", orgId),
+    supabase.from("memberships").select("person_id, role, status, position, ypt_expires, registration_expires, joined_at, persons(first_name, last_name, type)").eq("org_id", orgId),
     supabase.from("patrol_members").select("person_id, role, patrols(name)").eq("org_id", orgId).is("end_date", null),
     supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId),
     supabase.from("leadership_positions").select("person_id, title").eq("org_id", orgId).is("end_date", null),
   ]);
+  const { data: priv } = await supabase.rpc("person_private", { p_org: orgId, p_ids: (ms ?? []).map((m) => m.person_id) });
+  const born = Object.fromEntries(((priv ?? []) as { id: string; birthdate: string | null }[]).map((r) => [r.id, r.birthdate]));
   const pat = Object.fromEntries((patrols ?? []).map((p) => [p.person_id, p]));
   const exp = (pid: string, t: string) => (forms ?? []).find((f) => f.person_id === pid && f.type === t)?.expires_at?.slice(0, 10) ?? "";
 
   const rows = (ms ?? []).map((m) => {
-    const p = m.persons as unknown as { first_name: string; last_name: string; type: string; birthdate: string | null };
+    const p = m.persons as unknown as { first_name: string; last_name: string; type: string };
     return {
-      "First name": p.first_name, "Last name": p.last_name, Type: p.type, Birthdate: p.birthdate ?? "",
+      "First name": p.first_name, "Last name": p.last_name, Type: p.type, Birthdate: born[m.person_id] ?? "",
       Role: ROLE_LABELS[m.role] ?? m.role, Status: m.status,
       Patrol: (pat[m.person_id]?.patrols as unknown as { name: string })?.name ?? "",
       "Youth position": (positions ?? []).filter((x) => x.person_id === m.person_id).map((x) => x.title).join("; "),

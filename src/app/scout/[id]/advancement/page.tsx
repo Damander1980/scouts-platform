@@ -3,11 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import AdvancementClient, { type Progress, type Tracked } from "@/components/AdvancementClient";
 import { loadCatalog } from "@/lib/advancement";
 
-const LEADER_ROLES = [
-  "scoutmaster","assistant_scoutmaster","committee_chair","committee_member","treasurer",
-  "advancement_chair","chartered_org_rep","den_leader","cubmaster","crew_advisor","skipper",
-];
-
 export default async function ScoutAdvancementPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
@@ -26,9 +21,11 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
   const orgId = scoutMembership.org_id;
   const orgType = (scoutMembership.organizations as unknown as { type: string } | null)?.type;
 
-  const { data: viewerMembership } = await supabase
-    .from("memberships").select("role").eq("person_id", viewer.id).eq("org_id", orgId).eq("status", "active").maybeSingle();
-  const isLeader = !!viewerMembership && LEADER_ROLES.includes(viewerMembership.role);
+  const [{ data: viewerMembership }, { data: leaderPerm }] = await Promise.all([
+    supabase.from("memberships").select("role").eq("person_id", viewer.id).eq("org_id", orgId).eq("status", "active").maybeSingle(),
+    supabase.rpc("has_perm", { org: orgId, perm: "leader" }),
+  ]);
+  const isLeader = !!leaderPerm;
 
   const { data: counselorRows } = await supabase
     .from("merit_badge_counselors").select("item_id").eq("org_id", orgId).eq("person_id", viewer.id);
@@ -51,7 +48,7 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
     loadCatalog(supabase),
     supabase.from("scout_advancement").select("id, item_id, status, assigned_by, counselor_id, completed_at").eq("person_id", id),
     supabase.from("requirement_progress").select("requirement_id, completed_at, approved_by, approved_at").eq("person_id", id),
-    supabase.from("persons").select("birthdate").eq("id", id).maybeSingle(),
+    supabase.rpc("person_private", { p_org: orgId, p_ids: [id] }).maybeSingle<{ birthdate: string | null }>(),
     supabase.from("leadership_positions").select("title, start_date, end_date, counts_for_rank").eq("org_id", orgId).eq("person_id", id),
     supabase.from("attendance").select("present, events(start_at, kind, overnight_nights, service_hours, miles, canceled)").eq("person_id", id).eq("org_id", orgId).eq("present", true),
     supabase.from("merit_badge_counselors").select("person_id, item_id, persons(first_name, last_name)").eq("org_id", orgId),

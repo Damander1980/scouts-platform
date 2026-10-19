@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
-import { requireLeader } from "@/lib/context";
+import { requirePerm } from "@/lib/context";
 import Shell from "@/components/Shell";
 import EventForm, { type EventInput } from "@/components/EventForm";
 import { PageTitle } from "@/components/ui";
 
 export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const ctx = await requireLeader();
+  const ctx = await requirePerm("leader", "events.manage");
   const { data: ev } = await ctx.supabase.from("events").select("*").eq("id", id).eq("org_id", ctx.current.org.id).maybeSingle();
   if (!ev) notFound();
   return (
