@@ -20,5 +20,7 @@ export default async function TroopPublicPage({ params }: { params: Promise<{ sl
   const { slug } = await params;
   const d = await load(slug);
   if (!d?.org) notFound();
-  return <TroopPageClient data={d} storageUrl={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site/`} />;
+  const supabase = await createClient();
+  const { data: menu } = await supabase.rpc("site_menu", { p_slug: slug });
+  return <TroopPageClient data={d} menu={(menu ?? []) as { slug: string; title: string }[]} storageUrl={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site/`} />;
 }

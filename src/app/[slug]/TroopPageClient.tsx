@@ -15,7 +15,7 @@ export type SiteData = {
 
 const fmt = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 
-export default function TroopPageClient({ data, storageUrl }: { data: SiteData; storageUrl: string }) {
+export default function TroopPageClient({ data, storageUrl, menu = [] }: { data: SiteData; storageUrl: string; menu?: { slug: string; title: string }[] }) {
   const { org, contacts, events, albums } = data;
   const site = org.site ?? {};
   const word = org.type === "cubs" ? "Pack" : org.type === "venturing" ? "Crew" : org.type === "sea" ? "Ship" : "Troop";
@@ -52,10 +52,11 @@ export default function TroopPageClient({ data, storageUrl }: { data: SiteData; 
           </div>
         )}
         <nav className="bg-black/15">
-          <div className="max-w-6xl mx-auto px-4 h-11 flex items-center gap-5 text-[14px] font-bold">
+          <div className="max-w-6xl mx-auto px-4 h-11 flex items-center gap-5 text-[14px] font-bold overflow-x-auto whitespace-nowrap">
             <a href="#welcome" className="text-white no-underline">Home</a>
             <a href="#events" className="text-white no-underline">Calendar</a>
             <a href="#photos" className="text-white no-underline">Photos</a>
+            {menu.map((m) => <a key={m.slug} href={`/${org.slug}/${m.slug}`} className="text-white no-underline">{m.title}</a>)}
             <a href="#contact" className="text-white no-underline">Contact</a>
             <a href={`/join/${org.slug}`} className="ml-auto px-4 py-1.5 rounded-full no-underline" style={{ background: "#FF6A1A", color: "#14211B" }}>Join us</a>
             <a href="/login" className="text-white no-underline opacity-80">Member sign in</a>
