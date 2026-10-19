@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ErrorBox, Field } from "@/components/ui";
@@ -32,7 +32,10 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
     if (error) setError(error.message); else { setOk("Saved."); router.refresh(); }
   }
 
-  const feed = typeof window !== "undefined" ? `${window.location.origin}/api/calendar/${org.id}?t=${token}` : "";
+  // The site origin is only known in the browser; filling it after mount keeps server and client HTML identical.
+  const [origin, setOrigin] = useState("");
+  useEffect(() => setOrigin(window.location.origin), []);
+  const feed = origin ? `${origin}/api/calendar/${org.id}?t=${token}` : "";
 
   return (
     <div className="flex flex-col gap-4 max-w-2xl">

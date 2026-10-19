@@ -53,7 +53,8 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
   const upload = async (file: File) => {
     if (file.size > 8_000_000) throw new Error("Images must be under 8 MB.");
     if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) throw new Error("Upload a JPG, PNG, WEBP or GIF image.");
-    const path = `${orgId}/page-${crypto.randomUUID()}.${file.name.split(".").pop()?.toLowerCase() ?? "jpg"}`;
+    const ext = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" } as Record<string, string>)[file.type] ?? "jpg";
+    const path = `${orgId}/page-${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from("site").upload(path, file, { cacheControl: "31536000" });
     if (error) throw error;
     return path;
@@ -171,10 +172,10 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
           {versions.map((v) => (
             <div key={v.id} className="flex items-center gap-2 border-t py-1.5" style={{ borderColor: "#E3EAE6" }}>
               <span className="text-[14px]">{new Date(v.published_at).toLocaleString()}</span>
-              <button className="btn-ghost ml-auto" disabled={busy} onClick={() => run(async () => {
+              <button className="btn-ghost ml-auto" disabled={busy} onClick={() => { if (dirty && !confirm("You have unsaved changes. Restoring replaces them. Continue?")) return; run(async () => {
                 const { error } = await supabase.rpc("restore_site_version", { p_version: v.id }); if (error) throw error;
                 window.location.reload();
-              }, "Restored into the draft.")}>Restore</button>
+              }, "Restored into the draft."); }}>Restore</button>
             </div>
           ))}
         </div>

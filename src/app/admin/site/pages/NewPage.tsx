@@ -26,6 +26,7 @@ export default function NewPage({ orgId, taken }: { orgId: string; taken: string
         draft: [{ id: crypto.randomUUID(), type: "heading", text: title.trim() }, { id: crypto.randomUUID(), type: "text", text: "" }],
       }).select("id").single();
       setBusy(false);
+      if (error?.code === "23505") { setError("You already have a page with that address."); return; }
       if (error || !data) { setError(error?.message ?? "Could not create the page"); return; }
       router.push(`/admin/site/pages/${data.id}`);
     }}>
