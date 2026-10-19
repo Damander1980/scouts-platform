@@ -5,7 +5,11 @@ export type FamilyMember = { id: string; first_name: string; last_name: string; 
 // The signed-in person's household, flagged with who belongs to the current troop.
 export async function loadFamily(supabase: SupabaseClient, orgId: string): Promise<FamilyMember[]> {
   const { data: fam } = await supabase.rpc("my_family");
-  const people = (fam ?? []) as Omit<FamilyMember, "in_org" | "role">[];
+  let people = (fam ?? []) as Omit<FamilyMember, "in_org" | "role">[];
+  // A Scout with their own login sees only themselves, never their parents' or siblings' details.
+  const { data: meId } = await supabase.rpc("my_person_id");
+  const me = people.find((p) => p.id === meId);
+  if (me && me.type === "youth") people = [me];
   if (!people.length) return [];
   const { data: ms } = await supabase.from("memberships").select("person_id, role")
     .eq("org_id", orgId).eq("status", "active").in("person_id", people.map((p) => p.id));

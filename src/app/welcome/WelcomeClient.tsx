@@ -143,7 +143,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
 
             <form onSubmit={addKid} className="card flex flex-col gap-3">
               <div className="font-bold text-[15px]">Add a child</div>
-              <p className="text-[13px] text-smoke m-0">Kids do not need an email. You manage their sign-ups and payments.</p>
+              <p className="text-[13px] text-smoke m-0">After this step, open your Family page to give each child their own login with their own email. Parents still handle payments and permission.</p>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="First name"><input className="input" value={kidFirst} onChange={(e) => setKidFirst(e.target.value)} required /></Field>
                 <Field label="Last name"><input className="input" value={kidLast} onChange={(e) => setKidLast(e.target.value)} required /></Field>

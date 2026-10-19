@@ -6,6 +6,10 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
   const { supabase, current, isAdmin, person } = await requireLeader();
   const orgId = current.org.id;
 
+  const [{ data: hhList }, { data: hhOf }] = await Promise.all([
+    supabase.rpc("unit_households", { p_org: orgId }),
+    supabase.rpc("person_households", { p_org: orgId }),
+  ]);
   const [{ data: members }, { data: badges }, { data: counselorAssignments }, { data: reqs }, { data: patrols }] = await Promise.all([
     supabase.from("memberships")
       .select("id, role, status, joined_at, ypt_expires, is_admin, is_designated_leader, position, registration_expires, persons(id, first_name, last_name, type, birthdate, user_id)")
@@ -38,6 +42,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
       joinRequests={joinRequests}
       patrolOf={Object.fromEntries((patrols ?? []).map((p) => [p.person_id, (p.patrols as unknown as { name: string })?.name ?? ""]))}
       initialTab={tab === "requests" ? "requests" : "members"}
+      households={(hhList ?? []) as never}
+      personHouseholds={(hhOf ?? []) as never}
     />
   );
 }

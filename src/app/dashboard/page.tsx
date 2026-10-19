@@ -67,7 +67,7 @@ export default async function DashboardPage() {
       {(balance > 0 || formIssues.length > 0 || needsAnswer.length > 0 || leaderTodos.length > 0) ? (
         <section className="flex flex-col gap-2">
           <SectionLabel>Needs you</SectionLabel>
-          {balance > 0 && (
+          {balance > 0 && person.type === "adult" && (
             <div className="card flex items-center justify-between gap-3" style={{ background: "#FFF1E6", borderColor: "#FFD6B8" }}>
               <div>
                 <div className="font-bold text-[16px]">You owe {money(balance)}</div>

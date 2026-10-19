@@ -37,7 +37,10 @@ function age(b: string | null) {
 export default function MembersClient({
   members: initial, orgId, myRole, badges = [], counselorAssignments = [], demo = false,
   joinCode = "", slug = "", isAdmin = true, myPersonId = "", joinRequests = [], patrolOf = {}, initialTab = "members",
+  households = [], personHouseholds = [],
 }: {
+  households?: { household_id: string; household_name: string; members: string }[];
+  personHouseholds?: { person_id: string; household_id: string; household_name: string }[];
   members: Member[]; orgId: string; myRole?: string;
   badges?: Badge[]; counselorAssignments?: CounselorAssignment[]; demo?: boolean;
   joinCode?: string; slug?: string; isAdmin?: boolean; myPersonId?: string;
@@ -288,6 +291,32 @@ export default function MembersClient({
                                 {b.name}{b.eagle_required && <span className="text-[10px] font-bold" style={{ color: "#7A2E00" }}>Eagle</span>}
                               </label>
                             ))}
+                          </div>
+                        </div>
+                      )}
+                      {m.persons.type === "youth" && (
+                        <div className="md:col-span-2 flex flex-col gap-2">
+                          <div className="font-bold text-[14px]">Family</div>
+                          {personHouseholds.filter((h) => h.person_id === m.persons.id).map((h) => (
+                            <div key={h.household_id} className="flex items-center gap-2 text-[14px]">
+                              <Chip tone="green">{h.household_name}</Chip>
+                              <span className="text-smoke text-[12px]">{households.find((x) => x.household_id === h.household_id)?.members}</span>
+                              <button className="btn-ghost text-[13px] ml-auto" disabled={busy} onClick={() => run(async () => {
+                                const { error } = await supabase.rpc("detach_child_from_family", { p_org: orgId, p_child: m.persons.id, p_household: h.household_id });
+                                if (error) throw error; router.refresh();
+                              })}>Remove from this family</button>
+                            </div>
+                          ))}
+                          <div className="flex gap-2 flex-wrap items-center">
+                            <select className="input h-10 min-h-0" defaultValue="" disabled={busy} onChange={(e) => e.target.value && run(async () => {
+                              const { error } = await supabase.rpc("attach_child_to_family", { p_org: orgId, p_child: m.persons.id, p_household: e.target.value });
+                              if (error) throw error; e.target.value = ""; router.refresh();
+                            })}>
+                              <option value="" disabled>Attach to a family…</option>
+                              {households.filter((h) => !personHouseholds.some((x) => x.person_id === m.persons.id && x.household_id === h.household_id))
+                                .map((h) => <option key={h.household_id} value={h.household_id}>{h.household_name} ({h.members})</option>)}
+                            </select>
+                            <span className="text-[12px] text-smoke">A Scout can belong to two families (for example, two parents in separate homes).</span>
                           </div>
                         </div>
                       )}
