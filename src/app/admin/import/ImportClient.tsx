@@ -18,6 +18,9 @@ const ROSTER_FIELDS: Record<string, string[]> = {
   patrol: ["patrol", "patrol name", "den"],
   household: ["household", "family", "family id"],
   email: ["email", "e-mail", "email address", "parent email", "parent 1 email", "primary email"],
+  member_id: ["member id", "bsa member id", "memberid", "bsa id", "member #", "member number"],
+  ypt_expires: ["ypt expires", "ypt expiration", "ypt expiration date", "ypt exp", "youth protection expires",
+    "youth protection expiration", "youth protection expiration date", "y01 expires", "safeguarding youth expires"],
 };
 const ADV_FIELDS: Record<string, string[]> = {
   first: ["first name", "first", "firstname"],
@@ -68,7 +71,7 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
     const mapped = parsed.map((r) => mapRow(r, kind === "roster" ? ROSTER_FIELDS : ADV_FIELDS)).filter((r) => r.first && r.last);
     if (!mapped.length) { setError("We couldn't find First name and Last name columns. Check the header row."); return; }
     setRows(mapped.map((r) => kind === "roster"
-      ? { ...r, household: r.household || r.email, birthdate: toIsoDate(r.birthdate), role: ROLE_MAP[r.role?.toLowerCase()] ?? "", type: r.type || (ROLE_MAP[r.role?.toLowerCase()] && !["scout"].includes(ROLE_MAP[r.role?.toLowerCase()]) ? "adult" : "youth") }
+      ? { ...r, household: r.household || r.email, birthdate: toIsoDate(r.birthdate), ypt_expires: toIsoDate(r.ypt_expires), role: ROLE_MAP[r.role?.toLowerCase()] ?? "", type: r.type || (ROLE_MAP[r.role?.toLowerCase()] && !["scout"].includes(ROLE_MAP[r.role?.toLowerCase()]) ? "adult" : "youth") }
       : { ...r, date: toIsoDate(r.date), ...parseAdvancement(r.item, r.type) }));
   }
 

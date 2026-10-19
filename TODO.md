@@ -15,8 +15,7 @@ Claude handles everything else directly without asking.
 - [ ] **Resend account** — needed for magic-link email auth. Not blocking until auth is wired.
 - [ ] **Twilio account** — needed for SMS notifications. Phase 2.
 
-### Positions & permissions (built 2026-10-19, NOT deployed)
-- [ ] **Log the Supabase CLI in** (`npx supabase login`) so Claude can dry-run and push migration 0034. The dry run failed with "Invalid access token".
+### Positions & permissions (LIVE 2026-10-19)
 - [ ] **Decide: should unit admins also need current YPT** to see private kid data? Right now admins are exempt so a brand-new unit can be set up. Safer, but a new troop gets stuck until someone enters a YPT date.
 - [ ] **Enter YPT dates for current leaders** after the push. Leaders without one lose private details, health form status and the message log (other tools keep working), and the app shows them why.
 

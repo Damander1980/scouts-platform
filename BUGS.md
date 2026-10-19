@@ -4,7 +4,10 @@ Code defects to fix. Ordered by blast radius (data loss / money first).
 
 ---
 
-## Fixed in code, waiting on migration 0034 to be pushed (2026-10-19)
+## FIXED and LIVE: migration 0034 pushed 2026-10-19 (commit ea6f3b7)
+
+Migration history for 0001-0033 had never been recorded (they were applied by hand);
+repaired with `supabase migration repair --status applied` after confirming 0033 was live.
 
 Root cause for most of these: "leader" meant ANY adult role, including Committee Member
 (Troop 999 has ~50), so every committee member had full leader access.
@@ -28,3 +31,10 @@ Root cause for most of these: "leader" meant ANY adult role, including Committee
    the client. Fix: `user_id` is no longer client-updatable.
 7. **Committee members sent full-content emails** as leaders. Fix: only real leaders and
    admins.
+
+## FIXED and LIVE: migration 0035 pushed 2026-10-19
+
+8. **Roster import silently dropped Scoutbook Member IDs.** The database side accepted
+   them (0033) but the import screen never sent the column. Fixed, and the importer now
+   also reads YPT expiration dates. Re-importing a roster refreshes YPT for people already
+   on it (never moves a date backwards) and fills in missing member IDs.
