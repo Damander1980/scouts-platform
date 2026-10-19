@@ -28,7 +28,7 @@ export default async function MessagesPage() {
   return (
     <Shell ctx={ctx}>
       <PageTitle title="Messages" sub="Every message is saved and can't be edited or deleted. Messages to Scouts always copy their parents and leaders."
-        action={<LinkButton href="/messages/new">New message</LinkButton>} />
+        action={<div className="flex gap-2"><LinkButton href="/forum" variant="secondary">Discussion boards</LinkButton><LinkButton href="/messages/new">New message</LinkButton></div>} />
       {rows.length === 0 && <Empty>No messages yet.</Empty>}
       <div className="flex flex-col gap-2">
         {rows.map((r) => {
