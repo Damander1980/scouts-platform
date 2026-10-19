@@ -10,17 +10,13 @@ Build order (Floyd, 2026-10-19): **PC web platform first, then the app, iOS last
 ## Needs Floyd
 
 ### Push / deploy
-- [ ] **Migrations 0036-0040 not on the database yet** (recharter, adult skills,
-      linked units, forums, website pages). Dry run 2026-10-19 lists exactly these
-      five. Push them BEFORE deploying the code: the event form now saves
-      `share_linked`, so posting an event fails until 0038 is live.
+- [x] Migrations 0036-0040 pushed and all code pushed 2026-10-19.
+- [ ] Note: an old unused `site_pages` table (0016, 0 rows) is still on the
+      database. The builder uses `web_pages`. Safe to drop later if wanted.
+- [ ] Forums and linked units weren't tested with real data (forum posts are
+      permanent; linking needs a second unit).
 - [ ] **Twilio**: point the number's incoming-message webhook at
       `/api/sms/inbound` once the account exists.
-- [ ] **Local commits not pushed** to `Damander1980/scouts-platform`
-      (`ea6f3b7` positions + youth-data lockdown, `6d3ca7f` roster import YPT
-      dates). Migrations 0034 and 0035 are already live on the database, so
-      the live site is running old code against the new database until these
-      go up.
 
 ### Positions & permissions (LIVE 2026-10-19)
 - [ ] **Decide: should unit admins also need current YPT** to see private kid
