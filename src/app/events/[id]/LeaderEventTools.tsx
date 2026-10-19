@@ -32,6 +32,7 @@ export default function LeaderEventTools({ eventId, canceled, ratioOk, adults, t
       <div className="flex gap-2 flex-wrap">
         <Link href={`/events/${eventId}/attendance`} className="btn-secondary no-underline">Take attendance</Link>
         <Link href={`/events/${eventId}/plan`} className="btn-secondary no-underline">Trip plan</Link>
+        <Link href={`/events/${eventId}/trip-sheet`} className="btn-secondary no-underline">Trip sheet</Link>
         <Link href={`/events/${eventId}/edit`} className="btn-secondary no-underline">Edit</Link>
         {noReply > 0 && <Link href={`/messages/new?audience=nonresponders&ref=${eventId}`} className="btn-secondary no-underline">Nudge {noReply} who haven&apos;t replied</Link>}
         <Link href={`/messages/new?audience=event&ref=${eventId}`} className="btn-secondary no-underline">Message who&apos;s going</Link>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requirePerm } from "@/lib/context";
 import { money } from "@/components/ui";
-import PrintButton from "./PrintButton";
+import PrintButton from "@/components/PrintButton";
 
 // Monthly or year-end treasurer report. ?period=2026-10 for a month, ?period=2026 for a year.
 // Family payments live in ledger_entries; the unit's own income and expenses (donations,
