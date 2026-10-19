@@ -148,6 +148,11 @@ export default async function DashboardPage() {
         )}
       </section>
 
+      <Link href="/volunteer" className="card no-underline text-ink flex items-center justify-between">
+        <div><div className="font-bold text-[16px]">Help & vote</div><div className="text-[13px] text-smoke">Volunteer shifts and polls</div></div>
+        <Chip>Open</Chip>
+      </Link>
+
       {current.role === "merit_badge_counselor" && (
         <Link href="/counselor" className="card no-underline text-ink flex items-center justify-between">
           <div><div className="font-bold text-[16px]">Merit badge counselor</div><div className="text-[13px] text-smoke">Your Scouts and sign-offs</div></div>

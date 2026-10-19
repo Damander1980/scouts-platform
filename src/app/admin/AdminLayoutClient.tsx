@@ -63,7 +63,7 @@ export default function AdminLayoutClient({
           <Link href="/dashboard" className="text-[13px] font-bold text-white no-underline">← Back to family view</Link>
           <div className="text-[13px] font-bold text-white mt-2">{person.first_name} {person.last_name}</div>
           <div className="text-[12px]" style={{ color: "#9DB0A7" }}>{ROLE_LABELS[role] ?? role}</div>
-          <button onClick={() => supabase.auth.signOut().then(() => (window.location.href = "/login"))}
+          <button onClick={() => { navigator.serviceWorker?.controller?.postMessage("clear-private"); supabase.auth.signOut().then(() => (window.location.href = "/login")); }}
             className="mt-2 text-[12px] font-bold text-white/60 hover:text-white text-left bg-transparent border-0 p-0 cursor-pointer font-sans">Sign out</button>
         </div>
       </aside>

@@ -118,7 +118,8 @@ export default function SettingsClient({ person, email, prefs, weekCount }: {
       </section>
 
       <button className="btn-primary" onClick={save}>Save settings</button>
-      <button className="btn-ghost" onClick={async () => { await supabase.auth.signOut(); window.location.href = "/login"; }}>Sign out</button>
+      <a href="/settings/privacy" className="btn-secondary no-underline">Privacy & data (request deletion)</a>
+      <button className="btn-ghost" onClick={async () => { navigator.serviceWorker?.controller?.postMessage("clear-private"); await supabase.auth.signOut(); window.location.href = "/login"; }}>Sign out</button>
     </div>
   );
 }

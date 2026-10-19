@@ -1,32 +1,27 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import RegisterSW from "@/components/RegisterSW";
 
 export const metadata: Metadata = {
-  title: "ScoutPlatform",
-  description: "Modern troop management for Scouting units",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "ScoutPlatform",
-  },
+  title: { default: "ScoutPlatform", template: "%s · ScoutPlatform" },
+  description: "RSVP, pay, attendance and advancement for your Scouting unit",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "ScoutPlatform" },
+  icons: { icon: "/icons/192", apple: "/icons/180" },
 };
 
 export const viewport: Viewport = {
   themeColor: "#1F5F4A",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <RegisterSW />
+      </body>
     </html>
   );
 }
