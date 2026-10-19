@@ -132,6 +132,14 @@ export default function AdvancementAdmin({ orgId, unitType, queue, summary, awar
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
             <a className="btn-secondary no-underline" href="/api/export/advancement.csv">Advancement report for the Scout Shop (CSV)</a>
+            <a className="btn-secondary no-underline" href="/admin/advancement/court-of-honor">Print shopping list and program</a>
+            {awards.some((a) => !a.purchased_at) && (
+              <button className="btn-secondary" disabled={busy} onClick={() => run(async () => {
+                const ids = awards.filter((a) => !a.purchased_at).map((a) => a.adv_id);
+                const { error } = await supabase.from("scout_advancement").update({ purchased_at: new Date().toISOString() }).in("id", ids);
+                if (error) throw error;
+              })}>Mark all bought</button>
+            )}
           </div>
           <p className="text-[13px] text-smoke m-0">Council Scout Shops usually need an advancement report from Scoutbook to sell awards. Enter these in Scoutbook (or upload the CSV), then mark them bought and presented here.</p>
           {awards.length === 0 && <div className="card text-smoke">Nothing waiting to be presented.</div>}
