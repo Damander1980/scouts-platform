@@ -6,6 +6,9 @@ import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, Field } from "@/components/ui";
 import { BLOCK_LABELS, RenderBlocks, type Block, type BlockData } from "@/components/SiteBlocks";
 
+// One list of allowed image types; the extension comes from the type, not the file name.
+const IMAGE_EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
+
 type Page = { id: string; slug: string; title: string; visibility: string; show_in_menu: boolean; sort: number; draft: Block[]; published: Block[] | null; published_at: string | null; updated_at: string };
 
 function blank(type: Block["type"]): Block {
@@ -52,8 +55,8 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
 
   const upload = async (file: File) => {
     if (file.size > 8_000_000) throw new Error("Images must be under 8 MB.");
-    if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) throw new Error("Upload a JPG, PNG, WEBP or GIF image.");
-    const ext = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" } as Record<string, string>)[file.type] ?? "jpg";
+    const ext = IMAGE_EXT[file.type];
+    if (!ext) throw new Error("Upload a JPG, PNG, WEBP or GIF image.");
     const path = `${orgId}/page-${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from("site").upload(path, file, { cacheControl: "31536000" });
     if (error) throw error;
@@ -172,10 +175,16 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
           {versions.map((v) => (
             <div key={v.id} className="flex items-center gap-2 border-t py-1.5" style={{ borderColor: "#E3EAE6" }}>
               <span className="text-[14px]">{new Date(v.published_at).toLocaleString()}</span>
-              <button className="btn-ghost ml-auto" disabled={busy} onClick={() => { if (dirty && !confirm("You have unsaved changes. Restoring replaces them. Continue?")) return; run(async () => {
-                const { error } = await supabase.rpc("restore_site_version", { p_version: v.id }); if (error) throw error;
-                window.location.reload();
-              }, "Restored into the draft."); }}>Restore</button>
+              <button className="btn-ghost ml-auto" disabled={busy} onClick={() => {
+                // A saved-but-unpublished draft isn't in the history, so restoring would lose it too.
+                const unpublished = page.published_at === null || JSON.stringify(blocks) !== JSON.stringify(page.published ?? []);
+                if ((dirty || unpublished) && !confirm("Restoring replaces your current draft, including changes that were never published. Continue?")) return;
+                run(async () => {
+                  const { data, error } = await supabase.rpc("restore_site_version", { p_version: v.id }); if (error) throw error;
+                  const r = data as { title: string; blocks: Block[] };
+                  setBlocks(r.blocks); setMeta((m) => ({ ...m, title: r.title })); setDirty(false);
+                }, "Restored into the draft, including its title. Publish to make it live.");
+              }}>Restore</button>
             </div>
           ))}
         </div>

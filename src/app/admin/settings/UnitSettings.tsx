@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ErrorBox, Field } from "@/components/ui";
@@ -32,10 +32,9 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
     if (error) setError(error.message); else { setOk("Saved."); router.refresh(); }
   }
 
-  // The site origin is only known in the browser; filling it after mount keeps server and client HTML identical.
-  const [origin, setOrigin] = useState("");
-  useEffect(() => setOrigin(window.location.origin), []);
-  const feed = origin ? `${origin}/api/calendar/${org.id}?t=${token}` : "";
+  // Same host as the Events page's "Add to my calendar" link, so admins and families see one URL.
+  // NEXT_PUBLIC_ vars are baked in at build time, so server and browser render identical HTML.
+  const feed = `webcal://${process.env.NEXT_PUBLIC_SITE_HOST ?? "localhost:3000"}/api/calendar/${org.id}?t=${token}`;
 
   return (
     <div className="flex flex-col gap-4 max-w-2xl">
