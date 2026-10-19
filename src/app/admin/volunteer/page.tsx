@@ -12,5 +12,8 @@ export default async function VolunteerPage() {
     supabase.from("memberships").select("person_id, persons(first_name, last_name)").eq("org_id", orgId).eq("status", "active"),
   ]);
   const nameOf = Object.fromEntries(((members ?? []) as unknown as { person_id: string; persons: { first_name: string; last_name: string } }[]).map((m) => [m.person_id, `${m.persons.first_name} ${m.persons.last_name}`]));
-  return <VolunteerAdmin orgId={orgId} shifts={shifts ?? []} signups={(signups ?? []).map((s) => ({ ...s, name: nameOf[s.person_id] ?? "Member" }))} polls={(polls ?? []) as never} votes={votes ?? []} />;
+  return <>
+    <a href="/admin/volunteer/skills" className="btn-secondary no-underline self-start">Parent and leader skills</a>
+    <VolunteerAdmin orgId={orgId} shifts={shifts ?? []} signups={(signups ?? []).map((s) => ({ ...s, name: nameOf[s.person_id] ?? "Member" }))} polls={(polls ?? []) as never} votes={votes ?? []} />
+  </>;
 }
