@@ -72,7 +72,7 @@ export default function AdminLayoutClient({
 
   return (
     <div className="md:flex min-h-screen bg-paper text-ink">
-      <aside className="hidden md:flex w-60 flex-none flex-col bg-forest text-white sticky top-0 h-screen">
+      <aside className="hidden md:flex print:hidden w-60 flex-none flex-col bg-forest text-white sticky top-0 h-screen">
         <div className="px-5 pt-6 pb-4 border-b border-white/10">
           <div className="font-display font-extrabold text-[18px] leading-tight">{unitWord} {org.unit_number}</div>
           <div className="text-[12px] mt-0.5" style={{ color: "#9DB0A7" }}>Leader tools · {org.city}</div>
@@ -95,7 +95,7 @@ export default function AdminLayoutClient({
         </div>
       </aside>
 
-      <div className="md:hidden bg-forest text-white sticky top-0 z-30">
+      <div className="md:hidden print:hidden bg-forest text-white sticky top-0 z-30">
         <div className="flex items-center gap-3 px-4 h-12">
           <Link href="/dashboard" className="text-white no-underline font-bold text-[14px]">←</Link>
           <span className="font-bold text-[15px]">{unitWord} {org.unit_number} · Leaders</span>

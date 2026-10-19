@@ -108,7 +108,8 @@ function Balances({ balances }: { balances: Balance[] }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2"><input className="input flex-1" placeholder="Find a family" value={q} onChange={(e) => setQ(e.target.value)} />
-        <a className="btn-secondary no-underline" href="/api/export/ledger.csv">Ledger CSV</a></div>
+        <a className="btn-secondary no-underline" href="/api/export/ledger.csv">Ledger CSV</a>
+        <a className="btn-secondary no-underline" href="/admin/money/report">Treasurer report</a></div>
       <div className="card p-0 overflow-hidden">
         {rows.length === 0 && <div className="p-4 text-smoke">No activity yet.</div>}
         {rows.map((b) => (
