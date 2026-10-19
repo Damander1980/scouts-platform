@@ -3,11 +3,28 @@ import { requireOrg, unitWord } from "@/lib/context";
 import Shell from "@/components/Shell";
 import { Chip, Empty, LinkButton, SectionLabel, fmtDate, fmtTime, money } from "@/components/ui";
 import { householdBalance, loadFamily } from "@/lib/family";
+import ScoutHome, { type ScoutEvent } from "./ScoutHome";
 
 export default async function DashboardPage() {
   const ctx = await requireOrg();
   const { supabase, current, person, isLeader, householdId } = ctx;
   const orgId = current.org.id;
+
+  // Scouts get their own simple screen: upcoming events with one-tap answers.
+  if (person.type === "youth") {
+    const { data: evs } = await supabase.from("events").select("id, title, start_at, end_at, location, kind, cost_cents, rsvp_deadline")
+      .eq("org_id", orgId).eq("canceled", false).gte("start_at", new Date().toISOString()).order("start_at").limit(12);
+    const evIds = (evs ?? []).map((e) => e.id);
+    const { data: mine } = evIds.length
+      ? await supabase.from("rsvps").select("event_id, status, notes, dietary, answers").eq("person_id", person.id).in("event_id", evIds)
+      : { data: [] as { event_id: string; status: string; notes: string | null; dietary: string | null; answers: Record<string, string> }[] };
+    const byEvent = Object.fromEntries((mine ?? []).map((r) => [r.event_id, r]));
+    const scoutEvents: ScoutEvent[] = (evs ?? []).map((e) => {
+      const r = byEvent[e.id];
+      return { ...e, mine: r ? { status: r.status, notes: r.notes, dietary: r.dietary, answers: (r.answers ?? {}) as Record<string, string> } : null };
+    });
+    return <Shell ctx={ctx}><ScoutHome personId={person.id} firstName={person.first_name} events={scoutEvents} /></Shell>;
+  }
 
   const family = await loadFamily(supabase, orgId);
   const inTroop = family.filter((f) => f.in_org);
