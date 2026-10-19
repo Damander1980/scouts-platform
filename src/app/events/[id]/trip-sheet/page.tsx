@@ -60,6 +60,7 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
         <Link href={`/events/${id}`} className="btn-secondary no-underline">← Back to event</Link>
         <PrintButton />
       </div>
+      <div className="text-[12px] text-smoke print:hidden">Open this page once on your phone before you leave and it will open at camp without signal.</div>
 
       <div>
         <div className="font-bold text-smoke">{current.org.name}</div>

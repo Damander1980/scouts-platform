@@ -1,8 +1,8 @@
 // Minimal service worker. It never caches API calls or signed-in data pages, except the
-// attendance screen, which must open at a campsite with no signal. Taps on that screen are
+// attendance screen and the trip sheet, which must open at a campsite with no signal. Taps on that screen are
 // saved on the phone and synced later (see AttendanceClient).
 const SHELL = "sp-shell-v1";
-const PAGES = "sp-pages-v1";
+const PAGES = "sp-pages-v2";
 const OFFLINE = "/offline.html";
 
 self.addEventListener("install", (e) => {
@@ -37,7 +37,7 @@ self.addEventListener("fetch", (e) => {
   }
 
   if (req.mode === "navigate") {
-    const keep = /^\/events\/[0-9a-f-]{36}\/attendance\/?$/.test(url.pathname);
+    const keep = /^\/events\/[0-9a-f-]{36}\/(attendance|trip-sheet)\/?$/.test(url.pathname);
     e.respondWith((async () => {
       try {
         const res = await fetch(req);
