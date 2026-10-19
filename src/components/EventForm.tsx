@@ -8,7 +8,7 @@ import { ErrorBox, Field } from "@/components/ui";
 export type EventInput = {
   id?: string; title: string; description: string | null; location: string | null; kind: string;
   start_at: string; end_at: string | null; cost_cents: number; cap: number | null; rsvp_deadline: string | null;
-  refund_rule: string; visibility: string; needs_permission: boolean; overnight_nights: number;
+  refund_rule: string; visibility: string; needs_permission: boolean; share_linked?: boolean; overnight_nights: number;
   service_hours: number; miles: number; questions: string[];
 };
 
@@ -40,6 +40,7 @@ export default function EventForm({ orgId, initial }: { orgId: string; initial?:
     refund: initial?.refund_rule ?? "full",
     visibility: initial?.visibility ?? "members",
     permission: initial?.needs_permission ?? false,
+    shareLinked: initial?.share_linked ?? false,
     nights: initial ? String(initial.overnight_nights) : "",
     hours: initial ? String(initial.service_hours) : "",
     miles: initial ? String(initial.miles) : "",
@@ -87,6 +88,7 @@ export default function EventForm({ orgId, initial }: { orgId: string; initial?:
         refund_rule: f.refund,
         visibility: f.visibility,
         needs_permission: f.permission,
+        share_linked: f.shareLinked,
         overnight_nights: f.nights ? parseInt(f.nights) : autoNights(),
         service_hours: parseFloat(f.hours || "0"),
         miles: parseFloat(f.miles || "0"),
@@ -162,6 +164,11 @@ export default function EventForm({ orgId, initial }: { orgId: string; initial?:
           <option value="public">Public (shows on your troop page)</option>
         </select>
       </Field>
+
+      <label className="flex items-center gap-3 text-[14px] font-bold" style={{ minHeight: 44 }}>
+        <input type="checkbox" className="w-5 h-5" checked={f.shareLinked} onChange={(e) => setF({ ...f, shareLinked: e.target.checked })} />
+        Show on linked units&apos; calendars
+      </label>
 
       <button className="btn-primary" disabled={busy}>{busy ? "Saving…" : initial?.id ? "Save changes" : "Post event"}</button>
     </form>
