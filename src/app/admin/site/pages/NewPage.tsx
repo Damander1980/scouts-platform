@@ -21,7 +21,7 @@ export default function NewPage({ orgId, taken }: { orgId: string; taken: string
       if (!slug) { setError("Give the page a name with letters or numbers."); return; }
       if (taken.includes(slug)) { setError("You already have a page with that address."); return; }
       setBusy(true);
-      const { data, error } = await supabase.from("site_pages").insert({
+      const { data, error } = await supabase.from("web_pages").insert({
         org_id: orgId, slug, title: title.trim(), sort: (taken.length + 1) * 10,
         draft: [{ id: crypto.randomUUID(), type: "heading", text: title.trim() }, { id: crypto.randomUUID(), type: "text", text: "" }],
       }).select("id").single();

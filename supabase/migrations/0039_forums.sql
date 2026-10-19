@@ -7,7 +7,7 @@
 -- Leaders can lock or pin a topic; they cannot remove posts.
 
 create table if not exists public.forum_topics (
-  id          uuid primary key default uuid_generate_v4(),
+  id          uuid primary key default gen_random_uuid(),
   org_id      uuid not null references public.organizations(id) on delete cascade,
   title       text not null check (length(trim(title)) between 1 and 200),
   audience    text not null default 'everyone' check (audience in ('everyone','adults')),
@@ -20,7 +20,7 @@ create table if not exists public.forum_topics (
 create index if not exists forum_topics_org on public.forum_topics (org_id, pinned desc, last_post_at desc);
 
 create table if not exists public.forum_posts (
-  id          uuid primary key default uuid_generate_v4(),
+  id          uuid primary key default gen_random_uuid(),
   topic_id    uuid not null references public.forum_topics(id) on delete cascade,
   org_id      uuid not null references public.organizations(id) on delete cascade,
   author_id   uuid not null references public.persons(id) on delete cascade,

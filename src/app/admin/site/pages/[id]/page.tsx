@@ -7,10 +7,10 @@ export default async function EditSitePage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const { supabase, current } = await requirePerm("leader", "site.edit");
   const orgId = current.org.id;
-  const { data: pg } = await supabase.from("site_pages").select("*").eq("id", id).eq("org_id", orgId).maybeSingle();
+  const { data: pg } = await supabase.from("web_pages").select("*").eq("id", id).eq("org_id", orgId).maybeSingle();
   if (!pg) notFound();
   const [{ data: versions }, { data: site }, { data: albums }] = await Promise.all([
-    supabase.from("site_page_versions").select("id, title, published_at").eq("page_id", id).order("published_at", { ascending: false }).limit(20),
+    supabase.from("web_page_versions").select("id, title, published_at").eq("page_id", id).order("published_at", { ascending: false }).limit(20),
     supabase.rpc("public_site", { p_slug: current.org.slug }),
     supabase.from("albums").select("id, title, visibility").eq("org_id", orgId).order("taken_on", { ascending: false }),
   ]);

@@ -46,7 +46,7 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
     setBusy(false);
   };
   const saveDraft = async () => {
-    const { error } = await supabase.from("site_pages").update({ draft: blocks, title: meta.title.trim(), visibility: meta.visibility, show_in_menu: meta.show_in_menu, sort: meta.sort, updated_at: new Date().toISOString() }).eq("id", page.id);
+    const { error } = await supabase.from("web_pages").update({ draft: blocks, title: meta.title.trim(), visibility: meta.visibility, show_in_menu: meta.show_in_menu, sort: meta.sort, updated_at: new Date().toISOString() }).eq("id", page.id);
     if (error) throw error; setDirty(false);
   };
 
@@ -156,11 +156,11 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
         }, meta.visibility === "members" ? "Published for signed-in members." : "Published. It's live on your site.")}>Publish</button>
         {page.published_at && (
           <button className="btn-secondary" disabled={busy} onClick={() => run(async () => {
-            const { error } = await supabase.from("site_pages").update({ published: null, published_at: null }).eq("id", page.id); if (error) throw error;
+            const { error } = await supabase.from("web_pages").update({ published: null, published_at: null }).eq("id", page.id); if (error) throw error;
           }, "Taken down. The page is a draft again.")}>Unpublish</button>
         )}
         <button className="btn-ghost ml-auto" disabled={busy} onClick={() => { if (confirm("Delete this page and its history?")) run(async () => {
-          const { error } = await supabase.from("site_pages").delete().eq("id", page.id); if (error) throw error; router.push("/admin/site/pages");
+          const { error } = await supabase.from("web_pages").delete().eq("id", page.id); if (error) throw error; router.push("/admin/site/pages");
         }, "Deleted."); }}>Delete page</button>
       </div>
 

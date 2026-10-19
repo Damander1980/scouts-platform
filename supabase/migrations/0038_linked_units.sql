@@ -4,7 +4,7 @@
 -- combined sign-ups across units are a later decision (whose ledger gets the charge).
 
 create table if not exists public.unit_links (
-  id           uuid primary key default uuid_generate_v4(),
+  id           uuid primary key default gen_random_uuid(),
   requester_org uuid not null references public.organizations(id) on delete cascade,
   target_org   uuid not null references public.organizations(id) on delete cascade,
   status       text not null default 'pending' check (status in ('pending','accepted')),

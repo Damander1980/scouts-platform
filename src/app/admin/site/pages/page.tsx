@@ -5,7 +5,7 @@ import NewPage from "./NewPage";
 
 export default async function SitePages() {
   const { supabase, current } = await requirePerm("leader", "site.edit");
-  const { data: pages } = await supabase.from("site_pages").select("id, slug, title, visibility, published_at, updated_at, sort, show_in_menu")
+  const { data: pages } = await supabase.from("web_pages").select("id, slug, title, visibility, published_at, updated_at, sort, show_in_menu")
     .eq("org_id", current.org.id).order("sort").order("title");
 
   return (

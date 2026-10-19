@@ -3,7 +3,7 @@
 -- this table only stores the unit-level checklist ticks.
 
 create table if not exists public.recharters (
-  id          uuid primary key default uuid_generate_v4(),
+  id          uuid primary key default gen_random_uuid(),
   org_id      uuid not null references public.organizations(id) on delete cascade,
   charter_year integer not null,
   due_on      date,
