@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { coverFee, stripe } from "@/lib/stripe";
+import { stripe } from "@/lib/stripe";
+import { coverFee } from "@/lib/fees";
 import { adminClient, SITE_URL } from "@/lib/admin";
 
 // Public donation checkout. No account needed; Apple Pay / Google Pay come with Checkout.
 export async function POST(request: Request) {
-  const { campaign, amountCents, coverFees, source } = await request.json().catch(() => ({}));
+  const { campaign, amountCents, source } = await request.json().catch(() => ({}));
   const s = stripe();
   const db = adminClient();
   if (!s || !db) return NextResponse.json({ error: "Online giving isn't available yet." }, { status: 503 });
@@ -14,14 +15,14 @@ export async function POST(request: Request) {
   const { data: c } = await db.from("donation_campaigns").select("id, org_id, slug, title, active, organizations(name, stripe_account_id)").eq("slug", String(campaign)).maybeSingle();
   const org = c?.organizations as unknown as { name: string; stripe_account_id: string | null } | undefined;
   if (!c || !c.active || !org?.stripe_account_id) return NextResponse.json({ error: "This campaign isn't accepting gifts right now." }, { status: 404 });
-  const fee = coverFees ? coverFee(amount) : 0;
+  const fee = coverFee(amount);
 
   const session = await s.checkout.sessions.create({
     mode: "payment",
     submit_type: "donate",
     line_items: [
       { quantity: 1, price_data: { currency: "usd", unit_amount: amount, product_data: { name: `Gift to ${org.name}: ${c.title}` } } },
-      ...(fee ? [{ quantity: 1, price_data: { currency: "usd", unit_amount: fee, product_data: { name: "Covering the card fee" } } }] : []),
+      { quantity: 1, price_data: { currency: "usd", unit_amount: fee, product_data: { name: "Card processing fee" } } },
     ],
     success_url: `${SITE_URL}/give/${c.slug}?thanks=1`,
     cancel_url: `${SITE_URL}/give/${c.slug}`,

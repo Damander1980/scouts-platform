@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, Field, Stat, money } from "@/components/ui";
+import DuesTab, { type DuesPlan } from "./DuesTab";
 
 type Balance = { household_id: string; household_name: string; balance_cents: number; charges: number; paid: number; last_activity: string };
 type Household = { household_id: string; household_name: string; members: string };
@@ -17,14 +18,14 @@ type Donation = { campaign_id: string | null; amount_cents: number; source: stri
 type Fundraiser = { id: string; name: string; goal_id: string | null; target_cents: number | null; scout_share_pct: number; starts_on: string | null; ends_on: string | null; money_earning_approved_on?: string | null };
 type Sale = { fundraiser_id: string; scout_id: string | null; amount_cents: number };
 
-const TABS: [string, string][] = [["balances", "Family balances"], ["record", "Record cash/check"], ["expenses", "Reimbursements"], ["budget", "Budget"], ["giving", "Goals & giving"], ["fundraisers", "Fundraisers"]];
+const TABS: [string, string][] = [["balances", "Family balances"], ["dues", "Yearly dues"], ["record", "Record cash/check"], ["expenses", "Reimbursements"], ["budget", "Budget"], ["giving", "Goals & giving"], ["fundraisers", "Fundraisers"]];
 const CATEGORIES = ["Dues", "Camping", "Equipment", "Advancement & awards", "Training", "Fundraising", "Donations", "Program supplies", "Insurance & recharter", "Other"];
 const dollars = (s: string) => Math.round(parseFloat(s || "0") * 100);
 
 export default function MoneyClient(props: {
   orgId: string; myPersonId: string; isTreasurer: boolean; paymentsConfigured: boolean; stripeConnected: boolean; connectState: string | null;
   initialTab: string; balances: Balance[]; households: Household[]; expenses: Expense[]; budgets: Budget[]; transactions: Tx[];
-  campaigns: Campaign[]; goals: Goal[]; donations: Donation[]; fundraisers: Fundraiser[]; sales: Sale[]; scouts: { id: string; name: string }[];
+  duesPlans: DuesPlan[]; campaigns: Campaign[]; goals: Goal[]; donations: Donation[]; fundraisers: Fundraiser[]; sales: Sale[]; scouts: { id: string; name: string }[];
 }) {
   const { orgId, isTreasurer } = props;
   const supabase = createClient();
@@ -88,6 +89,7 @@ export default function MoneyClient(props: {
       {ok && <div className="card font-bold" style={{ background: "#EAF0ED" }}>{ok}</div>}
 
       {tab === "balances" && <Balances balances={props.balances} />}
+      {tab === "dues" && <DuesTab orgId={orgId} plans={props.duesPlans} canEdit={isTreasurer} />}
       {tab === "record" && <RecordEntry households={props.households} disabled={!isTreasurer || busy} onSave={(row) => run(async () => {
         const { error } = await supabase.rpc("record_manual", { p_org: orgId, ...row });
         if (error) throw error;

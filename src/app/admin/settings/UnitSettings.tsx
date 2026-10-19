@@ -15,7 +15,6 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
     name: org.name, city: org.city ?? "", state: org.state ?? "",
     email_mode: (st.email_mode as string) ?? "full",
     scout_rsvp: (st.scout_rsvp as string) ?? "parent_approves_paid",
-    fees: (st.fee_policy as string) ?? "family_optional",
     leaderboard: !!st.fundraising_leaderboard,
     contact_default: (st.contact_default as string) ?? "opt_in",
     second: String(org.second_approval_cents / 100),
@@ -28,7 +27,7 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
     setOk(""); setError("");
     const { error } = await supabase.from("organizations").update({
       name: f.name, city: f.city, state: f.state || null, second_approval_cents: Math.round(parseFloat(f.second || "500") * 100),
-      settings: { ...st, email_mode: f.email_mode, scout_rsvp: f.scout_rsvp, fee_policy: f.fees, fundraising_leaderboard: f.leaderboard, contact_default: f.contact_default },
+      settings: { ...st, email_mode: f.email_mode, scout_rsvp: f.scout_rsvp, fundraising_leaderboard: f.leaderboard, contact_default: f.contact_default },
     }).eq("id", org.id);
     if (error) setError(error.message); else { setOk("Saved."); router.refresh(); }
   }
@@ -65,12 +64,7 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
             <option value="parent_only">Only parents can RSVP</option>
           </select>
         </Field>
-        <Field label="Card processing fee">
-          <select className="input" value={f.fees} onChange={(e) => setF({ ...f, fees: e.target.value })}>
-            <option value="family_optional">Families can choose to cover it</option>
-            <option value="unit_covers">The unit covers it</option>
-          </select>
-        </Field>
+        <div className="text-[13px] text-smoke rounded-xl p-3" style={{ background: "#F4F8F6" }}><b>Card fees:</b> families who pay online always cover the card fee, so your unit never loses money. Cash and checks handed to a leader have no fee.</div>
         <Field label="Reimbursements over this amount need a second approver ($)"><input className="input w-40" inputMode="decimal" value={f.second} onChange={(e) => setF({ ...f, second: e.target.value })} /></Field>
         <label className="flex items-center gap-3 text-[14px]"><input type="checkbox" className="w-5 h-5" checked={f.leaderboard} onChange={(e) => setF({ ...f, leaderboard: e.target.checked })} /> Show a fundraising leaderboard of individual Scouts</label>
         <Field label="Family contact info on the member roster">

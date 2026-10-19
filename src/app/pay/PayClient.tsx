@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { coverFee } from "@/lib/fees";
 import { ErrorBox, money } from "@/components/ui";
 
 export default function PayClient({ orgId, balance, online, scoutBalances }: {
@@ -11,24 +12,24 @@ export default function PayClient({ orgId, balance, online, scoutBalances }: {
   const router = useRouter();
   const supabase = createClient();
   const [amount, setAmount] = useState((Math.max(balance, 0) / 100).toFixed(2));
-  const [cover, setCover] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const cents = Math.max(0, Math.round(parseFloat(amount || "0") * 100));
+  const fee = cents > 0 ? coverFee(cents) : 0;
 
   async function pay() {
     setBusy(true); setError("");
     const res = await fetch("/api/stripe/checkout", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amountCents: Math.round(parseFloat(amount) * 100), coverFees: cover }),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amountCents: cents }),
     });
     const body = await res.json().catch(() => ({}));
     if (body.url) window.location.href = body.url;
     else { setError(body.error ?? "Couldn't start the payment."); setBusy(false); }
   }
 
-  async function applyScout(id: string, cents: number) {
+  async function applyScout(id: string, c: number) {
     setBusy(true); setError("");
-    const { error } = await supabase.rpc("apply_scout_account", { p_org: orgId, p_scout: id, p_amount: Math.min(cents, Math.max(balance, 0)) });
+    const { error } = await supabase.rpc("apply_scout_account", { p_org: orgId, p_scout: id, p_amount: Math.min(c, Math.max(balance, 0)) });
     if (error) setError(error.message); else router.refresh();
     setBusy(false);
   }
@@ -51,22 +52,27 @@ export default function PayClient({ orgId, balance, online, scoutBalances }: {
         </div>
       ))}
 
-      {balance > 0 && (online ? (
-        <>
-          <div className="flex items-center gap-2">
-            <span className="text-[20px] font-bold">$</span>
-            <input className="input w-36" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+      {balance > 0 && (
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="rounded-xl border border-border p-3 flex flex-col gap-2">
+            <div className="font-bold text-[15px]">Pay a leader in person</div>
+            <div className="text-[13px] text-smoke">Cash or check. <b>No fee.</b> Hand it to your treasurer or a leader and they&apos;ll record it here.</div>
           </div>
-          <label className="flex items-center gap-3 text-[14px]">
-            <input type="checkbox" className="w-5 h-5" checked={cover} onChange={(e) => setCover(e.target.checked)} />
-            Add the card fee so the unit gets the full amount
-          </label>
-          <button className="btn-primary" disabled={busy} onClick={pay}>{busy ? "Opening checkout…" : `Pay ${money(Math.round(parseFloat(amount || "0") * 100))}`}</button>
-          <p className="text-[12px] text-smoke m-0">Card, Apple Pay or Google Pay through Stripe. Money goes straight to your unit; we never hold it.</p>
-        </>
-      ) : (
-        <p className="text-[14px] m-0">Online payment isn&apos;t set up for this unit yet. Pay the treasurer by cash or check and they&apos;ll record it.</p>
-      ))}
+          <div className="rounded-xl border-2 p-3 flex flex-col gap-2" style={{ borderColor: online ? "#1F5F4A" : "#D5DFDA" }}>
+            <div className="font-bold text-[15px]">Pay online</div>
+            {online ? (
+              <>
+                <div className="flex items-center gap-2"><span className="text-[18px] font-bold">$</span>
+                  <input className="input w-32" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
+                <div className="text-[13px] text-smoke">
+                  {money(cents)} + {money(fee)} card fee = <b>{money(cents + fee)}</b>. The fee goes to the card processor so your unit gets the full amount.
+                </div>
+                <button className="btn-primary" disabled={busy || cents < 50} onClick={pay}>{busy ? "Opening checkout…" : `Pay ${money(cents + fee)} by card`}</button>
+              </>
+            ) : <div className="text-[13px] text-smoke">Online payment isn&apos;t set up for this unit yet.</div>}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
