@@ -53,7 +53,11 @@ export default function SettingsClient({ person, email, prefs, weekCount }: {
       supabase.from("persons").update({ first_name: first.trim(), last_name: last.trim() }).eq("id", person.id),
     ]);
     if (e1 || e2) setError((e1 || e2)!.message);
-    else { setSaved("Saved."); if (consentNow) setP({ ...p, sms_consent_at: row.sms_consent_at! }); router.refresh(); }
+    else {
+      setSaved("Saved.");
+      if (consentNow) { setP({ ...p, sms_consent_at: row.sms_consent_at! }); fetch("/api/sms/confirm", { method: "POST" }).catch(() => {}); }
+      router.refresh();
+    }
   }
 
   const toggle = (k: keyof Prefs) => setP({ ...p, [k]: !p[k] });

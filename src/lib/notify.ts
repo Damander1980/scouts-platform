@@ -14,7 +14,7 @@ async function sendEmail(to: string, subject: string, html: string) {
   return { status: res.ok ? ("sent" as const) : ("failed" as const), id: body?.id as string | undefined };
 }
 
-async function sendSms(to: string, text: string) {
+export async function sendSms(to: string, text: string) {
   const sid = process.env.TWILIO_ACCOUNT_SID, token = process.env.TWILIO_AUTH_TOKEN, from = process.env.TWILIO_FROM;
   if (!sid || !token || !from) return { status: "skipped" as const };
   const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
