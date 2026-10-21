@@ -33,7 +33,7 @@ function when(e: ScoutEvent) {
   return `${day} at ${time}`;
 }
 
-export default function ScoutHome({ personId, firstName, events: initial }: { personId: string; firstName: string; events: ScoutEvent[] }) {
+export default function ScoutHome({ personId, firstName, events: initial, plc = false }: { personId: string; firstName: string; events: ScoutEvent[]; plc?: boolean }) {
   const supabase = createClient();
   const router = useRouter();
   const [events, setEvents] = useState(initial);
@@ -79,6 +79,16 @@ export default function ScoutHome({ personId, firstName, events: initial }: { pe
             <span className="text-[15px]" style={{ color: "#D7E0EE" }}>Mark requirements done and ask a leader to sign off.</span>
           </div>
           <span className="min-h-[48px] px-5 rounded-full font-bold text-[16px] flex items-center" style={{ background: "#F5B700", color: "#101B2D" }}>Open</span>
+        </a>
+      )}
+
+      {plc && (
+        <a href="/plc" className="card flex items-center gap-4 no-underline text-ink">
+          <div className="flex-1">
+            <div className="text-[12px] font-bold uppercase tracking-widest text-forest">Patrol Leaders&apos; Council</div>
+            <div className="font-bold text-[17px]">Meeting agendas, notes and action items</div>
+          </div>
+          <span className="font-bold text-forest">Open</span>
         </a>
       )}
 

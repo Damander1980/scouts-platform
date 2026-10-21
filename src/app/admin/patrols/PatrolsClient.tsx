@@ -74,6 +74,7 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
     <div className="flex flex-col gap-5">
       <div>
         <h1 className="font-display font-extrabold text-[32px] m-0">{groupWord}s & positions</h1>
+        <a href="/plc" className="text-[14px] font-bold text-forest">Patrol Leaders&apos; Council meetings and action items →</a>
         <p className="text-[14px] text-smoke m-0 mt-1">Moves keep their history. Position dates count toward rank leadership time automatically.</p>
       </div>
       <ErrorBox>{error}</ErrorBox>

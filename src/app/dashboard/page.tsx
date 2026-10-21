@@ -23,7 +23,8 @@ export default async function DashboardPage() {
       const r = byEvent[e.id];
       return { ...e, mine: r ? { status: r.status, notes: r.notes, dietary: r.dietary, answers: (r.answers ?? {}) as Record<string, string> } : null };
     });
-    return <Shell ctx={ctx}><ScoutHome personId={person.id} firstName={person.first_name} events={scoutEvents} /></Shell>;
+    const { data: plc } = await supabase.rpc("is_plc_member", { org: orgId });
+    return <Shell ctx={ctx}><ScoutHome personId={person.id} firstName={person.first_name} events={scoutEvents} plc={!!plc} /></Shell>;
   }
 
   const family = await loadFamily(supabase, orgId);
