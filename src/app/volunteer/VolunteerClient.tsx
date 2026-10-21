@@ -26,8 +26,9 @@ export default function VolunteerClient({ family, shifts, signups, polls, votes,
   return (
     <div className="flex flex-col gap-5">
       <ErrorBox>{error}</ErrorBox>
+      <div className="grid gap-5 lg:grid-cols-2 items-start">
 
-      <section className="flex flex-col gap-2">
+      <section className="flex flex-col gap-3">
         <h2 className="font-bold text-[13px] tracking-widest uppercase m-0 text-smoke">Volunteer shifts</h2>
         {shifts.length === 0 && <div className="card text-smoke text-center py-6">No shifts posted right now.</div>}
         {shifts.map((s) => {
@@ -63,7 +64,7 @@ export default function VolunteerClient({ family, shifts, signups, polls, votes,
         })}
       </section>
 
-      <section className="flex flex-col gap-2">
+      <section className="flex flex-col gap-3">
         <h2 className="font-bold text-[13px] tracking-widest uppercase m-0 text-smoke">Polls</h2>
         {polls.length === 0 && <div className="card text-smoke text-center py-6">No open polls.</div>}
         {polls.map((p) => {
@@ -100,6 +101,7 @@ export default function VolunteerClient({ family, shifts, signups, polls, votes,
           );
         })}
       </section>
+      </div>
     </div>
   );
 }
