@@ -40,7 +40,7 @@ export default async function PayPage({ searchParams }: { searchParams: Promise<
                 <div className="font-bold text-[15px] truncate">{l.description || (l.events as unknown as { title: string })?.title || l.type}</div>
                 <div className="text-[12px] text-smoke">{fmtDate(l.created_at, { month: "short", day: "numeric", year: "numeric" })}{l.method ? ` · ${l.method === "stripe" ? "card" : l.method}` : ""}</div>
               </div>
-              <Chip tone={l.amount_cents > 0 ? "orange" : "green"}>{l.type}</Chip>
+              <Chip tone={l.amount_cents > 0 ? "orange" : "green"}>{({ charge: "Charge", payment: "Payment", credit: "Credit", refund: "Refund" } as Record<string, string>)[l.type] ?? l.type}</Chip>
               <div className="font-bold text-[15px] w-24 text-right" style={{ color: l.amount_cents > 0 ? "#5E4400" : "#12355F" }}>
                 {l.amount_cents > 0 ? money(l.amount_cents) : `−${money(-l.amount_cents)}`}
               </div>
