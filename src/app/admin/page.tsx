@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LEADER_ROLES, requireStaff } from "@/lib/context";
+import ScoutbookSync from "@/components/ScoutbookSync";
 import { Chip, PageTitle, SectionLabel, Stat, fmtDate, money } from "@/components/ui";
 
 export default async function AdminOverview() {
@@ -20,6 +21,7 @@ export default async function AdminOverview() {
   const { data: nextEvents } = await supabase.from("events").select("id, title, start_at, end_at, location")
     .eq("org_id", orgId).gte("start_at", now.toISOString()).eq("canceled", false).order("start_at").limit(1);
   const next = nextEvents?.[0];
+  const sb = await supabase.rpc("scoutbook_pending", { p_org: orgId });
   const { data: nextRsvps } = next ? await supabase.from("rsvps").select("status").eq("event_id", next.id) : { data: [] as { status: string }[] };
   const going = (nextRsvps ?? []).filter((r) => r.status === "yes" || r.status === "going").length;
 
@@ -71,6 +73,8 @@ export default async function AdminOverview() {
           <span className="min-h-[44px] px-5 rounded-full font-bold text-[15px] flex items-center" style={{ background: "#F5B700", color: "#101B2D" }}>Open roster</span>
         </Link>
       )}
+
+      <ScoutbookSync pending={sb.error ? null : (sb.data as number)} compact />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Stat label="Scouts" value={youth.length} />

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireLeader } from "@/lib/context";
 import PrintButton from "@/components/PrintButton";
+import ScoutbookSync from "@/components/ScoutbookSync";
 
 // Printable Court of Honor packet from awards_to_buy (completed, not yet presented):
 // page 1 is the Scout Shop shopping list with counts, page 2 is the ceremony program
@@ -14,6 +15,7 @@ export default async function CourtOfHonor() {
   const { supabase, current } = await requireLeader();
   const { data } = await supabase.rpc("awards_to_buy", { p_org: current.org.id });
   const awards = (data ?? []) as A[];
+  const sb = await supabase.rpc("scoutbook_pending", { p_org: current.org.id });
 
   const toBuy = awards.filter((a) => !a.purchased_at);
   const shop: Record<string, Record<string, number>> = {};
@@ -30,6 +32,7 @@ export default async function CourtOfHonor() {
         <Link href="/admin/advancement" className="btn-secondary no-underline">← Advancement</Link>
         <PrintButton />
       </div>
+      <div className="print:hidden"><ScoutbookSync pending={sb.error ? null : (sb.data as number)} compact /></div>
 
       <section className="coh-page flex flex-col gap-3">
         <div>

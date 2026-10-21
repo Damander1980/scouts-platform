@@ -8,7 +8,7 @@ async function names(supabase: Awaited<ReturnType<typeof getContext>>["supabase"
   return Object.fromEntries((data ?? []).map((m) => [m.person_id, m.persons as unknown as { first_name: string; last_name: string }]));
 }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ kind: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ kind: string }> }) {
   const { kind } = await params;
   const ctx = await getContext();
   if (!ctx.current || !ctx.isLeader) return new Response("Forbidden", { status: 403 });
@@ -19,11 +19,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ kind: s
     new Response(toCsv(rows), { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="${name}-${slug}.csv"` } });
 
   if (kind === "advancement.csv") {
+    // ?new=1: only what hasn't gone into a Scoutbook upload file yet, and mark it exported.
+    const onlyNew = new URL(req.url).searchParams.get("new") === "1";
     const n = await names(supabase, orgId);
-    const [{ data: adv }, { data: prog }] = await Promise.all([
-      supabase.from("scout_advancement").select("person_id, status, completed_at, advancement_items(name, kind)").eq("org_id", orgId).eq("status", "completed"),
-      supabase.from("requirement_progress").select("person_id, approved_at, advancement_requirements(number, advancement_items(name, kind))").eq("org_id", orgId).not("approved_by", "is", null),
-    ]);
+    let advQ = supabase.from("scout_advancement").select("id, person_id, status, completed_at, advancement_items(name, kind)").eq("org_id", orgId).eq("status", "completed");
+    let progQ = supabase.from("requirement_progress").select("id, person_id, approved_at, advancement_requirements(number, advancement_items(name, kind))").eq("org_id", orgId).not("approved_by", "is", null);
+    if (onlyNew) { advQ = advQ.is("scoutbook_exported_at", null); progQ = progQ.is("scoutbook_exported_at", null); }
+    const [{ data: adv, error: e1 }, { data: prog, error: e2 }] = await Promise.all([advQ, progQ]);
+    if (e1 || e2) return new Response(`Couldn't build the file: ${(e1 ?? e2)?.message}`, { status: 500 });
+    if (onlyNew) {
+      const { error } = await supabase.rpc("mark_scoutbook_exported", { p_org: orgId, p_adv: (adv ?? []).map((a) => a.id), p_req: (prog ?? []).map((p) => p.id) });
+      if (error) return new Response(`Couldn't record the export: ${error.message}`, { status: 500 });
+    }
     const rows = [
       ...(adv ?? []).map((a) => {
         const it = a.advancement_items as unknown as { name: string; kind: string };

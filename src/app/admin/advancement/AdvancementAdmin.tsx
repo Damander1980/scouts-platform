@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import ScoutbookSync from "@/components/ScoutbookSync";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, Stat } from "@/components/ui";
 
@@ -13,7 +14,7 @@ type R = { id: string; person_id: string; scout: string; badge: string; at: stri
 
 const age = (b: string | null) => (b ? Math.floor((Date.now() - new Date(b).getTime()) / (365.25 * 86400000)) : null);
 
-export default function AdvancementAdmin({ orgId, unitType, queue, summary, awards, requests }: { orgId: string; unitType: string; queue: Q[]; summary: S[]; awards: A[]; requests: R[] }) {
+export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitType, queue, summary, awards, requests }: { orgId: string; scoutbookPending?: number | null; unitType: string; queue: Q[]; summary: S[]; awards: A[]; requests: R[] }) {
   const supabase = createClient();
   const router = useRouter();
   const [tab, setTab] = useState<"queue" | "scouts" | "awards">(queue.length || requests.length ? "queue" : "scouts");
@@ -46,6 +47,7 @@ export default function AdvancementAdmin({ orgId, unitType, queue, summary, awar
         <p className="text-[14px] text-smoke m-0 mt-1">Sign-offs, merit badge requests, every Scout&apos;s progress, and what to buy for the next Court of Honor.</p>
       </div>
       <ErrorBox>{error}</ErrorBox>
+      <ScoutbookSync pending={scoutbookPending} />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Stat label="Waiting for sign-off" value={queue.length} tone={queue.length ? "#5E4400" : undefined} />
@@ -54,10 +56,11 @@ export default function AdvancementAdmin({ orgId, unitType, queue, summary, awar
         <Stat label="On the Eagle trail" value={eagleTrack.length} />
       </div>
 
-      <div className="flex gap-2 flex-wrap">
+      <div role="tablist" className="flex gap-6 overflow-x-auto border-b-2 border-[#DDD6C5]">
         {([["queue", "Sign-offs & requests"], ["scouts", "Scout progress"], ["awards", "Court of Honor list"]] as const).map(([k, l]) => (
-          <button key={k} onClick={() => setTab(k)} className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: tab === k ? "#12355F" : "white", color: tab === k ? "white" : "#4B5568", borderColor: tab === k ? "#12355F" : "#DDD6C5" }}>{l}</button>
+          <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
+            className="min-h-[44px] -mb-[2px] px-0.5 bg-transparent border-0 border-b-[3px] cursor-pointer font-sans text-[15px] whitespace-nowrap"
+            style={{ borderColor: tab === k ? "#F5B700" : "transparent", color: tab === k ? "#101B2D" : "#4B5568", fontWeight: tab === k ? 700 : 500 }}>{l}</button>
         ))}
       </div>
 

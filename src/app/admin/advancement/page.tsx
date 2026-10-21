@@ -4,15 +4,17 @@ import AdvancementAdmin from "./AdvancementAdmin";
 export default async function AdminAdvancementPage() {
   const { supabase, current } = await requireLeader();
   const orgId = current.org.id;
-  const [{ data: queue }, { data: summary }, { data: awards }, { data: requests }] = await Promise.all([
+  const [{ data: queue }, { data: summary }, { data: awards }, { data: requests }, sb] = await Promise.all([
     supabase.rpc("signoff_queue", { p_org: orgId }),
     supabase.rpc("unit_advancement", { p_org: orgId }),
     supabase.rpc("awards_to_buy", { p_org: orgId }),
     supabase.from("scout_advancement").select("id, person_id, created:started_at, persons(first_name, last_name), advancement_items(name)").eq("org_id", orgId).eq("status", "requested"),
+    supabase.rpc("scoutbook_pending", { p_org: orgId }),
   ]);
   return (
     <AdvancementAdmin
       orgId={orgId}
+      scoutbookPending={sb.error ? null : (sb.data as number)}
       unitType={current.org.type}
       queue={(queue ?? []) as never}
       summary={(summary ?? []) as never}
