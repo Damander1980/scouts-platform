@@ -80,7 +80,7 @@ export default function AttendanceClient({ orgId, eventId, people, initial, chec
   return (
     <div className="flex flex-col gap-3">
       <ErrorBox>{error}</ErrorBox>
-      <div className="sticky top-14 z-20 bg-canvas py-2 flex gap-2 flex-wrap items-center">
+      <div className="sticky top-16 z-20 bg-canvas py-2 flex gap-2 flex-wrap items-center">
         <span className="font-display font-bold text-[22px]">{count} here</span>
         <Chip>{youthPresent} youth · {adultsPresent} adults</Chip>
         {!online && <Chip tone="orange">Offline: saving on this phone</Chip>}
@@ -90,7 +90,7 @@ export default function AttendanceClient({ orgId, eventId, people, initial, chec
       </div>
 
       <div className="flex gap-2 flex-wrap">
-        {goingIds.length > 0 && <button className="btn-secondary" onClick={() => mark(goingIds, true)}>Mark {goingIds.length} who RSVP&apos;d yes</button>}
+        {goingIds.length > 0 && <button className="btn-primary" onClick={() => mark(goingIds, true)}>Mark {goingIds.length} who RSVP&apos;d yes</button>}
         {selfChecked.length > 0 && <button className="btn-secondary" onClick={() => mark(selfChecked.map((p) => p.id), true)}>Confirm {selfChecked.length} self check-ins</button>}
         <button className="btn-ghost" onClick={() => setShowQr(!showQr)}>{showQr ? "Hide QR" : "Show check-in QR"}</button>
         <input className="input flex-1 min-w-[160px]" placeholder="Find name or patrol" value={filter} onChange={(e) => setFilter(e.target.value)} />
@@ -113,7 +113,7 @@ export default function AttendanceClient({ orgId, eventId, people, initial, chec
               style={{ borderColor: v ? "#12355F" : undefined, background: v ? "#EEE8D9" : undefined }}>
               <button onClick={() => mark([p.id], v ? null : true)} aria-pressed={!!v} aria-label={`${p.name} ${v ? "present" : "not marked"}`}
                 className="w-14 h-14 rounded-xl border-2 flex items-center justify-center cursor-pointer flex-none"
-                style={{ borderColor: v ? "#12355F" : "#B9C7C0", background: v ? "#12355F" : "white" }}>
+                style={{ borderColor: v ? "#12355F" : "#AEB9C9", background: v ? "#12355F" : "white" }}>
                 {v && <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>}
               </button>
               <div className="flex-1 min-w-0">

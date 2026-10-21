@@ -32,7 +32,7 @@ export default function LinkedUnits({ orgId, joinCode, links, isAdmin }: { orgId
       </div>
       {links.length === 0 && <div className="text-[14px] text-smoke">No linked units.</div>}
       {links.map((l) => (
-        <div key={l.link_id} className="flex items-center gap-2 flex-wrap border-t pt-2" style={{ borderColor: "#E3EAE6" }}>
+        <div key={l.link_id} className="flex items-center gap-2 flex-wrap border-t pt-2" style={{ borderColor: "#EAE4D6" }}>
           <b className="text-[15px]">{l.name}</b>
           {l.status === "accepted" ? <Chip tone="green">Linked</Chip> : <Chip tone="orange">{l.incoming ? "Wants to link" : "Waiting for them"}</Chip>}
           {isAdmin && l.status === "pending" && l.incoming && (

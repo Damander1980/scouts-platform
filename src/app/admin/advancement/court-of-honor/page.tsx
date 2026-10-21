@@ -45,7 +45,7 @@ export default async function CourtOfHonor() {
           <div key={group} className="card break-inside-avoid">
             <div className="font-bold text-[15px] mb-1">{group}</div>
             {Object.entries(items).sort((a, b) => a[0].localeCompare(b[0])).map(([item, n]) => (
-              <div key={item} className="flex justify-between border-b py-1" style={{ borderColor: "#E3EAE6" }}><span>[ ] {item}</span><b>{n}</b></div>
+              <div key={item} className="flex justify-between border-b py-1" style={{ borderColor: "#EAE4D6" }}><span>[ ] {item}</span><b>{n}</b></div>
             ))}
           </div>
         ))}

@@ -253,7 +253,7 @@ function BudgetTab({ budgets, tx, canEdit, busy, orgId, run }: { budgets: Budget
               <div key={l.id} className="flex flex-col gap-1">
                 <div className="flex justify-between text-[14px]"><span className="font-bold">{l.category}</span>
                   <span>{money(a)} of {money(l.planned_cents)} {kind === "expense" && pct >= b.alert_pct && <Chip tone={pct >= 100 ? "red" : "orange"}>{pct}%</Chip>}</span></div>
-                <div className="h-2 rounded-full" style={{ background: "#E3EAE6" }}><div className="h-2 rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pct >= 100 && kind === "expense" ? "#A52A1C" : "#12355F" }} /></div>
+                <div className="h-2 rounded-full" style={{ background: "#EAE4D6" }}><div className="h-2 rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pct >= 100 && kind === "expense" ? "#A52A1C" : "#12355F" }} /></div>
               </div>
             );
           })}
@@ -299,7 +299,7 @@ function Giving(p: Parameters<typeof MoneyClient>[0] & { busy: boolean; run: (fn
         return (
           <div key={goal.id} className="card flex flex-col gap-2">
             <div className="flex justify-between gap-2"><b>{goal.title}</b><span>{money(r)} of {money(goal.target_cents)}</span></div>
-            <div className="h-3 rounded-full" style={{ background: "#E3EAE6" }}><div className="h-3 rounded-full" style={{ width: `${pct}%`, background: "#F5B700" }} /></div>
+            <div className="h-3 rounded-full" style={{ background: "#EAE4D6" }}><div className="h-3 rounded-full" style={{ width: `${pct}%`, background: "#F5B700" }} /></div>
             <div className="flex gap-2 items-center text-[13px] text-smoke">{goal.deadline && <>By {new Date(goal.deadline).toLocaleDateString()} ·</>}{goal.is_public ? "Shown on public page" : "Members only"}</div>
           </div>
         );

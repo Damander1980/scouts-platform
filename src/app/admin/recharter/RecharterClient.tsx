@@ -76,7 +76,7 @@ export default function RecharterClient({ orgId, year, canEdit, people, recharte
       <div className="card flex flex-col gap-1">
         <div className="font-bold text-[16px] mb-1">Checklist</div>
         {STEPS.map(([k, label, hint]) => (
-          <label key={k} className="flex gap-3 items-start py-2 border-b cursor-pointer" style={{ borderColor: "#E3EAE6", minHeight: 44 }}>
+          <label key={k} className="flex gap-3 items-start py-2 border-b cursor-pointer" style={{ borderColor: "#EAE4D6", minHeight: 44 }}>
             <input type="checkbox" className="mt-1 w-5 h-5" checked={!!items[k]?.done} disabled={!canEdit || busy} onChange={() => toggle(k)} />
             <span className="flex flex-col">
               <span className="font-bold text-[14px]">{label}{k === "ypt" && yptBad.length > 0 && <span style={{ color: "#A52A1C" }}> ({yptBad.length} not current)</span>}</span>
@@ -93,7 +93,7 @@ export default function RecharterClient({ orgId, year, canEdit, people, recharte
         <table className="w-full border-collapse text-[14px]">
           <thead><tr className="text-left text-smoke text-[12px]"><th className="py-1">Name</th><th>Role</th><th>Registration expires</th><th>YPT expires</th></tr></thead>
           <tbody>{people.map((p) => (
-            <tr key={p.id} className="border-t" style={{ borderColor: "#E3EAE6" }}>
+            <tr key={p.id} className="border-t" style={{ borderColor: "#EAE4D6" }}>
               <td className="py-1.5 font-bold">{p.name}</td><td>{p.role}</td><td>{regCell(p)}</td><td>{yptCell(p)}</td>
             </tr>
           ))}</tbody>

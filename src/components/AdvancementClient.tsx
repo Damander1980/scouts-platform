@@ -248,7 +248,7 @@ export default function AdvancementClient({
               aria-label={done ? "Mark not done" : "Mark done"}
               className="w-6 h-6 mt-0.5 rounded-md flex-none flex items-center justify-center border-2 cursor-pointer"
               style={{
-                borderColor: done ? "#12355F" : "#B9C7C0",
+                borderColor: done ? "#12355F" : "#AEB9C9",
                 background: done ? "#12355F" : "white",
                 cursor: canToggle ? "pointer" : "default",
               }}>

@@ -35,7 +35,7 @@ function Table({ title, rows, empty, total }: { title: string; rows: [string, nu
       <div className="font-bold text-[15px] mb-1">{title}</div>
       {rows.length === 0 && <div className="text-[13px] text-smoke">{empty}</div>}
       {rows.map(([k, v]) => (
-        <div key={k} className="flex justify-between text-[14px] border-b py-1" style={{ borderColor: "#E3EAE6" }}><span>{k}</span><span>{money(v)}</span></div>
+        <div key={k} className="flex justify-between text-[14px] border-b py-1" style={{ borderColor: "#EAE4D6" }}><span>{k}</span><span>{money(v)}</span></div>
       ))}
       {total && rows.length > 0 && (
         <div className="flex justify-between text-[14px] font-bold pt-1"><span>Total</span><span>{money(rows.reduce((s, [, v]) => s + v, 0))}</span></div>
@@ -137,7 +137,7 @@ export default async function TreasurerReport({ searchParams }: { searchParams: 
                 {lines.map((l) => {
                   const a = T.filter((t) => t.kind === kind && t.category === l.category).reduce((s, t) => s + t.amount_cents, 0);
                   return (
-                    <div key={l.category} className="grid grid-cols-4 text-[14px] border-b py-1" style={{ borderColor: "#E3EAE6" }}>
+                    <div key={l.category} className="grid grid-cols-4 text-[14px] border-b py-1" style={{ borderColor: "#EAE4D6" }}>
                       <span>{l.category}</span><span className="text-right">{money(l.planned_cents)}</span><span className="text-right">{money(a)}</span>
                       <span className="text-right" style={{ color: (kind === "expense" ? a > l.planned_cents : a < l.planned_cents) ? "#A52A1C" : undefined }}>{money(a - l.planned_cents)}</span>
                     </div>
@@ -154,7 +154,7 @@ export default async function TreasurerReport({ searchParams }: { searchParams: 
         <div className="font-bold text-[15px] mb-1">Open family balances (as of today)</div>
         {owed.length === 0 && <div className="text-[13px] text-smoke">No family owes money.</div>}
         {owed.map((b) => (
-          <div key={b.household_name} className="flex justify-between text-[14px] border-b py-1" style={{ borderColor: "#E3EAE6" }}><span>{b.household_name}</span><span>{money(b.balance_cents)}</span></div>
+          <div key={b.household_name} className="flex justify-between text-[14px] border-b py-1" style={{ borderColor: "#EAE4D6" }}><span>{b.household_name}</span><span>{money(b.balance_cents)}</span></div>
         ))}
         {creditHeld > 0 && <div className="text-[13px] text-smoke mt-1">Credits held for families: {money(creditHeld)}</div>}
       </div>

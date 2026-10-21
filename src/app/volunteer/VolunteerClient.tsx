@@ -79,7 +79,7 @@ export default function VolunteerClient({ family, shifts, signups, polls, votes,
                 return (
                   <div key={i} className="flex flex-col gap-1">
                     <div className="flex justify-between text-[14px]"><span>{o}</span><span>{n}</span></div>
-                    <div className="h-2 rounded-full" style={{ background: "#E3EAE6" }}><div className="h-2 rounded-full" style={{ width: `${pct}%`, background: "#12355F" }} /></div>
+                    <div className="h-2 rounded-full" style={{ background: "#EAE4D6" }}><div className="h-2 rounded-full" style={{ width: `${pct}%`, background: "#12355F" }} /></div>
                   </div>
                 );
               })}

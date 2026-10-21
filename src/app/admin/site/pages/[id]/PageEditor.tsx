@@ -173,7 +173,7 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
           <div className="font-bold text-[15px]">History</div>
           <p className="text-[13px] text-smoke m-0">Each publish is saved. Restoring loads that version into the draft so you can check it before publishing.</p>
           {versions.map((v) => (
-            <div key={v.id} className="flex items-center gap-2 border-t py-1.5" style={{ borderColor: "#E3EAE6" }}>
+            <div key={v.id} className="flex items-center gap-2 border-t py-1.5" style={{ borderColor: "#EAE4D6" }}>
               <span className="text-[14px]">{new Date(v.published_at).toLocaleString()}</span>
               <button className="btn-ghost ml-auto" disabled={busy} onClick={() => {
                 // A saved-but-unpublished draft isn't in the history, so restoring would lose it too.
