@@ -17,6 +17,12 @@ export default async function AdminOverview() {
     supabase.from("ledger_entries").select("household_id, amount_cents").eq("org_id", orgId),
   ]);
 
+  const { data: nextEvents } = await supabase.from("events").select("id, title, start_at, end_at, location")
+    .eq("org_id", orgId).gte("start_at", now.toISOString()).eq("canceled", false).order("start_at").limit(1);
+  const next = nextEvents?.[0];
+  const { data: nextRsvps } = next ? await supabase.from("rsvps").select("status").eq("event_id", next.id) : { data: [] as { status: string }[] };
+  const going = (nextRsvps ?? []).filter((r) => r.status === "yes" || r.status === "going").length;
+
   type M = { person_id: string; role: string; ypt_expires: string | null; is_admin: boolean; is_designated_leader: boolean; persons: { first_name: string; last_name: string; type: string } };
   const ms = (members ?? []) as unknown as M[];
   const youth = ms.filter((m) => m.persons.type === "youth");
@@ -50,6 +56,22 @@ export default async function AdminOverview() {
         </section>
       )}
 
+      {next && (
+        <Link href={`/events/${next.id}`} className="rounded-[20px] p-6 flex flex-wrap items-center gap-5 no-underline text-white"
+          style={{ background: "#12355F", boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
+          <div className="flex-1 min-w-[240px] flex flex-col gap-1">
+            <span className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>Next up · {fmtDate(next.start_at, { weekday: "short", month: "short", day: "numeric" })}</span>
+            <span className="font-display font-extrabold text-[26px] leading-tight">{next.title}</span>
+            {next.location && <span className="text-[14px]" style={{ color: "#D7E0EE" }}>{next.location}</span>}
+          </div>
+          <div className="flex flex-col items-end">
+            <span className="font-display font-extrabold text-[36px] leading-none">{going}</span>
+            <span className="text-[13px]" style={{ color: "#D7E0EE" }}>going so far</span>
+          </div>
+          <span className="min-h-[44px] px-5 rounded-full font-bold text-[15px] flex items-center" style={{ background: "#F5B700", color: "#101B2D" }}>Open roster</span>
+        </Link>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Stat label="Scouts" value={youth.length} />
         <Stat label="Adults" value={ms.length - youth.length} />
@@ -59,6 +81,7 @@ export default async function AdminOverview() {
 
       <section className="flex flex-col gap-2">
         <SectionLabel>Needs attention</SectionLabel>
+        <div className="card p-0 overflow-hidden flex flex-col [&>a]:rounded-none [&>a]:shadow-none [&>a]:border-b [&>a]:border-[#EAE4D6] [&>a:last-child]:border-0 [&>div]:shadow-none">
         {(joins ?? 0) > 0 && <Link href="/admin/members?tab=requests" className="card flex justify-between no-underline text-ink"><b>Join requests</b><Chip tone="dark">{joins}</Chip></Link>}
         {(signoffs ?? 0) > 0 && <Link href="/admin/advancement" className="card flex justify-between no-underline text-ink"><b>Requirements waiting for sign-off</b><Chip tone="dark">{signoffs}</Chip></Link>}
         {noHealth.length > 0 && <Link href="/admin/forms" className="card flex justify-between no-underline text-ink"><b>Members without a current health form (A+B)</b><Chip tone="orange">{noHealth.length}</Chip></Link>}
@@ -69,6 +92,7 @@ export default async function AdminOverview() {
           </Link>
         )}
         {!joins && !signoffs && !noHealth.length && !yptIssues.length && <div className="card text-smoke">Nothing needs attention.</div>}
+        </div>
       </section>
     </>
   );
