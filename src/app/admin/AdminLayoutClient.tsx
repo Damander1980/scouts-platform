@@ -125,7 +125,9 @@ export default function AdminLayoutClient({
         {yptBlocked.length > 0 && (
           <div className="card" style={{ background: "#FFF6D6", borderColor: "#F0DA8C" }}>
             <b>Youth Protection Training needed.</b> Your position includes {yptBlocked.map((p) => PERM_LABELS[p] ?? p).join(", ")}, but
-            no current YPT date is on file for you. Ask a unit admin to record your YPT completion date to turn these on.
+            no current YPT date is on file for you. {isAdmin
+              ? <>Enter your YPT expiration date on the <Link href="/admin/members" className="font-bold text-forest">Members page</Link> to turn these on.</>
+              : "Ask a unit admin to record your YPT expiration date to turn these on."}
           </div>
         )}
         {children}
