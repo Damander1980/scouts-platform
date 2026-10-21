@@ -20,8 +20,7 @@ export default async function FamilyPage() {
   const [family, balance] = await Promise.all([loadFamily(supabase, orgId), householdBalance(supabase, householdId, orgId)]);
 
   const ids = family.map((f) => f.id);
-  const [{ data: forms }, { data: certs }] = await Promise.all([
-    supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId).in("person_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]),
+  const [{ data: certs }] = await Promise.all([
     supabase.from("scout_certifications").select("person_id, status, certifications(name)").eq("org_id", orgId).in("person_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]),
   ]);
 
@@ -31,16 +30,9 @@ export default async function FamilyPage() {
   const { data: logins } = ids.length ? await supabase.rpc("child_login_status", { p_ids: ids }) : { data: [] };
   const loginOf = Object.fromEntries(((logins ?? []) as { person_id: string; email: string | null; linked: boolean }[]).map((l) => [l.person_id, l]));
 
-  const formChip =(pid: string, type: string, label: string) => {
-    const f = (forms ?? []).find((x) => x.person_id === pid && x.type === type);
-    if (!f) return <Chip tone="orange">{label} needed</Chip>;
-    if (f.expires_at && new Date(f.expires_at) < new Date()) return <Chip tone="red">{label} expired</Chip>;
-    return <Chip tone="green">{label} on file</Chip>;
-  };
-
   return (
     <Shell ctx={ctx}>
-      <PageTitle title="Family" sub="Everyone in your household, their troop roles, forms and progress." />
+      <PageTitle title="Family" sub="Everyone in your household, their logins and photo choices. Form status is on the Forms page." />
 
       <div className="card flex items-center justify-between gap-3">
         <div>
@@ -54,6 +46,7 @@ export default async function FamilyPage() {
 
       <section className="flex flex-col gap-2">
         <SectionLabel>People</SectionLabel>
+        <div className="grid gap-5 md:grid-cols-2 items-start">
         {family.map((p) => {
           const a = age(p.birthdate);
           const myCerts = (certs ?? []).filter((c) => c.person_id === p.id && c.status === "active");
@@ -73,11 +66,8 @@ export default async function FamilyPage() {
                   <Link href={`/scout/${p.id}/advancement`} className="text-[13px] font-bold text-forest no-underline">Advancement</Link>
                 )}
               </div>
-              {p.in_org && (
+              {p.in_org && (myCerts.length > 0 || (p.type === "youth" && a !== null && a >= 18)) && (
                 <div className="flex gap-1.5 flex-wrap">
-                  {formChip(p.id, "health_ab", "Health A+B")}
-                  {formChip(p.id, "health_c", "Health C")}
-                  {formChip(p.id, "permission", "Permission")}
                   {myCerts.map((c, i) => <Chip key={i} tone="green">{(c.certifications as unknown as { name: string })?.name}</Chip>)}
                   {p.type === "youth" && a !== null && a >= 18 && <Chip tone="orange">Turned 18: ask a leader to update role</Chip>}
                 </div>
@@ -87,21 +77,11 @@ export default async function FamilyPage() {
             </div>
           );
         })}
+        </div>
       </section>
 
       <FamilyTools defaultLast={family.find((f) => f.type === "adult")?.last_name ?? ""} notInTroop={family.filter((f) => !f.in_org).map((f) => ({ id: f.id, name: f.first_name }))} orgId={orgId} />
 
-      <section className="card flex flex-col gap-2">
-        <div className="font-bold text-[15px]">Blank forms</div>
-        <p className="text-[13px] text-smoke m-0">
-          Download, fill out, and hand the paper form to your troop&apos;s designated leader. Completed medical forms are never uploaded here,
-          following Scouting America guidance; a leader marks them received.
-        </p>
-        <div className="flex gap-2 flex-wrap">
-          <a className="btn-secondary no-underline" href="https://www.scouting.org/health-and-safety/ahmr/" target="_blank" rel="noopener noreferrer">Health and Medical Record</a>
-          <Link className="btn-secondary no-underline" href="/forms">Troop forms</Link>
-        </div>
-      </section>
     </Shell>
   );
 }
