@@ -50,7 +50,7 @@ begin
   end if;
   -- Unit setting "When a Scout with a login RSVPs" (SPEC: Scouts do it themselves; parents keep the
   -- final say on money). Default: a Scout's paid sign-up waits for a parent's OK before any charge.
-  scout_self := me = p_person and exists (select 1 from public.persons where id = me and type = 'youth');
+  scout_self := coalesce(me = p_person, false) and exists (select 1 from public.persons where id = me and type = 'youth');
   mode := coalesce((select settings->>'scout_rsvp' from public.organizations where id = pay_org), 'parent_approves_paid');
   if scout_self and mode = 'parent_only' then
     raise exception 'Your troop asks a parent to sign you up. Ask a parent to do it from their account.';
@@ -78,8 +78,8 @@ begin
   end if;
   if p_status = 'going' and prev.status = 'waitlisted' then final_status := 'waitlisted'; end if;
 
-  needs_ok := scout_self and mode = 'parent_approves_paid' and e.cost_cents > 0 and final_status = 'going'
-    and coalesce(prev.rsvp_approval_status, 'pending') <> 'approved';
+  needs_ok := coalesce(scout_self and mode = 'parent_approves_paid' and e.cost_cents > 0 and final_status = 'going'
+    and coalesce(prev.rsvp_approval_status, 'pending') <> 'approved', false);
 
   insert into public.rsvps (event_id, person_id, status, notes, driver_seats, dietary, answers, updated_by, updated_at, rsvp_approval_status)
   values (p_event, p_person, final_status, p_notes, coalesce(p_driver_seats, 0), p_dietary, coalesce(p_answers, '{}'), me, now(),
