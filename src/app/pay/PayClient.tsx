@@ -56,7 +56,7 @@ export default function PayClient({ orgId, balance, online, prefs, scoutBalances
 
       {balance > 0 && (
         <div className={`grid gap-3 ${showCash && showCard ? "sm:grid-cols-2" : ""}`}>
-          {showCash && <div className="rounded-xl border border-border p-3 flex flex-col gap-2">
+          {showCash && <div className="rounded-xl p-4 flex flex-col gap-2" style={{ background: "#F8F5EE" }}>
             <div className="font-bold text-[15px]">Pay a leader in person</div>
             <div className="text-[13px] text-smoke">Cash or check. <b>No fee.</b> Hand it to your treasurer or a leader and they&apos;ll record it here.</div>
           </div>}
