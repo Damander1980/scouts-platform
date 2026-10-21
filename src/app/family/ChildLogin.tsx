@@ -37,7 +37,7 @@ export default function ChildLogin({ personId, name, age, email, linked }: { per
     );
   }
   if (email) {
-    return <div className="text-[13px]">Waiting for {name} to sign in with <b>{email}</b>. They just open the app and ask for a sign-in link.{" "}
+    return <div className="text-[13px]">Waiting for {name} to sign in with <b>{email}</b>. They open the sign-in page, choose Create an account with that email, and pick their own password.{" "}
       <button className="btn-ghost text-[13px] min-h-0 px-0" onClick={async () => { await supabase.rpc("revoke_child_login", { p_person: personId }); router.refresh(); }}>Cancel</button></div>;
   }
   return (
@@ -46,7 +46,7 @@ export default function ChildLogin({ personId, name, age, email, linked }: { per
         <button className="btn-secondary self-start min-h-[36px] text-[13px]" onClick={() => setOpen(true)}>Give {name} their own login</button>
       ) : (
         <div className="rounded-xl p-3 flex flex-col gap-2" style={{ background: "#F8F5EE" }}>
-          <div className="text-[13px]">Scouts take responsibility for their own sign-ups, advancement and messages. {name} signs in with their own email, no password.</div>
+          <div className="text-[13px]">Scouts take responsibility for their own sign-ups, advancement and messages. {name} signs in with their own email and password.</div>
           <input className="input" type="email" placeholder={`${name}'s email`} value={mail} onChange={(e) => setMail(e.target.value)} />
           <label className="flex items-start gap-3 text-[13px]">
             <input type="checkbox" className="w-5 h-5 mt-0.5 flex-none" checked={agree} onChange={(e) => setAgree(e.target.checked)} />

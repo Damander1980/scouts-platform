@@ -23,7 +23,7 @@ export default async function JoinLanding({ params }: { params: Promise<{ code: 
         {org && (
           <>
             <ol className="card flex flex-col gap-2 m-0 pl-8 text-[15px]">
-              <li>Sign in with your email (no password).</li>
+              <li>Create an account with your email and a password, or use Google.</li>
               <li>Add your kids.</li>
               <li>Request to join. A leader approves you.</li>
             </ol>
