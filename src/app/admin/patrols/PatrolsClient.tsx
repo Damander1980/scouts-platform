@@ -95,7 +95,7 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
       )}
 
       {unassigned.length > 0 && (
-        <div className="card flex flex-col gap-2" style={{ background: "#FFF1E6", borderColor: "#FFD6B8" }}>
+        <div className="card flex flex-col gap-2" style={{ background: "#FFF6D6", borderColor: "#F0DA8C" }}>
           <div className="font-bold text-[15px]">Not in a {groupWord.toLowerCase()} yet ({unassigned.length})</div>
           {unassigned.map((p) => (
             <div key={p.id} className="flex items-center gap-2 text-[14px]">
@@ -123,7 +123,7 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
               </div>
               {list.length === 0 && <span className="text-[14px] text-smoke">Nobody yet</span>}
               {list.map((m) => (
-                <div key={m.id} className="flex items-center gap-2 text-[14px] py-1 border-b border-[#EAF0ED] last:border-0">
+                <div key={m.id} className="flex items-center gap-2 text-[14px] py-1 border-b border-[#EEE8D9] last:border-0">
                   <span className="flex-1 font-bold">{nameOf[m.person_id] ?? "Member"}</span>
                   <select className="input py-0 min-h-0 h-8 text-[13px]" value={m.role} disabled={busy || !canEdit} onChange={(e) => setRole(m, e.target.value)}>
                     {Object.entries(ROLE_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
@@ -175,7 +175,7 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
         <div className="flex flex-col">
           {positions.length === 0 && <span className="text-[14px] text-smoke">No positions recorded yet.</span>}
           {positions.map((x) => (
-            <div key={x.id} className="flex items-center gap-2 text-[14px] py-1.5 border-b border-[#EAF0ED] last:border-0 flex-wrap">
+            <div key={x.id} className="flex items-center gap-2 text-[14px] py-1.5 border-b border-[#EEE8D9] last:border-0 flex-wrap">
               <span className="font-bold">{nameOf[x.person_id] ?? "Scout"}</span>
               <span>{x.title}</span>
               <span className="text-smoke">{new Date(x.start_date).toLocaleDateString()} – {x.end_date ? new Date(x.end_date).toLocaleDateString() : "now"}</span>

@@ -110,10 +110,10 @@ export default function AttendanceClient({ orgId, eventId, people, initial, chec
           const v = m?.present;
           return (
             <div key={p.id} className="card flex items-center gap-3 py-3"
-              style={{ borderColor: v ? "#1F5F4A" : undefined, background: v ? "#EAF0ED" : undefined }}>
+              style={{ borderColor: v ? "#12355F" : undefined, background: v ? "#EEE8D9" : undefined }}>
               <button onClick={() => mark([p.id], v ? null : true)} aria-pressed={!!v} aria-label={`${p.name} ${v ? "present" : "not marked"}`}
                 className="w-14 h-14 rounded-xl border-2 flex items-center justify-center cursor-pointer flex-none"
-                style={{ borderColor: v ? "#1F5F4A" : "#B9C7C0", background: v ? "#1F5F4A" : "white" }}>
+                style={{ borderColor: v ? "#12355F" : "#B9C7C0", background: v ? "#12355F" : "white" }}>
                 {v && <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>}
               </button>
               <div className="flex-1 min-w-0">

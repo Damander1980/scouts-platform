@@ -22,7 +22,7 @@ export default function LeaderEventTools({ eventId, canceled, ratioOk, adults, t
     <section className="card flex flex-col gap-3" style={{ background: "#F4F8F6" }}>
       <div className="font-bold text-[15px]">Leader tools</div>
       <div className="rounded-xl px-3 py-2 text-[14px] font-bold"
-        style={{ background: ratioOk ? "#EAF0ED" : "#FDECEA", color: ratioOk ? "#1F5F4A" : "#A52A1C" }}>
+        style={{ background: ratioOk ? "#EEE8D9" : "#FDECEA", color: ratioOk ? "#12355F" : "#A52A1C" }}>
         {ratioOk
           ? `Two-deep leadership met: ${adults} adults 21+ going, ${trained} with current Youth Protection Training, for ${youth} youth.`
           : `Not ready: Scouting America requires at least 2 registered adults age 21+, with current Youth Protection Training, at every youth activity. Now: ${adults} adults, ${trained} trained.`}

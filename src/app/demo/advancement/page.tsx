@@ -38,11 +38,11 @@ export default async function DemoAdvancement({ searchParams }: { searchParams: 
 
   return (
     <>
-      <div className="fixed bottom-4 right-4 z-50 flex gap-1 bg-white rounded-full p-1 shadow-lg border border-[#D5DFDA] text-[12px] font-bold">
+      <div className="fixed bottom-4 right-4 z-50 flex gap-1 bg-white rounded-full p-1 shadow-lg border border-[#DDD6C5] text-[12px] font-bold">
         <Link href="/demo/advancement" className="px-3 py-1.5 rounded-full no-underline"
-          style={{ background: isLeader ? "#1F5F4A" : "transparent", color: isLeader ? "white" : "#4D5F57" }}>Leader view</Link>
+          style={{ background: isLeader ? "#12355F" : "transparent", color: isLeader ? "white" : "#4B5568" }}>Leader view</Link>
         <Link href="/demo/advancement?view=scout" className="px-3 py-1.5 rounded-full no-underline"
-          style={{ background: !isLeader ? "#1F5F4A" : "transparent", color: !isLeader ? "white" : "#4D5F57" }}>Scout view</Link>
+          style={{ background: !isLeader ? "#12355F" : "transparent", color: !isLeader ? "white" : "#4B5568" }}>Scout view</Link>
       </div>
       <AdvancementClient
         key={isLeader ? "leader" : "scout"}

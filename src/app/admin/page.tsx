@@ -40,7 +40,7 @@ export default async function AdminOverview() {
       <PageTitle title="Overview" sub={`${current.org.name} at a glance`} />
 
       {setup.length > 0 && (
-        <section className="card flex flex-col gap-2" style={{ background: "#FFF1E6", borderColor: "#FFD6B8" }}>
+        <section className="card flex flex-col gap-2" style={{ background: "#FFF6D6", borderColor: "#F0DA8C" }}>
           <div className="font-bold text-[16px]">Finish setting up</div>
           {setup.map((s) => (
             <Link key={s.label} href={s.href} className="text-[14px] text-ink no-underline flex items-center gap-2">
@@ -54,7 +54,7 @@ export default async function AdminOverview() {
         <Stat label="Scouts" value={youth.length} />
         <Stat label="Adults" value={ms.length - youth.length} />
         <Stat label="Upcoming events" value={events ?? 0} />
-        <Stat label="Owed to unit" value={money(owed)} tone={owed > 0 ? "#7A2E00" : undefined} />
+        <Stat label="Owed to unit" value={money(owed)} tone={owed > 0 ? "#5E4400" : undefined} />
       </div>
 
       <section className="flex flex-col gap-2">

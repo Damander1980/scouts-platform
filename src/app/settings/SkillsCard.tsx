@@ -38,7 +38,7 @@ export default function SkillsCard({ orgId, personId, unitName, initial }: { org
           const on = skills.includes(s);
           return (
             <button key={s} type="button" onClick={() => flip(s)} className="px-3 rounded-full text-[13px] font-bold border cursor-pointer font-sans"
-              style={{ minHeight: 44, background: on ? "#1F5F4A" : "white", color: on ? "white" : "#4D5F57", borderColor: on ? "#1F5F4A" : "#D5DFDA" }}>{s}</button>
+              style={{ minHeight: 44, background: on ? "#12355F" : "white", color: on ? "white" : "#4B5568", borderColor: on ? "#12355F" : "#DDD6C5" }}>{s}</button>
           );
         })}
       </div>

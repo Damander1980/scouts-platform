@@ -36,7 +36,7 @@ export default async function MessagesPage() {
           const unread = !r.read_at;
           return (
             <Link key={m.id} href={`/messages/${m.id}`} className="card flex flex-col gap-1 no-underline text-ink"
-              style={{ borderColor: unread ? "#1F5F4A" : undefined, borderWidth: unread ? 2 : 1 }}>
+              style={{ borderColor: unread ? "#12355F" : undefined, borderWidth: unread ? 2 : 1 }}>
               <div className="flex items-center gap-2">
                 <span className={`text-[15px] ${unread ? "font-bold" : ""}`}>{m.sender_id ? nameOf[m.sender_id] ?? "Member" : "System"}</span>
                 {r.copy_reason && REASON[r.copy_reason] && <Chip>{REASON[r.copy_reason]}</Chip>}

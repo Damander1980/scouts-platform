@@ -84,7 +84,7 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
       <div className="flex gap-2 flex-wrap items-center">
         {(["forms", "certs"] as const).map((v) => (
           <button key={v} onClick={() => setView(v)} className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: view === v ? "#1F5F4A" : "white", color: view === v ? "white" : "#4D5F57", borderColor: view === v ? "#1F5F4A" : "#D5DFDA" }}>
+            style={{ background: view === v ? "#12355F" : "white", color: view === v ? "white" : "#4B5568", borderColor: view === v ? "#12355F" : "#DDD6C5" }}>
             {v === "forms" ? "Health & permission" : "Skill cards"}
           </button>
         ))}
@@ -114,7 +114,7 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
                 })}
               </div>
               {editing?.pid === p.id && (
-                <div className="flex gap-2 flex-wrap items-center pt-2 border-t border-[#EAF0ED]">
+                <div className="flex gap-2 flex-wrap items-center pt-2 border-t border-[#EEE8D9]">
                   <span className="text-[14px] font-bold">{FORM_TYPES.find(([t]) => t === editing.type)?.[1]} received, dated</span>
                   <input type="date" className="input h-10 min-h-0" value={date} onChange={(e) => setDate(e.target.value)} />
                   <button className="btn-primary" disabled={busy} onClick={() => mark(p.id, editing.type, true)}>Mark received</button>

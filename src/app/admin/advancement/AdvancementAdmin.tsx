@@ -48,7 +48,7 @@ export default function AdvancementAdmin({ orgId, unitType, queue, summary, awar
       <ErrorBox>{error}</ErrorBox>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Stat label="Waiting for sign-off" value={queue.length} tone={queue.length ? "#7A2E00" : undefined} />
+        <Stat label="Waiting for sign-off" value={queue.length} tone={queue.length ? "#5E4400" : undefined} />
         <Stat label="Badge requests" value={requests.length} />
         <Stat label="Awards to buy" value={awards.filter((a) => !a.purchased_at).length} />
         <Stat label="On the Eagle trail" value={eagleTrack.length} />
@@ -57,14 +57,14 @@ export default function AdvancementAdmin({ orgId, unitType, queue, summary, awar
       <div className="flex gap-2 flex-wrap">
         {([["queue", "Sign-offs & requests"], ["scouts", "Scout progress"], ["awards", "Court of Honor list"]] as const).map(([k, l]) => (
           <button key={k} onClick={() => setTab(k)} className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: tab === k ? "#1F5F4A" : "white", color: tab === k ? "white" : "#4D5F57", borderColor: tab === k ? "#1F5F4A" : "#D5DFDA" }}>{l}</button>
+            style={{ background: tab === k ? "#12355F" : "white", color: tab === k ? "white" : "#4B5568", borderColor: tab === k ? "#12355F" : "#DDD6C5" }}>{l}</button>
         ))}
       </div>
 
       {tab === "queue" && (
         <div className="flex flex-col gap-3">
           {requests.length > 0 && (
-            <div className="card flex flex-col gap-2" style={{ background: "#FFF1E6", borderColor: "#FFD6B8" }}>
+            <div className="card flex flex-col gap-2" style={{ background: "#FFF6D6", borderColor: "#F0DA8C" }}>
               <div className="font-bold text-[15px]">Merit badge requests (blue cards)</div>
               {requests.map((r) => (
                 <div key={r.id} className="flex items-center gap-2 flex-wrap text-[14px]">
@@ -86,7 +86,7 @@ export default function AdvancementAdmin({ orgId, unitType, queue, summary, awar
                   {signable.length > 1 && <button className="btn-primary ml-auto" disabled={busy} onClick={() => sign(signable)}>Sign all {signable.length}</button>}
                 </div>
                 {list.map((q) => (
-                  <div key={q.progress_id} className="flex items-start gap-2 text-[14px] py-1 border-t border-[#EAF0ED]">
+                  <div key={q.progress_id} className="flex items-start gap-2 text-[14px] py-1 border-t border-[#EEE8D9]">
                     <span className="font-bold w-8 flex-none">{q.number}</span>
                     <span className="flex-1">{q.requirement}</span>
                     {q.can_sign ? <button className="btn-secondary min-h-[36px]" disabled={busy} onClick={() => sign([q.progress_id])}>Sign off</button>
@@ -111,7 +111,7 @@ export default function AdvancementAdmin({ orgId, unitType, queue, summary, awar
               {summary.map((s) => {
                 const a = age(s.birthdate);
                 return (
-                  <tr key={s.person_id} className="border-t border-[#EAF0ED]">
+                  <tr key={s.person_id} className="border-t border-[#EEE8D9]">
                     <td className="px-3 py-2"><Link href={`/scout/${s.person_id}/advancement`} className="font-bold text-ink no-underline">{s.last_name}, {s.first_name}</Link></td>
                     <td className="px-2">{a ?? "—"} {a !== null && a >= 17 && s.current_rank !== "Eagle Scout" && <Chip tone="orange">Turns 18 soon</Chip>}</td>
                     <td className="px-2">{s.current_rank ?? "—"}</td>

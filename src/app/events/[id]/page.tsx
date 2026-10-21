@@ -86,7 +86,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
           {list.map((p) => {
             const r = byPerson[p.person_id];
             return (
-              <div key={p.person_id} className="flex items-center gap-2 py-1.5 border-b border-[#EAF0ED] last:border-0 text-[14px]">
+              <div key={p.person_id} className="flex items-center gap-2 py-1.5 border-b border-[#EEE8D9] last:border-0 text-[14px]">
                 <span className="font-bold">{p.persons.first_name} {p.persons.last_name}</span>
                 {p.persons.type === "adult" && <Chip>Adult</Chip>}
                 {patrolOf[p.person_id] && <span className="text-smoke">{patrolOf[p.person_id]}</span>}
@@ -151,7 +151,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       )}
 
       {seesForms && going.length > 0 && (
-        <section className="card flex flex-col gap-2" style={{ borderColor: readiness.length ? "#FFD6B8" : "#CFE3DA" }}>
+        <section className="card flex flex-col gap-2" style={{ borderColor: readiness.length ? "#F0DA8C" : "#D7E0EE" }}>
           <div className="flex items-center justify-between gap-2">
             <span className="font-bold text-[15px]">Ready to go?</span>
             <Chip tone={readiness.length ? "orange" : "green"}>{readiness.length ? `${readiness.length} not ready` : "Everyone ready"}</Chip>

@@ -15,7 +15,7 @@ export default async function EditSitePage({ params }: { params: Promise<{ id: s
     supabase.from("albums").select("id, title, visibility").eq("org_id", orgId).order("taken_on", { ascending: false }),
   ]);
   const s = (site ?? {}) as { org?: { site?: { brand_color?: string } }; events?: { id: string; title: string; start_at: string; location: string | null }[]; albums?: { id: string; title: string; photos: { path: string; caption: string | null }[] }[] };
-  const brand = s.org?.site?.brand_color && /^#[0-9a-f]{6}$/i.test(s.org.site.brand_color) ? s.org.site.brand_color : "#1F5F4A";
+  const brand = s.org?.site?.brand_color && /^#[0-9a-f]{6}$/i.test(s.org.site.brand_color) ? s.org.site.brand_color : "#12355F";
 
   return (
     <PageEditor

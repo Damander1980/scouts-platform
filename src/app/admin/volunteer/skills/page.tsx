@@ -22,7 +22,7 @@ export default async function SkillsPage({ searchParams }: { searchParams: Promi
 
   const pill = (href: string, label: string, on: boolean) => (
     <Link key={href} href={href} className="px-3 py-2 rounded-full text-[13px] font-bold border no-underline"
-      style={{ background: on ? "#1F5F4A" : "white", color: on ? "white" : "#4D5F57", borderColor: on ? "#1F5F4A" : "#D5DFDA" }}>{label}</Link>
+      style={{ background: on ? "#12355F" : "white", color: on ? "white" : "#4B5568", borderColor: on ? "#12355F" : "#DDD6C5" }}>{label}</Link>
   );
 
   return (

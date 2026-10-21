@@ -27,7 +27,7 @@ export default function FamilyTools({ defaultLast, notInTroop, orgId }: {
   return (
     <section className="grid md:grid-cols-2 gap-3">
       <ErrorBox>{error}</ErrorBox>
-      {msg && <div className="card md:col-span-2 font-bold" style={{ background: "#EAF0ED" }}>{msg}</div>}
+      {msg && <div className="card md:col-span-2 font-bold" style={{ background: "#EEE8D9" }}>{msg}</div>}
 
       <form className="card flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); run(async () => {
         const { error } = await supabase.rpc("add_child", { p_first: first, p_last: last, p_birthdate: birth || null });
@@ -48,7 +48,7 @@ export default function FamilyTools({ defaultLast, notInTroop, orgId }: {
         <div className="font-bold text-[16px]">Add your spouse or co-parent</div>
         <p className="text-[13px] text-smoke m-0">Give them this one-time code. After they sign in, they enter it to join your family.</p>
         {code ? (
-          <div className="font-display font-extrabold text-[28px] tracking-widest text-center py-2 rounded-xl" style={{ background: "#EAF0ED" }}>{code}</div>
+          <div className="font-display font-extrabold text-[28px] tracking-widest text-center py-2 rounded-xl" style={{ background: "#EEE8D9" }}>{code}</div>
         ) : (
           <button className="btn-secondary" disabled={busy} onClick={() => run(async () => {
             const { data, error } = await supabase.rpc("create_household_invite");

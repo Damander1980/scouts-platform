@@ -28,11 +28,11 @@ export function Empty({ children }: { children: ReactNode }) {
 
 type Tone = "green" | "orange" | "gray" | "red" | "dark";
 const TONES: Record<Tone, { bg: string; fg: string }> = {
-  green: { bg: "#EAF0ED", fg: "#1F5F4A" },
-  orange: { bg: "#FFF1E6", fg: "#7A2E00" },
-  gray: { bg: "#F4F6F5", fg: "#4D5F57" },
+  green: { bg: "#EEE8D9", fg: "#12355F" },
+  orange: { bg: "#FFF6D6", fg: "#5E4400" },
+  gray: { bg: "#F8F5EE", fg: "#4B5568" },
   red: { bg: "#FDECEA", fg: "#A52A1C" },
-  dark: { bg: "#1F5F4A", fg: "#FFFFFF" },
+  dark: { bg: "#12355F", fg: "#FFFFFF" },
 };
 export function Chip({ tone = "gray", children }: { tone?: Tone; children: ReactNode }) {
   const t = TONES[tone];
@@ -81,5 +81,5 @@ export function Field({ label, children, hint }: { label: string; children: Reac
 
 export function ErrorBox({ children }: { children: ReactNode }) {
   if (!children) return null;
-  return <div className="rounded-xl px-4 py-3 text-[14px] font-bold" style={{ background: "#FFF1E6", color: "#7A2E00" }}>{children}</div>;
+  return <div className="rounded-xl px-4 py-3 text-[14px] font-bold" style={{ background: "#FFF6D6", color: "#5E4400" }}>{children}</div>;
 }

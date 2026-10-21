@@ -19,7 +19,7 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
   const { org, contacts, events, albums } = data;
   const site = org.site ?? {};
   const word = org.type === "cubs" ? "Pack" : org.type === "venturing" ? "Crew" : org.type === "sea" ? "Ship" : "Troop";
-  const brand = site.brand_color && /^#[0-9a-f]{6}$/i.test(site.brand_color) ? site.brand_color : "#1F5F4A";
+  const brand = site.brand_color && /^#[0-9a-f]{6}$/i.test(site.brand_color) ? site.brand_color : "#12355F";
   const [contactTo, setContactTo] = useState<string>(contacts[0]?.person_id ?? "");
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [sent, setSent] = useState(false);
@@ -38,7 +38,7 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
   const groupedContacts = contacts.reduce<Record<string, typeof contacts>>((a, c) => ({ ...a, [c.title]: [...(a[c.title] ?? []), c] }), {});
 
   return (
-    <div className="min-h-screen" style={{ background: "#FBFAF5", color: "#14211B" }}>
+    <div className="min-h-screen" style={{ background: "#FBFAF5", color: "#101B2D" }}>
       <header style={{ background: brand }} className="text-white">
         {site.banner_path ? (
           <img src={storageUrl + site.banner_path} alt={org.name} className="w-full max-h-[260px] object-cover" />
@@ -58,7 +58,7 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
             <a href="#photos" className="text-white no-underline">Photos</a>
             {menu.map((m) => <a key={m.slug} href={`/${org.slug}/${m.slug}`} className="text-white no-underline">{m.title}</a>)}
             <a href="#contact" className="text-white no-underline">Contact</a>
-            <a href={`/join/${org.slug}`} className="ml-auto px-4 py-1.5 rounded-full no-underline" style={{ background: "#FF6A1A", color: "#14211B" }}>Join us</a>
+            <a href={`/join/${org.slug}`} className="ml-auto px-4 py-1.5 rounded-full no-underline" style={{ background: "#F5B700", color: "#101B2D" }}>Join us</a>
             <a href="/login" className="text-white no-underline opacity-80">Member sign in</a>
           </div>
         </nav>

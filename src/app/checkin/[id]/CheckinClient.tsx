@@ -21,7 +21,7 @@ export default function CheckinClient({ eventId, code, title, family }: { eventI
     <div className="min-h-screen bg-paper flex flex-col">
       <div className="bg-forest text-white px-5 pt-12 pb-7">
         <div className="max-w-md mx-auto">
-          <div className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#9DB0A7" }}>Check in</div>
+          <div className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#AEB9C9" }}>Check in</div>
           <h1 className="font-display font-extrabold text-[28px] m-0 mt-1">{title}</h1>
         </div>
       </div>

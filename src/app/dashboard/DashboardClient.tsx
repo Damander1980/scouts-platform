@@ -60,7 +60,7 @@ export default function DashboardClient({
   const unitWord = org.type === "cubs" ? "Pack" : org.type === "venturing" ? "Crew" : org.type === "sea" ? "Ship" : "Troop";
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col" style={{ fontFamily: "'DM Sans', sans-serif", color: "#14211B" }}>
+    <div className="min-h-screen bg-paper flex flex-col" style={{ fontFamily: "'DM Sans', sans-serif", color: "#101B2D" }}>
 
       {/* ── Header ── */}
       <header className="bg-forest text-white px-4 pt-5 pb-4 flex flex-col gap-3">
@@ -71,7 +71,7 @@ export default function DashboardClient({
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-[16px] leading-tight">{unitWord} {org.unit_number}</span>
-              <span className="text-[13px]" style={{ color: "#9DB0A7" }}>{org.city} · {ROLE_LABELS[role] ?? role}</span>
+              <span className="text-[13px]" style={{ color: "#AEB9C9" }}>{org.city} · {ROLE_LABELS[role] ?? role}</span>
             </div>
           </div>
           <Link href="/profile"
@@ -84,7 +84,7 @@ export default function DashboardClient({
           <h1 className="font-display font-extrabold text-[26px] leading-tight m-0">
             Hey, {person.first_name}.
           </h1>
-          <p className="text-[14px] m-0" style={{ color: "#9DB0A7" }}>
+          <p className="text-[14px] m-0" style={{ color: "#AEB9C9" }}>
             {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
           </p>
         </div>
@@ -101,7 +101,7 @@ export default function DashboardClient({
               {actionItems.map((item) => (
                 <div key={item.id}
                   className="rounded-2xl p-4 flex items-center justify-between gap-3"
-                  style={{ background: "#FFF1E6", border: "1px solid #FFD6B8" }}>
+                  style={{ background: "#FFF6D6", border: "1px solid #F0DA8C" }}>
                   <div className="flex flex-col gap-0.5">
                     <span className="font-bold text-[15px]">{item.title}</span>
                     <span className="text-[13px] text-smoke">
@@ -110,7 +110,7 @@ export default function DashboardClient({
                   </div>
                   <Link href={`/pay/${item.id}`}
                     className="min-h-[40px] px-4 rounded-full font-bold text-[14px] flex items-center no-underline flex-none"
-                    style={{ background: "#FF6A1A", color: "#14211B" }}>
+                    style={{ background: "#F5B700", color: "#101B2D" }}>
                     Pay
                   </Link>
                 </div>
@@ -122,17 +122,17 @@ export default function DashboardClient({
         {/* Balance (only if non-zero) */}
         {balanceCents !== 0 && (
           <div className="rounded-2xl p-4 flex items-center justify-between"
-            style={{ background: balanceCents > 0 ? "#FFF1E6" : "#EAF0ED", border: "1px solid #D5DFDA" }}>
+            style={{ background: balanceCents > 0 ? "#FFF6D6" : "#EEE8D9", border: "1px solid #DDD6C5" }}>
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] font-bold tracking-widest uppercase text-smoke">Account balance</span>
               <span className="font-display font-bold text-[22px]"
-                style={{ color: balanceCents > 0 ? "#7A2E00" : "#1F5F4A" }}>
+                style={{ color: balanceCents > 0 ? "#5E4400" : "#12355F" }}>
                 {balanceCents > 0 ? `${dollars(balanceCents)} owed` : `${dollars(Math.abs(balanceCents))} credit`}
               </span>
             </div>
             {balanceCents > 0 && (
               <Link href="/pay" className="min-h-[40px] px-4 rounded-full font-bold text-[14px] flex items-center no-underline"
-                style={{ background: "#FF6A1A", color: "#14211B" }}>
+                style={{ background: "#F5B700", color: "#101B2D" }}>
                 Pay now
               </Link>
             )}
@@ -165,7 +165,7 @@ export default function DashboardClient({
               return (
                 <Link key={ev.id} href={`/events/${ev.id}`}
                   className="bg-white border border-border rounded-2xl p-4 flex gap-3 items-start no-underline"
-                  style={{ color: "#14211B" }}>
+                  style={{ color: "#101B2D" }}>
                   {/* Date column */}
                   <div className="flex flex-col items-center w-11 flex-none pt-0.5">
                     <span className="text-[10px] font-bold uppercase tracking-wide text-smoke">{d.mon}</span>
@@ -182,33 +182,33 @@ export default function DashboardClient({
                     <div className="flex flex-wrap gap-1.5 mt-0.5">
                       {ev.cost_cents > 0 && (
                         <span className="inline-flex items-center h-5 px-2 rounded-full text-[11px] font-bold"
-                          style={{ background: "#EAF0ED", color: "#1F5F4A" }}>
+                          style={{ background: "#EEE8D9", color: "#12355F" }}>
                           {dollars(ev.cost_cents)}
                         </span>
                       )}
                       {going && (
                         <span className="inline-flex items-center h-5 px-2 rounded-full text-[11px] font-bold gap-1"
-                          style={{ background: "#EAF0ED", color: "#1F5F4A" }}>
+                          style={{ background: "#EEE8D9", color: "#12355F" }}>
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
                           Going
                         </span>
                       )}
                       {notGoing && (
                         <span className="inline-flex items-center h-5 px-2 rounded-full text-[11px] font-bold"
-                          style={{ background: "#F4F6F5", color: "#4D5F57" }}>
+                          style={{ background: "#F8F5EE", color: "#4B5568" }}>
                           Not going
                         </span>
                       )}
                       {!ev.rsvpStatus && (
                         <span className="inline-flex items-center h-5 px-2 rounded-full text-[11px] font-bold"
-                          style={{ background: "#FFF1E6", color: "#7A2E00" }}>
+                          style={{ background: "#FFF6D6", color: "#5E4400" }}>
                           RSVP needed
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9DB0A7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-none mt-1" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AEB9C9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-none mt-1" aria-hidden="true">
                     <path d="M9 18l6-6-6-6"/>
                   </svg>
                 </Link>
@@ -230,8 +230,8 @@ export default function DashboardClient({
               ].map((a) => (
                 <Link key={a.href} href={a.href}
                   className="bg-white border border-border rounded-2xl p-4 flex flex-col gap-2 no-underline"
-                  style={{ color: "#14211B" }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F5F4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  style={{ color: "#101B2D" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#12355F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d={a.icon}/>
                   </svg>
                   <span className="font-bold text-[15px]">{a.label}</span>
@@ -251,7 +251,7 @@ export default function DashboardClient({
             <button
               onClick={() => navigator.clipboard.writeText(`Join ${unitWord} ${org.unit_number} on ScoutPlatform: scoutplatform.app/join/${org.join_code}`)}
               className="min-h-[40px] px-4 rounded-full font-bold text-[14px] border border-border bg-paper"
-              style={{ fontFamily: "inherit", color: "#14211B" }}>
+              style={{ fontFamily: "inherit", color: "#101B2D" }}>
               Copy link
             </button>
           </div>
@@ -268,7 +268,7 @@ export default function DashboardClient({
         ].map((n) => (
           <Link key={n.href} href={n.href}
             className="flex flex-col items-center gap-1 min-h-[44px] min-w-[44px] justify-center no-underline px-3"
-            style={{ color: "#4D5F57" }}>
+            style={{ color: "#4B5568" }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d={n.icon}/>
             </svg>

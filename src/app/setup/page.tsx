@@ -107,8 +107,8 @@ export default function SetupPage() {
                   onClick={() => setUnitId(u.id)}
                   className="min-h-[112px] rounded-2xl p-3.5 flex flex-col items-start justify-between text-left font-sans transition-colors"
                   style={{
-                    background: u.id === unitId ? "#EAF0ED" : "#FFFFFF",
-                    border: `2px solid ${u.id === unitId ? "#1F5F4A" : "#D5DFDA"}`,
+                    background: u.id === unitId ? "#EEE8D9" : "#FFFFFF",
+                    border: `2px solid ${u.id === unitId ? "#12355F" : "#DDD6C5"}`,
                   }}
                 >
                   <span className="text-forest">

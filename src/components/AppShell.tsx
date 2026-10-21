@@ -88,14 +88,14 @@ export default function AppShell({
           {nav.map((n) => (
             <Link key={n.href} href={n.href}
               className="relative flex flex-col items-center gap-0.5 min-w-[56px] min-h-[48px] justify-center no-underline"
-              style={{ color: active(n.href) ? "#1F5F4A" : "#4D5F57" }}>
+              style={{ color: active(n.href) ? "#12355F" : "#4B5568" }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d={ICON[n.icon]} />
               </svg>
               <span className="text-[11px] font-bold">{n.label}</span>
               {!!n.badge && (
                 <span className="absolute top-0 right-2 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
-                  style={{ background: "#FF6A1A", color: "#14211B" }}>{n.badge}</span>
+                  style={{ background: "#F5B700", color: "#101B2D" }}>{n.badge}</span>
               )}
             </Link>
           ))}

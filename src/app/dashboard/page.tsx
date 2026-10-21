@@ -85,7 +85,7 @@ export default async function DashboardPage() {
         <section className="flex flex-col gap-2">
           <SectionLabel>Needs you</SectionLabel>
           {balance > 0 && person.type === "adult" && (
-            <div className="card flex items-center justify-between gap-3" style={{ background: "#FFF1E6", borderColor: "#FFD6B8" }}>
+            <div className="card flex items-center justify-between gap-3" style={{ background: "#FFF6D6", borderColor: "#F0DA8C" }}>
               <div>
                 <div className="font-bold text-[16px]">You owe {money(balance)}</div>
                 <div className="text-[13px] text-smoke">Family balance with the {word.toLowerCase()}</div>
@@ -118,7 +118,7 @@ export default async function DashboardPage() {
           ))}
         </section>
       ) : (
-        <div className="card" style={{ background: "#EAF0ED", borderColor: "#CFE3DA" }}>
+        <div className="card" style={{ background: "#EEE8D9", borderColor: "#D7E0EE" }}>
           <div className="font-bold text-[16px]">You&apos;re all caught up.</div>
           <div className="text-[14px] text-smoke">No payments, forms or RSVPs waiting.</div>
         </div>
@@ -127,7 +127,7 @@ export default async function DashboardPage() {
       {next && (
         <section className="flex flex-col gap-2">
           <SectionLabel>Next up</SectionLabel>
-          <Link href={`/events/${next.id}`} className="card no-underline text-ink flex flex-col gap-2" style={{ borderColor: "#1F5F4A" }}>
+          <Link href={`/events/${next.id}`} className="card no-underline text-ink flex flex-col gap-2" style={{ borderColor: "#12355F" }}>
             <div className="text-[13px] font-bold text-smoke">{fmtDate(next.start_at, { weekday: "long", month: "long", day: "numeric" })} · {fmtTime(next.start_at)}</div>
             <div className="font-display font-bold text-[22px]">{next.title}</div>
             {next.location && <div className="text-[14px] text-smoke">{next.location}</div>}

@@ -48,7 +48,7 @@ export default function RsvpPanel({ eventId, costCents, questions, family }: {
   const goingCount = rows.filter((r) => r.status === "going").length;
 
   return (
-    <section className="card flex flex-col gap-3" style={{ borderColor: "#1F5F4A", borderWidth: 2 }}>
+    <section className="card flex flex-col gap-3" style={{ borderColor: "#12355F", borderWidth: 2 }}>
       <div className="flex items-center justify-between">
         <div className="font-display font-bold text-[20px]">Your family</div>
         {costCents > 0 && goingCount > 0 && <span className="text-[14px] font-bold">{money(goingCount * costCents)} added to your balance</span>}
@@ -63,8 +63,8 @@ export default function RsvpPanel({ eventId, costCents, questions, family }: {
               className="w-full flex items-center gap-3 p-3 bg-white border-0 cursor-pointer text-left font-sans text-ink">
               <span className="font-bold text-[16px] flex-1">{r.first_name}</span>
               <span className="text-[13px] font-bold px-2.5 py-1 rounded-full" style={{
-                background: r.status === "going" ? "#1F5F4A" : r.status === "waitlisted" ? "#FFF1E6" : r.status === "not_going" ? "#F4F6F5" : "#FFF1E6",
-                color: r.status === "going" ? "white" : r.status === "not_going" ? "#4D5F57" : "#7A2E00",
+                background: r.status === "going" ? "#12355F" : r.status === "waitlisted" ? "#FFF6D6" : r.status === "not_going" ? "#F8F5EE" : "#FFF6D6",
+                color: r.status === "going" ? "white" : r.status === "not_going" ? "#4B5568" : "#5E4400",
               }}>
                 {r.status === "going" ? "Going" : r.status === "waitlisted" ? "Waitlist" : r.status === "not_going" ? "Not going" : "Reply needed"}
               </span>
@@ -88,7 +88,7 @@ export default function RsvpPanel({ eventId, costCents, questions, family }: {
                   onChange={(e) => update(r.person_id, { notes: e.target.value })} />
 
                 {confirm?.pid === r.person_id ? (
-                  <div className="rounded-xl p-3 flex flex-col gap-2" style={{ background: "#FFF1E6" }}>
+                  <div className="rounded-xl p-3 flex flex-col gap-2" style={{ background: "#FFF6D6" }}>
                     <div className="font-bold text-[15px]">
                       {confirm.credit > 0 ? `You'll get ${money(confirm.credit)} back as a credit.` : "This cancellation gets no credit under the event's refund rule."}
                     </div>

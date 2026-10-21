@@ -106,7 +106,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
     <div className="min-h-screen bg-paper flex flex-col">
       <div className="bg-forest text-white px-5 pt-10 pb-7">
         <div className="max-w-md mx-auto">
-          <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#9DB0A7" }}>{header.kicker}</div>
+          <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#AEB9C9" }}>{header.kicker}</div>
           <h1 className="font-display font-extrabold text-[30px] leading-tight m-0 mt-1">{header.title}</h1>
         </div>
       </div>
@@ -130,7 +130,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
               {family.map((f) => (
                 <div key={f.id} className="flex items-center gap-3 py-1.5">
                   <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-[13px]"
-                    style={{ background: f.type === "youth" ? "#1F5F4A" : "#4D5F57" }}>
+                    style={{ background: f.type === "youth" ? "#12355F" : "#4B5568" }}>
                     {f.first_name[0]}{f.last_name[0] ?? ""}
                   </div>
                   <div className="flex-1">
@@ -190,7 +190,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
         {step === "troop" && (
           <>
             {pending.length > 0 && !requested && (
-              <div className="card" style={{ background: "#FFF1E6", borderColor: "#FFD6B8" }}>
+              <div className="card" style={{ background: "#FFF6D6", borderColor: "#F0DA8C" }}>
                 <div className="font-bold text-[15px]">Waiting for approval</div>
                 <p className="text-[14px] m-0 mt-1">A leader from {pending.map((p) => p.org_name).join(", ")} will approve your request soon.</p>
               </div>

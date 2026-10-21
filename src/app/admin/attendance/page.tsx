@@ -51,11 +51,11 @@ export default async function AttendanceReport({ searchParams }: { searchParams:
         <Stat label="Avg meeting attendance" value={`${avg}%`} />
         <Stat label="Nights camped (all Scouts)" value={youth.reduce((s, r) => s + Number(r.nights), 0)} />
         <Stat label="Service hours" value={youth.reduce((s, r) => s + Number(r.service_hours), 0)} />
-        <Stat label="Not seen in 60 days" value={notSeen.length} tone={notSeen.length ? "#7A2E00" : undefined} />
+        <Stat label="Not seen in 60 days" value={notSeen.length} tone={notSeen.length ? "#5E4400" : undefined} />
       </div>
 
       {untaken.length > 0 && (
-        <div className="card flex flex-col gap-2" style={{ background: "#FFF1E6", borderColor: "#FFD6B8" }}>
+        <div className="card flex flex-col gap-2" style={{ background: "#FFF6D6", borderColor: "#F0DA8C" }}>
           <div className="font-bold text-[15px]">Attendance not taken yet</div>
           <div className="flex gap-2 flex-wrap">
             {untaken.map((e) => <Link key={e.id} href={`/events/${e.id}/attendance`} className="btn-secondary no-underline">{e.title} · {new Date(e.start_at).toLocaleDateString()}</Link>)}
@@ -75,7 +75,7 @@ export default async function AttendanceReport({ searchParams }: { searchParams:
             {rows.map((r) => {
               const p = pct(r);
               return (
-                <tr key={r.person_id} className="border-t border-[#EAF0ED]">
+                <tr key={r.person_id} className="border-t border-[#EEE8D9]">
                   <td className="px-3 py-2 font-bold whitespace-nowrap">{r.last_name}, {r.first_name} {r.type === "adult" && <Chip>Adult</Chip>}</td>
                   <td className="px-2">{p === null ? "—" : <Chip tone={p >= 75 ? "green" : p >= 50 ? "orange" : "red"}>{p}%</Chip>}</td>
                   <td className="px-2">{r.outings_attended}</td>
@@ -83,7 +83,7 @@ export default async function AttendanceReport({ searchParams }: { searchParams:
                   <td className="px-2">{r.service_hours}</td>
                   <td className="px-2">{r.miles}</td>
                   {(recent ?? []).slice(0, 8).reverse().map((e) => (
-                    <td key={e.id} className="px-1 text-center">{wasThere(e.id, r.person_id) ? <span style={{ color: "#1F5F4A", fontWeight: 700 }}>●</span> : <span style={{ color: "#D5DFDA" }}>○</span>}</td>
+                    <td key={e.id} className="px-1 text-center">{wasThere(e.id, r.person_id) ? <span style={{ color: "#12355F", fontWeight: 700 }}>●</span> : <span style={{ color: "#DDD6C5" }}>○</span>}</td>
                   ))}
                 </tr>
               );

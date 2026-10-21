@@ -65,7 +65,7 @@ export default function SettingsClient({ person, email, prefs, weekCount }: {
   return (
     <div className="flex flex-col gap-4 max-w-xl">
       <ErrorBox>{error}</ErrorBox>
-      {saved && <div className="card font-bold" style={{ background: "#EAF0ED" }}>{saved}</div>}
+      {saved && <div className="card font-bold" style={{ background: "#EEE8D9" }}>{saved}</div>}
 
       <section className="card flex flex-col gap-3">
         <div className="font-bold text-[16px]">You</div>

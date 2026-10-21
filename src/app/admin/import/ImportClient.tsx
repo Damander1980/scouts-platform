@@ -118,7 +118,7 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
         {(["roster", "advancement"] as const).map((k) => (
           <button key={k} onClick={() => { setKind(k); setRows([]); setResult(""); setError(""); }}
             className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: kind === k ? "#1F5F4A" : "white", color: kind === k ? "white" : "#4D5F57", borderColor: kind === k ? "#1F5F4A" : "#D5DFDA" }}>
+            style={{ background: kind === k ? "#12355F" : "white", color: kind === k ? "white" : "#4B5568", borderColor: kind === k ? "#12355F" : "#DDD6C5" }}>
             {k === "roster" ? "Roster" : "Advancement (Scoutbook)"}
           </button>
         ))}
@@ -138,7 +138,7 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
       )}
 
       <ErrorBox>{error}</ErrorBox>
-      {result && <div className="card font-bold" style={{ background: "#EAF0ED" }}>{result}</div>}
+      {result && <div className="card font-bold" style={{ background: "#EEE8D9" }}>{result}</div>}
 
       {rows.length > 0 && (
         <div className="card flex flex-col gap-3">
@@ -154,7 +154,7 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
               <thead><tr>{Object.keys(rows[0]).map((h) => <th key={h} className="text-left px-2 py-1 text-smoke uppercase text-[11px]">{h}</th>)}</tr></thead>
               <tbody>
                 {rows.slice(0, 50).map((r, i) => (
-                  <tr key={i} className="border-t border-[#EAF0ED]">{Object.keys(rows[0]).map((h) => <td key={h} className="px-2 py-1">{r[h]}</td>)}</tr>
+                  <tr key={i} className="border-t border-[#EEE8D9]">{Object.keys(rows[0]).map((h) => <td key={h} className="px-2 py-1">{r[h]}</td>)}</tr>
                 ))}
               </tbody>
             </table>

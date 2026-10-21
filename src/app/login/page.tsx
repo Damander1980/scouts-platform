@@ -62,7 +62,7 @@ export default function LoginPage() {
                 <input id="email" type="email" required autoFocus autoComplete="email" inputMode="email"
                   value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="input w-full" />
               </div>
-              {error && <p className="text-sm m-0" style={{ color: "#7A2E00" }}>{error}</p>}
+              {error && <p className="text-sm m-0" style={{ color: "#5E4400" }}>{error}</p>}
               <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-50">
                 {loading ? "Sending…" : "Email me a sign-in link"}
               </button>

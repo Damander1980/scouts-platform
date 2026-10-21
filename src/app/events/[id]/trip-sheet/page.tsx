@@ -52,7 +52,7 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
   const when = (iso: string) => new Date(iso).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
   const cell = "border px-2 py-1 text-left";
-  const bd = { borderColor: "#D5DFDA" };
+  const bd = { borderColor: "#DDD6C5" };
 
   return (
     <div className="bg-white text-ink min-h-screen p-6 md:p-10 max-w-4xl mx-auto flex flex-col gap-5 text-[14px]">
@@ -73,9 +73,9 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
         <div className="card"><div className="text-[11px] font-bold uppercase tracking-widest text-smoke">Scouts</div><div className="font-extrabold text-[22px]">{youth.length}</div></div>
         <div className="card"><div className="text-[11px] font-bold uppercase tracking-widest text-smoke">Adults</div><div className="font-extrabold text-[22px]">{adults.length}</div></div>
         <div className="card"><div className="text-[11px] font-bold uppercase tracking-widest text-smoke">Seats offered</div><div className="font-extrabold text-[22px]" style={{ color: seats < rows.length ? "#A52A1C" : undefined }}>{seats} / {rows.length}</div></div>
-        <div className="card"><div className="text-[11px] font-bold uppercase tracking-widest text-smoke">Two-deep</div><div className="font-extrabold text-[22px]" style={{ color: twoDeep ? "#1F5F4A" : "#A52A1C" }}>{twoDeep ? "Yes" : "No"}</div></div>
+        <div className="card"><div className="text-[11px] font-bold uppercase tracking-widest text-smoke">Two-deep</div><div className="font-extrabold text-[22px]" style={{ color: twoDeep ? "#12355F" : "#A52A1C" }}>{twoDeep ? "Yes" : "No"}</div></div>
       </div>
-      {!twoDeep && <div className="card font-bold" style={{ background: "#FFF1E6", color: "#7A2E00" }}>
+      {!twoDeep && <div className="card font-bold" style={{ background: "#FFF6D6", color: "#5E4400" }}>
         Only {trainedAdults} adult{trainedAdults === 1 ? "" : "s"} going {trainedAdults === 1 ? "has" : "have"} YPT current through the trip. Two-deep leadership needs at least two registered adults with current YPT, one of them 21 or older.
       </div>}
 

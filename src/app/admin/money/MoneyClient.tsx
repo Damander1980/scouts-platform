@@ -53,7 +53,7 @@ export default function MoneyClient(props: {
       {!isTreasurer && <div className="card">You can view summaries. Only the treasurer, committee chair or a unit admin can record money.</div>}
 
       {!props.stripeConnected && isTreasurer && (
-        <div className="card flex items-center justify-between gap-3 flex-wrap" style={{ background: "#FFF1E6", borderColor: "#FFD6B8" }}>
+        <div className="card flex items-center justify-between gap-3 flex-wrap" style={{ background: "#FFF6D6", borderColor: "#F0DA8C" }}>
           <div>
             <div className="font-bold text-[15px]">Accept online payments</div>
             <div className="text-[13px] text-smoke">
@@ -70,10 +70,10 @@ export default function MoneyClient(props: {
           )}
         </div>
       )}
-      {props.connectState === "done" && <div className="card font-bold" style={{ background: "#EAF0ED" }}>Stripe setup saved. Payments turn on once Stripe finishes verifying your unit.</div>}
+      {props.connectState === "done" && <div className="card font-bold" style={{ background: "#EEE8D9" }}>Stripe setup saved. Payments turn on once Stripe finishes verifying your unit.</div>}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Stat label="Families owe" value={money(owed)} tone={owed ? "#7A2E00" : undefined} />
+        <Stat label="Families owe" value={money(owed)} tone={owed ? "#5E4400" : undefined} />
         <Stat label="Credits held" value={money(credit)} />
         <Stat label="Pending reimbursements" value={props.expenses.filter((e) => ["submitted", "approved", "second_approval"].includes(e.status)).length} />
         <Stat label="Donations (all time)" value={money(props.donations.reduce((s, d) => s + d.amount_cents, 0))} />
@@ -82,11 +82,11 @@ export default function MoneyClient(props: {
       <div className="flex gap-2 flex-wrap">
         {TABS.map(([k, l]) => (
           <button key={k} onClick={() => { setTab(k); setError(""); setOk(""); }} className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: tab === k ? "#1F5F4A" : "white", color: tab === k ? "white" : "#4D5F57", borderColor: tab === k ? "#1F5F4A" : "#D5DFDA" }}>{l}</button>
+            style={{ background: tab === k ? "#12355F" : "white", color: tab === k ? "white" : "#4B5568", borderColor: tab === k ? "#12355F" : "#DDD6C5" }}>{l}</button>
         ))}
       </div>
       <ErrorBox>{error}</ErrorBox>
-      {ok && <div className="card font-bold" style={{ background: "#EAF0ED" }}>{ok}</div>}
+      {ok && <div className="card font-bold" style={{ background: "#EEE8D9" }}>{ok}</div>}
 
       {tab === "balances" && <Balances balances={props.balances} />}
       {tab === "dues" && <DuesTab orgId={orgId} plans={props.duesPlans} canEdit={isTreasurer} />}
@@ -113,10 +113,10 @@ function Balances({ balances }: { balances: Balance[] }) {
       <div className="card p-0 overflow-hidden">
         {rows.length === 0 && <div className="p-4 text-smoke">No activity yet.</div>}
         {rows.map((b) => (
-          <div key={b.household_id} className="flex items-center gap-3 px-4 py-3 border-b border-[#EAF0ED] last:border-0">
+          <div key={b.household_id} className="flex items-center gap-3 px-4 py-3 border-b border-[#EEE8D9] last:border-0">
             <div className="flex-1"><div className="font-bold">{b.household_name}</div>
               <div className="text-[12px] text-smoke">Charged {money(b.charges)} · paid/credited {money(b.paid)}</div></div>
-            <div className="font-bold" style={{ color: b.balance_cents > 0 ? "#7A2E00" : "#1F5F4A" }}>
+            <div className="font-bold" style={{ color: b.balance_cents > 0 ? "#5E4400" : "#12355F" }}>
               {b.balance_cents > 0 ? `owes ${money(b.balance_cents)}` : b.balance_cents < 0 ? `${money(-b.balance_cents)} credit` : "paid up"}
             </div>
           </div>
@@ -241,7 +241,7 @@ function BudgetTab({ budgets, tx, canEdit, busy, orgId, run }: { budgets: Budget
               <div key={l.id} className="flex flex-col gap-1">
                 <div className="flex justify-between text-[14px]"><span className="font-bold">{l.category}</span>
                   <span>{money(a)} of {money(l.planned_cents)} {kind === "expense" && pct >= b.alert_pct && <Chip tone={pct >= 100 ? "red" : "orange"}>{pct}%</Chip>}</span></div>
-                <div className="h-2 rounded-full" style={{ background: "#E3EAE6" }}><div className="h-2 rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pct >= 100 && kind === "expense" ? "#A52A1C" : "#1F5F4A" }} /></div>
+                <div className="h-2 rounded-full" style={{ background: "#E3EAE6" }}><div className="h-2 rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pct >= 100 && kind === "expense" ? "#A52A1C" : "#12355F" }} /></div>
               </div>
             );
           })}
@@ -264,7 +264,7 @@ function BudgetTab({ budgets, tx, canEdit, busy, orgId, run }: { budgets: Budget
 
 function QR({ url }: { url: string }) {
   const [src, setSrc] = useState("");
-  useEffect(() => { QRCode.toDataURL(url, { margin: 1, width: 360, color: { dark: "#14211B", light: "#FFFFFF" } }).then(setSrc).catch(() => {}); }, [url]);
+  useEffect(() => { QRCode.toDataURL(url, { margin: 1, width: 360, color: { dark: "#101B2D", light: "#FFFFFF" } }).then(setSrc).catch(() => {}); }, [url]);
   return src ? <img src={src} alt={`QR code for ${url}`} className="w-40 h-40 rounded-xl border border-border" /> : <div className="w-40 h-40" />;
 }
 
@@ -287,7 +287,7 @@ function Giving(p: Parameters<typeof MoneyClient>[0] & { busy: boolean; run: (fn
         return (
           <div key={goal.id} className="card flex flex-col gap-2">
             <div className="flex justify-between gap-2"><b>{goal.title}</b><span>{money(r)} of {money(goal.target_cents)}</span></div>
-            <div className="h-3 rounded-full" style={{ background: "#E3EAE6" }}><div className="h-3 rounded-full" style={{ width: `${pct}%`, background: "#FF6A1A" }} /></div>
+            <div className="h-3 rounded-full" style={{ background: "#E3EAE6" }}><div className="h-3 rounded-full" style={{ width: `${pct}%`, background: "#F5B700" }} /></div>
             <div className="flex gap-2 items-center text-[13px] text-smoke">{goal.deadline && <>By {new Date(goal.deadline).toLocaleDateString()} ·</>}{goal.is_public ? "Shown on public page" : "Members only"}</div>
           </div>
         );

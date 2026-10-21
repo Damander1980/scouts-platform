@@ -67,7 +67,7 @@ export default function RecharterClient({ orgId, year, canEdit, people, recharte
       <ErrorBox>{error}</ErrorBox>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Stat label="Steps done" value={`${done} / ${STEPS.length}`} tone={done === STEPS.length ? "#1F5F4A" : undefined} />
+        <Stat label="Steps done" value={`${done} / ${STEPS.length}`} tone={done === STEPS.length ? "#12355F" : undefined} />
         <Stat label="Renewing" value={`${youth.length} youth, ${adults.length} adult${adults.length === 1 ? "" : "s"}`} />
         <Stat label="Adults missing YPT" value={yptBad.length} tone={yptBad.length ? "#A52A1C" : undefined} />
         <Stat label="Registrations to renew" value={regDue.length} />

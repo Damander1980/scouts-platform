@@ -11,7 +11,7 @@ type Album = { id: string; title: string; taken_on: string | null; visibility: s
 type Req = { id: string; name: string; email: string; phone: string | null; message: string; handled: boolean; created_at: string; to_person: string | null };
 
 // Brand colors are checked for readable white text on top of them.
-const COLORS = [["Forest", "#1F5F4A"], ["Troop red", "#C8102E"], ["Navy", "#1F3A5F"], ["Scout tan", "#7A5C2E"], ["Charcoal", "#2E3A35"], ["Purple", "#4B2E83"]];
+const COLORS = [["Forest", "#12355F"], ["Troop red", "#C8102E"], ["Navy", "#1F3A5F"], ["Scout tan", "#7A5C2E"], ["Charcoal", "#2E3A35"], ["Purple", "#4B2E83"]];
 const TITLES = ["Scoutmaster", "Assistant Scoutmaster", "Committee Chair", "TFC Program", "New Scout Coordinator", "Troop Recruiter", "Treasurer", "Advancement Chair", "Cubmaster", "Den Leader"];
 
 export default function SiteEditor({ orgId, slug, isAdmin, site: initial, settings, people, albums, requests, storageUrl }: {
@@ -63,13 +63,13 @@ export default function SiteEditor({ orgId, slug, isAdmin, site: initial, settin
         <a href={`/${slug}`} target="_blank" className="btn-secondary no-underline">View page</a>
       </div>
       <ErrorBox>{error}</ErrorBox>
-      {ok && <div className="card font-bold" style={{ background: "#EAF0ED" }}>{ok}</div>}
+      {ok && <div className="card font-bold" style={{ background: "#EEE8D9" }}>{ok}</div>}
       {!isAdmin && <div className="card">Only unit admins can change the public page. You can manage photos and answer messages.</div>}
 
       <div className="flex gap-2">
         {([["page", "Page"], ["photos", "Photos"], ["inbox", `Messages${requests.filter((r) => !r.handled).length ? ` (${requests.filter((r) => !r.handled).length})` : ""}`]] as const).map(([k, l]) => (
           <button key={k} onClick={() => setTab(k)} className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: tab === k ? "#1F5F4A" : "white", color: tab === k ? "white" : "#4D5F57", borderColor: tab === k ? "#1F5F4A" : "#D5DFDA" }}>{l}</button>
+            style={{ background: tab === k ? "#12355F" : "white", color: tab === k ? "white" : "#4B5568", borderColor: tab === k ? "#12355F" : "#DDD6C5" }}>{l}</button>
         ))}
       </div>
 
@@ -80,7 +80,7 @@ export default function SiteEditor({ orgId, slug, isAdmin, site: initial, settin
             <div className="flex gap-2 flex-wrap">
               {COLORS.map(([n, c]) => (
                 <button key={c} onClick={() => setSite({ ...site, brand_color: c })} className="flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer bg-white font-sans text-[13px] font-bold"
-                  style={{ borderColor: s("brand_color") === c ? "#14211B" : "#D5DFDA" }}>
+                  style={{ borderColor: s("brand_color") === c ? "#101B2D" : "#DDD6C5" }}>
                   <span className="w-5 h-5 rounded-full" style={{ background: c }} />{n}
                 </button>
               ))}
@@ -192,7 +192,7 @@ export default function SiteEditor({ orgId, slug, isAdmin, site: initial, settin
                                 const next = e.target.checked ? [...ph.tagged, p.id] : ph.tagged.filter((x) => x !== p.id);
                                 const { error } = await supabase.from("photos").update({ tagged: next }).eq("id", ph.id); if (error) throw error;
                               })} />
-                              {p.name} {!p.consent && <span style={{ color: "#7A2E00" }}>(no consent)</span>}
+                              {p.name} {!p.consent && <span style={{ color: "#5E4400" }}>(no consent)</span>}
                             </label>
                           ))}
                         </div>

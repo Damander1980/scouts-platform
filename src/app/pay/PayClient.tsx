@@ -35,10 +35,10 @@ export default function PayClient({ orgId, balance, online, scoutBalances }: {
   }
 
   return (
-    <section className="card flex flex-col gap-3" style={{ borderColor: balance > 0 ? "#FF6A1A" : undefined, borderWidth: balance > 0 ? 2 : 1 }}>
+    <section className="card flex flex-col gap-3" style={{ borderColor: balance > 0 ? "#F5B700" : undefined, borderWidth: balance > 0 ? 2 : 1 }}>
       <div>
         <div className="text-[12px] font-bold uppercase tracking-widest text-smoke">Balance</div>
-        <div className="font-display font-extrabold text-[34px]" style={{ color: balance > 0 ? "#7A2E00" : "#1F5F4A" }}>
+        <div className="font-display font-extrabold text-[34px]" style={{ color: balance > 0 ? "#5E4400" : "#12355F" }}>
           {balance > 0 ? `You owe ${money(balance)}` : balance < 0 ? `${money(-balance)} credit` : "All paid up"}
         </div>
         {balance < 0 && <div className="text-[13px] text-smoke">Your credit is used automatically toward your next event.</div>}
@@ -46,7 +46,7 @@ export default function PayClient({ orgId, balance, online, scoutBalances }: {
       <ErrorBox>{error}</ErrorBox>
 
       {scoutBalances.length > 0 && balance > 0 && scoutBalances.map((s) => (
-        <div key={s.id} className="rounded-xl p-3 flex items-center justify-between gap-2" style={{ background: "#EAF0ED" }}>
+        <div key={s.id} className="rounded-xl p-3 flex items-center justify-between gap-2" style={{ background: "#EEE8D9" }}>
           <span className="text-[14px]"><b>{s.name}</b> has {money(s.cents)} in fundraising earnings.</span>
           <button className="btn-secondary" disabled={busy} onClick={() => applyScout(s.id, s.cents)}>Use {money(Math.min(s.cents, balance))}</button>
         </div>
@@ -58,7 +58,7 @@ export default function PayClient({ orgId, balance, online, scoutBalances }: {
             <div className="font-bold text-[15px]">Pay a leader in person</div>
             <div className="text-[13px] text-smoke">Cash or check. <b>No fee.</b> Hand it to your treasurer or a leader and they&apos;ll record it here.</div>
           </div>
-          <div className="rounded-xl border-2 p-3 flex flex-col gap-2" style={{ borderColor: online ? "#1F5F4A" : "#D5DFDA" }}>
+          <div className="rounded-xl border-2 p-3 flex flex-col gap-2" style={{ borderColor: online ? "#12355F" : "#DDD6C5" }}>
             <div className="font-bold text-[15px]">Pay online</div>
             {online ? (
               <>

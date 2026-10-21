@@ -13,7 +13,7 @@ export default async function JoinLanding({ params }: { params: Promise<{ code: 
     <div className="min-h-screen bg-paper flex flex-col">
       <div className="bg-forest text-white px-5 pt-14 pb-8">
         <div className="max-w-md mx-auto">
-          <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#9DB0A7" }}>You&apos;re invited</div>
+          <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#AEB9C9" }}>You&apos;re invited</div>
           <h1 className="font-display font-extrabold text-[32px] leading-tight m-0 mt-1">{org ? `Join ${org.name}` : "Join a troop"}</h1>
           {org && <p className="m-0 mt-1" style={{ color: "#CFE0D7" }}>{[org.city, org.state].filter(Boolean).join(", ")}</p>}
         </div>

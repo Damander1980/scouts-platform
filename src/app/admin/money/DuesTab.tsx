@@ -46,7 +46,7 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
         Scouting America&apos;s national registration is separate; add it as its own plan if your unit collects it for families.
       </div>
       <ErrorBox>{error}</ErrorBox>
-      {ok && <div className="card font-bold" style={{ background: "#EAF0ED" }}>{ok}</div>}
+      {ok && <div className="card font-bold" style={{ background: "#EEE8D9" }}>{ok}</div>}
 
       {canEdit && (
         <form className="card grid sm:grid-cols-5 gap-3 items-end" onSubmit={(e) => { e.preventDefault(); run(async () => {
@@ -71,7 +71,7 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
         <div className="flex gap-2 flex-wrap">
           {plans.map((p) => (
             <button key={p.id} onClick={() => setSelected(p.id)} className="px-3 py-1.5 rounded-full text-[13px] font-bold border cursor-pointer font-sans"
-              style={{ background: selected === p.id ? "#1F5F4A" : "white", color: selected === p.id ? "white" : "#4D5F57", borderColor: selected === p.id ? "#1F5F4A" : "#D5DFDA" }}>{p.name}</button>
+              style={{ background: selected === p.id ? "#12355F" : "white", color: selected === p.id ? "white" : "#4B5568", borderColor: selected === p.id ? "#12355F" : "#DDD6C5" }}>{p.name}</button>
           ))}
         </div>
       )}
@@ -96,7 +96,7 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
               <thead><tr className="text-left text-[11px] uppercase text-smoke"><th className="px-3 py-2">Scout</th><th className="px-2">Family</th><th className="px-2">Charged</th><th className="px-2">Family balance</th><th className="px-2">Status</th><th /></tr></thead>
               <tbody>
                 {rows.map((r) => (
-                  <tr key={r.person_id} className="border-t border-[#EAF0ED]">
+                  <tr key={r.person_id} className="border-t border-[#EEE8D9]">
                     <td className="px-3 py-2 font-bold">{r.last_name}, {r.first_name}</td>
                     <td className="px-2 text-smoke">{r.household_name ?? "No family"}</td>
                     <td className="px-2">{r.charged_cents ? money(Number(r.charged_cents)) : "—"}{Number(r.adjusted_cents) > 0 && <span className="text-[12px] text-smoke"> (−{money(Number(r.adjusted_cents))} adj.)</span>}</td>

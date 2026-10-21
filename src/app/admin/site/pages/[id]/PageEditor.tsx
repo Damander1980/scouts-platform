@@ -84,10 +84,10 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
         </div>
       </div>
       <ErrorBox>{error}</ErrorBox>
-      {ok && <div className="card font-bold" style={{ background: "#EAF0ED" }}>{ok}</div>}
+      {ok && <div className="card font-bold" style={{ background: "#EEE8D9" }}>{ok}</div>}
 
       {view !== "edit" ? (
-        <div className="mx-auto w-full rounded-2xl border bg-paper p-4" style={{ maxWidth: view === "phone" ? 390 : 960, borderColor: "#D5DFDA" }}>
+        <div className="mx-auto w-full rounded-2xl border bg-paper p-4" style={{ maxWidth: view === "phone" ? 390 : 960, borderColor: "#DDD6C5" }}>
           <h1 className="font-display font-extrabold text-[28px] mt-0">{meta.title}</h1>
           <RenderBlocks blocks={blocks} data={preview} />
         </div>

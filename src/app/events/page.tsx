@@ -53,9 +53,9 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
 
       <div className="flex gap-2">
         <Link href="/events" className="px-3 py-1.5 rounded-full text-[13px] font-bold no-underline border"
-          style={{ background: !past ? "#1F5F4A" : "white", color: !past ? "white" : "#4D5F57", borderColor: !past ? "#1F5F4A" : "#D5DFDA" }}>Upcoming</Link>
+          style={{ background: !past ? "#12355F" : "white", color: !past ? "white" : "#4B5568", borderColor: !past ? "#12355F" : "#DDD6C5" }}>Upcoming</Link>
         <Link href="/events?past=1" className="px-3 py-1.5 rounded-full text-[13px] font-bold no-underline border"
-          style={{ background: past ? "#1F5F4A" : "white", color: past ? "white" : "#4D5F57", borderColor: past ? "#1F5F4A" : "#D5DFDA" }}>Past</Link>
+          style={{ background: past ? "#12355F" : "white", color: past ? "white" : "#4B5568", borderColor: past ? "#12355F" : "#DDD6C5" }}>Past</Link>
         <a href={`webcal://${process.env.NEXT_PUBLIC_SITE_HOST ?? "localhost:3000"}/api/calendar/${current.org.id}?t=${calToken ?? ""}`} className="ml-auto px-3 py-1.5 rounded-full text-[13px] font-bold no-underline border border-border bg-white text-smoke">
           Add to my calendar
         </a>

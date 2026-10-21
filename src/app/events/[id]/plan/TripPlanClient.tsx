@@ -65,7 +65,7 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
           </div>
         ))}
         {canEdit && <button className="btn-ghost self-start" onClick={() => add("costs", { kind: "flat", amount: 0 })}>+ Add a cost</button>}
-        <div className="flex items-center gap-3 flex-wrap pt-2 border-t border-[#EAF0ED]">
+        <div className="flex items-center gap-3 flex-wrap pt-2 border-t border-[#EEE8D9]">
           <span>Total <b>{money(totalCost)}</b> · per Scout <b>{money(perScout)}</b> ({youthGoing || "no"} Scouts going)</span>
           {canEdit && perScout !== costCents && perScout > 0 && (
             <button className="btn-secondary" onClick={async () => {

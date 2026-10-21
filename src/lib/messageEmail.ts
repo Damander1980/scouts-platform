@@ -75,18 +75,18 @@ export async function deliverMessage(messageId: string) {
     const unsub = `${SITE_URL}/unsubscribe?p=${p.id}&t=${unsubscribeToken(p.id)}`;
 
     const html = fullEmail ? `
-<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#14211B;max-width:640px">
-  ${r.copy_reason === "parent_copy" ? `<p style="background:#F4F6F5;padding:8px 12px;border-radius:8px;font-size:13px;color:#4D5F57">You're receiving this copy because the message went to your child. Scouting America asks that parents see messages sent to Scouts.</p>` : ""}
+<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#101B2D;max-width:640px">
+  ${r.copy_reason === "parent_copy" ? `<p style="background:#F8F5EE;padding:8px 12px;border-radius:8px;font-size:13px;color:#4B5568">You're receiving this copy because the message went to your child. Scouting America asks that parents see messages sent to Scouts.</p>` : ""}
   <div style="white-space:pre-wrap">${esc(msg.body)}</div>
   <p style="margin-top:24px">From ${esc(`${sender.first_name} ${sender.last_name}`)}${senderEmail && !youthInvolved ? ` (<a href="mailto:${esc(senderEmail)}">${esc(senderEmail)}</a>)` : ""} at <a href="${SITE_URL}/${org.slug}">${esc(org.name)}</a></p>
   <p><a href="${link}">Click here to REPLY ALL</a></p>
-  <p style="margin-top:24px;font-size:13px;color:#4D5F57">This message was sent to:<br>${directNames.map(esc).join("<br>")}</p>
-  <p style="font-size:12px;color:#4D5F57"><a href="${unsub}">Unsubscribe</a> from unit email.</p>
+  <p style="margin-top:24px;font-size:13px;color:#4B5568">This message was sent to:<br>${directNames.map(esc).join("<br>")}</p>
+  <p style="font-size:12px;color:#4B5568"><a href="${unsub}">Unsubscribe</a> from unit email.</p>
 </div>` : `
-<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#14211B;max-width:520px">
+<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#101B2D;max-width:520px">
   <p>${esc(`${sender.first_name} ${sender.last_name}`)} sent you a message in ${esc(org.name)}.</p>
-  <p><a href="${link}" style="background:#FF6A1A;color:#14211B;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold">Read it</a></p>
-  <p style="font-size:12px;color:#4D5F57"><a href="${unsub}">Unsubscribe</a></p>
+  <p><a href="${link}" style="background:#F5B700;color:#101B2D;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold">Read it</a></p>
+  <p style="font-size:12px;color:#4B5568"><a href="${unsub}">Unsubscribe</a></p>
 </div>`;
 
     const res = await resend({

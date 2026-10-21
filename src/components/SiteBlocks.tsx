@@ -68,7 +68,7 @@ export function RenderBlocks({ blocks, data }: { blocks: Block[]; data: BlockDat
             <div key={b.id} className="flex flex-col gap-2">
               {data.events.length === 0 && <div className="text-smoke">No public events coming up.</div>}
               {data.events.slice(0, 6).map((e) => (
-                <div key={e.id} className="rounded-xl border p-3" style={{ borderColor: "#D5DFDA" }}>
+                <div key={e.id} className="rounded-xl border p-3" style={{ borderColor: "#DDD6C5" }}>
                   <div className="font-bold">{e.title}</div>
                   <div className="text-[13px] text-smoke">{new Date(e.start_at).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}{e.location ? ` · ${e.location}` : ""}</div>
                 </div>

@@ -77,7 +77,7 @@ export default function AdminLayoutClient({
       <aside className="hidden md:flex print:hidden w-60 flex-none flex-col bg-forest text-white sticky top-0 h-screen">
         <div className="px-5 pt-6 pb-4 border-b border-white/10">
           <div className="font-display font-extrabold text-[18px] leading-tight">{unitWord} {org.unit_number}</div>
-          <div className="text-[12px] mt-0.5" style={{ color: "#9DB0A7" }}>Leader tools · {org.city}</div>
+          <div className="text-[12px] mt-0.5" style={{ color: "#AEB9C9" }}>Leader tools · {org.city}</div>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-0.5">
           {nav.map((n) => (
@@ -91,7 +91,7 @@ export default function AdminLayoutClient({
         <div className="px-5 py-4 border-t border-white/10 flex flex-col gap-1">
           <Link href="/dashboard" className="text-[13px] font-bold text-white no-underline">← Back to family view</Link>
           <div className="text-[13px] font-bold text-white mt-2">{person.first_name} {person.last_name}</div>
-          <div className="text-[12px]" style={{ color: "#9DB0A7" }}>{ROLE_LABELS[role] ?? role}</div>
+          <div className="text-[12px]" style={{ color: "#AEB9C9" }}>{ROLE_LABELS[role] ?? role}</div>
           <button onClick={() => { navigator.serviceWorker?.controller?.postMessage("clear-private"); supabase.auth.signOut().then(() => (window.location.href = "/login")); }}
             className="mt-2 text-[12px] font-bold text-white/60 hover:text-white text-left bg-transparent border-0 p-0 cursor-pointer font-sans">Sign out</button>
         </div>
@@ -115,7 +115,7 @@ export default function AdminLayoutClient({
 
       <main className="flex-1 min-w-0 px-4 md:px-8 py-6 md:py-8 max-w-6xl flex flex-col gap-5">
         {yptBlocked.length > 0 && (
-          <div className="card" style={{ background: "#FFF1E6", borderColor: "#FFD6B8" }}>
+          <div className="card" style={{ background: "#FFF6D6", borderColor: "#F0DA8C" }}>
             <b>Youth Protection Training needed.</b> Your position includes {yptBlocked.map((p) => PERM_LABELS[p] ?? p).join(", ")}, but
             no current YPT date is on file for you. Ask a unit admin to record your YPT completion date to turn these on.
           </div>

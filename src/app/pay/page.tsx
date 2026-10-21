@@ -25,7 +25,7 @@ export default async function PayPage({ searchParams }: { searchParams: Promise<
   return (
     <Shell ctx={ctx}>
       <PageTitle title="Pay" sub="Your family's account with the unit." />
-      {paid && <div className="card font-bold" style={{ background: "#EAF0ED" }}>Thanks! Your payment is processing and will show below in a moment.</div>}
+      {paid && <div className="card font-bold" style={{ background: "#EEE8D9" }}>Thanks! Your payment is processing and will show below in a moment.</div>}
 
       <PayClient orgId={orgId} balance={balance} online={paymentsEnabled()} scoutBalances={scoutBal.filter((s) => s.cents > 0)} />
 
@@ -34,13 +34,13 @@ export default async function PayPage({ searchParams }: { searchParams: Promise<
         {(lines ?? []).length === 0 && <div className="card text-smoke">No charges or payments yet.</div>}
         <div className="card p-0 overflow-hidden">
           {(lines ?? []).map((l) => (
-            <div key={l.id} className="flex items-center gap-3 px-4 py-3 border-b border-[#EAF0ED] last:border-0">
+            <div key={l.id} className="flex items-center gap-3 px-4 py-3 border-b border-[#EEE8D9] last:border-0">
               <div className="flex-1 min-w-0">
                 <div className="font-bold text-[15px] truncate">{l.description || (l.events as unknown as { title: string })?.title || l.type}</div>
                 <div className="text-[12px] text-smoke">{fmtDate(l.created_at, { month: "short", day: "numeric", year: "numeric" })}{l.method ? ` · ${l.method === "stripe" ? "card" : l.method}` : ""}</div>
               </div>
               <Chip tone={l.amount_cents > 0 ? "orange" : "green"}>{l.type}</Chip>
-              <div className="font-bold text-[15px] w-24 text-right" style={{ color: l.amount_cents > 0 ? "#7A2E00" : "#1F5F4A" }}>
+              <div className="font-bold text-[15px] w-24 text-right" style={{ color: l.amount_cents > 0 ? "#5E4400" : "#12355F" }}>
                 {l.amount_cents > 0 ? money(l.amount_cents) : `−${money(-l.amount_cents)}`}
               </div>
             </div>

@@ -41,7 +41,7 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
       <div><h1 className="font-display font-extrabold text-[28px] m-0">Unit settings</h1></div>
       {!isAdmin && <div className="card">Only unit admins can change settings.</div>}
       <ErrorBox>{error}</ErrorBox>
-      {ok && <div className="card font-bold" style={{ background: "#EAF0ED" }}>{ok}</div>}
+      {ok && <div className="card font-bold" style={{ background: "#EEE8D9" }}>{ok}</div>}
 
       <section className="card grid sm:grid-cols-3 gap-3">
         <Field label="Unit name"><input className="input" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>

@@ -84,7 +84,7 @@ export default function LandingPage() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-paper" style={{ color: "#14211B", fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="min-h-screen bg-paper" style={{ color: "#101B2D", fontFamily: "'DM Sans', sans-serif" }}>
 
       {/* ── Top nav ── */}
       <header className="bg-forest text-white sticky top-0 z-50">
@@ -108,7 +108,7 @@ export default function LandingPage() {
             </Link>
             <Link href="/setup"
               className="ml-2 min-h-[44px] px-5 rounded-full font-bold text-[15px] flex items-center no-underline"
-              style={{ background: "#FF6A1A", color: "#14211B" }}>
+              style={{ background: "#F5B700", color: "#101B2D" }}>
               Start free
             </Link>
           </nav>
@@ -142,28 +142,28 @@ export default function LandingPage() {
             {/* Scout fleur-de-lis accent */}
             <div className="flex items-center gap-3">
               <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-                <path d="M18 2 C18 2 14 8 14 13 C14 16 16 17 18 17 C20 17 22 16 22 13 C22 8 18 2 18 2Z" fill="#FF6A1A"/>
-                <path d="M18 17 C18 17 10 14 7 18 C5 21 7 24 10 23 C12 22 13 20 14 18" fill="#FF6A1A" opacity=".7"/>
-                <path d="M18 17 C18 17 26 14 29 18 C31 21 29 24 26 23 C24 22 23 20 22 18" fill="#FF6A1A" opacity=".7"/>
-                <path d="M14 23 Q16 27 18 28 Q20 27 22 23" fill="none" stroke="#FF6A1A" strokeWidth="1.5"/>
+                <path d="M18 2 C18 2 14 8 14 13 C14 16 16 17 18 17 C20 17 22 16 22 13 C22 8 18 2 18 2Z" fill="#F5B700"/>
+                <path d="M18 17 C18 17 10 14 7 18 C5 21 7 24 10 23 C12 22 13 20 14 18" fill="#F5B700" opacity=".7"/>
+                <path d="M18 17 C18 17 26 14 29 18 C31 21 29 24 26 23 C24 22 23 20 22 18" fill="#F5B700" opacity=".7"/>
+                <path d="M14 23 Q16 27 18 28 Q20 27 22 23" fill="none" stroke="#F5B700" strokeWidth="1.5"/>
                 <circle cx="18" cy="19" r="2" fill="#FFFFFF" opacity=".9"/>
               </svg>
-              <span className="font-bold text-[15px] tracking-wider uppercase" style={{ color: "#CFE3DA" }}>
+              <span className="font-bold text-[15px] tracking-wider uppercase" style={{ color: "#D7E0EE" }}>
                 Built for Scouts BSA, Cubs, Venturing &amp; more
               </span>
             </div>
             <h1 className="font-display font-extrabold leading-none m-0"
               style={{ fontSize: "clamp(44px, 7vw, 72px)" }}>
               Run your troop.<br />
-              <span style={{ color: "#FF6A1A" }}>Not your inbox.</span>
+              <span style={{ color: "#F5B700" }}>Not your inbox.</span>
             </h1>
-            <p className="text-[19px] leading-relaxed m-0" style={{ color: "#CFE3DA", maxWidth: 460 }}>
+            <p className="text-[19px] leading-relaxed m-0" style={{ color: "#D7E0EE", maxWidth: 460 }}>
               RSVP, collect payments, track forms, and message every family — in one place built for the way leaders actually work.
             </p>
             <div className="flex flex-wrap gap-3 pt-1">
               <Link href="/setup"
                 className="min-h-[54px] px-7 rounded-full font-bold text-[18px] flex items-center no-underline gap-2"
-                style={{ background: "#FF6A1A", color: "#14211B" }}>
+                style={{ background: "#F5B700", color: "#101B2D" }}>
                 Start your free 30 days
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -175,7 +175,7 @@ export default function LandingPage() {
                 See features
               </a>
             </div>
-            <p className="text-sm m-0" style={{ color: "#9DB0A7" }}>
+            <p className="text-sm m-0" style={{ color: "#AEB9C9" }}>
               No credit card needed. $125/year, custom address included.
             </p>
           </div>
@@ -188,12 +188,12 @@ export default function LandingPage() {
                 <span className="text-white font-bold text-sm">Troop 999 · Plano</span>
               </div>
               <div className="p-4 flex flex-col gap-3">
-                <div className="rounded-xl p-3 flex flex-col gap-1" style={{ background: "#FFF1E6", border: "1px solid #FFD6B8" }}>
+                <div className="rounded-xl p-3 flex flex-col gap-1" style={{ background: "#FFF6D6", border: "1px solid #F0DA8C" }}>
                   <span className="font-bold text-[13px] text-orange-dark">ACTION NEEDED</span>
-                  <span className="font-bold text-[16px]" style={{ color: "#14211B" }}>Pay for Caprock Campout</span>
+                  <span className="font-bold text-[16px]" style={{ color: "#101B2D" }}>Pay for Caprock Campout</span>
                   <span className="text-[13px] text-smoke">$45.00 due Oct 20</span>
                   <button className="mt-1 min-h-[36px] rounded-full font-bold text-[13px]"
-                    style={{ background: "#FF6A1A", color: "#14211B", border: "none", fontFamily: "inherit" }}>
+                    style={{ background: "#F5B700", color: "#101B2D", border: "none", fontFamily: "inherit" }}>
                     Pay now
                   </button>
                 </div>
@@ -205,10 +205,10 @@ export default function LandingPage() {
                   <div key={ev.day + ev.title} className="flex gap-3 items-start">
                     <div className="flex flex-col items-center w-10 flex-none">
                       <span className="text-[10px] font-bold text-smoke">{ev.mon}</span>
-                      <span className="font-display font-extrabold text-[22px] leading-none" style={{ color: "#14211B" }}>{ev.day}</span>
+                      <span className="font-display font-extrabold text-[22px] leading-none" style={{ color: "#101B2D" }}>{ev.day}</span>
                     </div>
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-bold text-[14px]" style={{ color: "#14211B" }}>{ev.title}</span>
+                      <span className="font-bold text-[14px]" style={{ color: "#101B2D" }}>{ev.title}</span>
                       <span className="text-[12px] text-smoke">{ev.sub}</span>
                     </div>
                   </div>
@@ -228,8 +228,8 @@ export default function LandingPage() {
               ["5 min", "to set up your troop"],
             ].map(([n, label]) => (
               <div key={n} className="flex items-baseline gap-2">
-                <span className="font-display font-extrabold text-[28px] leading-none" style={{ color: "#FF6A1A" }}>{n}</span>
-                <span className="text-[15px]" style={{ color: "#CFE3DA" }}>{label}</span>
+                <span className="font-display font-extrabold text-[28px] leading-none" style={{ color: "#F5B700" }}>{n}</span>
+                <span className="text-[15px]" style={{ color: "#D7E0EE" }}>{label}</span>
               </div>
             ))}
           </div>
@@ -259,7 +259,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── How it works ── */}
-      <section id="how" style={{ background: "#EAF0ED" }}>
+      <section id="how" style={{ background: "#EEE8D9" }}>
         <div className="max-w-5xl mx-auto px-5 py-20 flex flex-col gap-10">
           <div className="flex flex-col gap-2">
             <span className="font-bold text-sm tracking-widest uppercase text-forest">Setup in minutes</span>
@@ -297,7 +297,7 @@ export default function LandingPage() {
         <div className="overflow-x-auto rounded-2xl border border-border">
           <table className="w-full border-collapse bg-white" style={{ minWidth: 500 }}>
             <thead>
-              <tr style={{ background: "#14211B", color: "#FFFFFF" }}>
+              <tr style={{ background: "#101B2D", color: "#FFFFFF" }}>
                 {COMPARISON[0].map((h, i) => (
                   <th key={h} className="text-left p-4 font-bold text-[15px]"
                     style={{ borderRight: i < 2 ? "1px solid rgba(255,255,255,0.1)" : "none" }}>
@@ -305,7 +305,7 @@ export default function LandingPage() {
                       <span className="flex items-center gap-2">
                         {h}
                         <span className="inline-flex items-center h-5 px-2 rounded-full text-[11px] font-bold"
-                          style={{ background: "#FF6A1A", color: "#14211B" }}>
+                          style={{ background: "#F5B700", color: "#101B2D" }}>
                           us
                         </span>
                       </span>
@@ -317,15 +317,15 @@ export default function LandingPage() {
             <tbody>
               {COMPARISON.slice(1).map((row, ri) => (
                 <tr key={row[0]}
-                  style={{ borderBottom: "1px solid #E6ECE9", background: ri % 2 === 0 ? "#FFFFFF" : "#F4F6F5" }}>
+                  style={{ borderBottom: "1px solid #EAE4D6", background: ri % 2 === 0 ? "#FFFFFF" : "#F8F5EE" }}>
                   {row.map((cell, ci) => (
                     <td key={ci} className="p-4 text-[15px]"
-                      style={{ borderRight: ci < 2 ? "1px solid #E6ECE9" : "none",
+                      style={{ borderRight: ci < 2 ? "1px solid #EAE4D6" : "none",
                         fontWeight: ci === 0 ? 600 : 400,
-                        color: ci === 1 ? "#1F5F4A" : ci === 2 ? "#4D5F57" : "#14211B" }}>
+                        color: ci === 1 ? "#12355F" : ci === 2 ? "#4B5568" : "#101B2D" }}>
                       {ci === 1 && cell.startsWith("Yes")
                         ? <span className="flex items-center gap-1.5">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F5F4A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#12355F" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
                             {cell}
                           </span>
                         : cell}
@@ -350,7 +350,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Pricing ── */}
-      <section id="pricing" style={{ background: "#EAF0ED" }}>
+      <section id="pricing" style={{ background: "#EEE8D9" }}>
         <div className="max-w-5xl mx-auto px-5 py-20 flex flex-col gap-10">
           <div className="flex flex-col gap-2">
             <span className="font-bold text-sm tracking-widest uppercase text-forest">Simple pricing</span>
@@ -360,26 +360,26 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-wrap gap-5 items-start">
             {/* Main plan */}
-            <div className="rounded-3xl p-8 flex flex-col gap-5 shadow-lg" style={{ flex: "1 1 300px", maxWidth: 440, background: "#14211B", color: "#FFFFFF" }}>
+            <div className="rounded-3xl p-8 flex flex-col gap-5 shadow-lg" style={{ flex: "1 1 300px", maxWidth: 440, background: "#101B2D", color: "#FFFFFF" }}>
               <div>
-                <span className="font-bold text-sm tracking-widest uppercase" style={{ color: "#9DB0A7" }}>ScoutPlatform</span>
+                <span className="font-bold text-sm tracking-widest uppercase" style={{ color: "#AEB9C9" }}>ScoutPlatform</span>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="font-display font-extrabold text-[56px] leading-none">$125</span>
-                  <span className="text-[18px]" style={{ color: "#9DB0A7" }}>/year</span>
+                  <span className="text-[18px]" style={{ color: "#AEB9C9" }}>/year</span>
                 </div>
-                <span className="text-[15px]" style={{ color: "#9DB0A7" }}>~$10/month · billed annually</span>
+                <span className="text-[15px]" style={{ color: "#AEB9C9" }}>~$10/month · billed annually</span>
               </div>
               <ul className="flex flex-col gap-2 m-0 p-0 list-none">
                 {["Unlimited members","RSVP + attendance tracking","Online payments via Stripe","Forms tracker","SMS + email messaging","Scoutbook import","Public troop page","Mobile-installable PWA"].map((item) => (
                   <li key={item} className="flex items-center gap-2 text-[15px]">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF6A1A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5B700" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
                     {item}
                   </li>
                 ))}
               </ul>
               <Link href="/setup"
                 className="min-h-[52px] rounded-full font-bold text-[17px] flex items-center justify-center no-underline mt-2"
-                style={{ background: "#FF6A1A", color: "#14211B" }}>
+                style={{ background: "#F5B700", color: "#101B2D" }}>
                 Start free — 30 days
               </Link>
             </div>
@@ -408,33 +408,33 @@ export default function LandingPage() {
       <section className="bg-forest text-white">
         <div className="max-w-5xl mx-auto px-5 py-20 flex flex-col items-center text-center gap-6">
           <svg width="52" height="52" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-            <path d="M18 2 C18 2 14 8 14 13 C14 16 16 17 18 17 C20 17 22 16 22 13 C22 8 18 2 18 2Z" fill="#FF6A1A"/>
-            <path d="M18 17 C18 17 10 14 7 18 C5 21 7 24 10 23 C12 22 13 20 14 18" fill="#FF6A1A" opacity=".8"/>
-            <path d="M18 17 C18 17 26 14 29 18 C31 21 29 24 26 23 C24 22 23 20 22 18" fill="#FF6A1A" opacity=".8"/>
+            <path d="M18 2 C18 2 14 8 14 13 C14 16 16 17 18 17 C20 17 22 16 22 13 C22 8 18 2 18 2Z" fill="#F5B700"/>
+            <path d="M18 17 C18 17 10 14 7 18 C5 21 7 24 10 23 C12 22 13 20 14 18" fill="#F5B700" opacity=".8"/>
+            <path d="M18 17 C18 17 26 14 29 18 C31 21 29 24 26 23 C24 22 23 20 22 18" fill="#F5B700" opacity=".8"/>
             <circle cx="18" cy="19" r="2.5" fill="#FFFFFF"/>
           </svg>
           <h2 className="font-display font-extrabold leading-tight m-0" style={{ fontSize: "clamp(32px, 5vw, 54px)" }}>
             Your troop deserves<br />better than a spreadsheet.
           </h2>
-          <p className="text-[19px] m-0 max-w-xl" style={{ color: "#CFE3DA" }}>
+          <p className="text-[19px] m-0 max-w-xl" style={{ color: "#D7E0EE" }}>
             Set up your troop in 5 minutes. First 30 days are free. No credit card.
           </p>
           <Link href="/setup"
             className="min-h-[58px] px-10 rounded-full font-bold text-[19px] flex items-center gap-2 no-underline"
-            style={{ background: "#FF6A1A", color: "#14211B" }}>
+            style={{ background: "#F5B700", color: "#101B2D" }}>
             Get started
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </Link>
-          <p className="text-sm m-0" style={{ color: "#9DB0A7" }}>
+          <p className="text-sm m-0" style={{ color: "#AEB9C9" }}>
             Scouts BSA · Cub Scouts · Venturing · Sea Scouts · Trail Life · AHG · Any youth group
           </p>
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ background: "#0E1C15", color: "#9DB0A7" }}>
+      <footer style={{ background: "#091A30", color: "#AEB9C9" }}>
         <div className="max-w-5xl mx-auto px-5 py-8 flex flex-wrap gap-6 items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-forest text-white flex items-center justify-center font-display font-extrabold text-xs">
@@ -443,10 +443,10 @@ export default function LandingPage() {
             <span className="font-bold text-[15px] text-white">ScoutPlatform</span>
           </div>
           <div className="flex flex-wrap gap-4 text-sm">
-            <a href="#features" className="hover:text-white no-underline" style={{ color: "#9DB0A7" }}>Features</a>
-            <a href="#pricing" className="hover:text-white no-underline" style={{ color: "#9DB0A7" }}>Pricing</a>
-            <Link href="/login" className="hover:text-white no-underline" style={{ color: "#9DB0A7" }}>Sign in</Link>
-            <Link href="/setup" className="hover:text-white no-underline" style={{ color: "#9DB0A7" }}>Get started</Link>
+            <a href="#features" className="hover:text-white no-underline" style={{ color: "#AEB9C9" }}>Features</a>
+            <a href="#pricing" className="hover:text-white no-underline" style={{ color: "#AEB9C9" }}>Pricing</a>
+            <Link href="/login" className="hover:text-white no-underline" style={{ color: "#AEB9C9" }}>Sign in</Link>
+            <Link href="/setup" className="hover:text-white no-underline" style={{ color: "#AEB9C9" }}>Get started</Link>
           </div>
           <span className="text-sm">
             Not affiliated with Scouting America.

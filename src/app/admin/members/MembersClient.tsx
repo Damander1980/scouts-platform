@@ -174,7 +174,7 @@ export default function MembersClient({
       <div className="flex gap-2">
         {(["members", "requests"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: tab === t ? "#1F5F4A" : "white", color: tab === t ? "white" : "#4D5F57", borderColor: tab === t ? "#1F5F4A" : "#D5DFDA" }}>
+            style={{ background: tab === t ? "#12355F" : "white", color: tab === t ? "white" : "#4B5568", borderColor: tab === t ? "#12355F" : "#DDD6C5" }}>
             {t === "members" ? "Members" : `Join requests${requests.length ? ` (${requests.length})` : ""}`}
           </button>
         ))}
@@ -208,7 +208,7 @@ export default function MembersClient({
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name" className="input w-56" />
             {["active", "youth", "adult", "leaders", "inactive", "all"].map((f) => (
               <button key={f} onClick={() => setFilter(f)} className="px-3 py-1.5 rounded-full text-[12px] font-bold border cursor-pointer capitalize font-sans"
-                style={{ background: filter === f ? "#1F5F4A" : "white", color: filter === f ? "white" : "#4D5F57", borderColor: filter === f ? "#1F5F4A" : "#D5DFDA" }}>{f}</button>
+                style={{ background: filter === f ? "#12355F" : "white", color: filter === f ? "white" : "#4B5568", borderColor: filter === f ? "#12355F" : "#DDD6C5" }}>{f}</button>
             ))}
           </div>
 
@@ -221,7 +221,7 @@ export default function MembersClient({
                 <div key={m.id} className="card flex flex-col gap-2" style={{ opacity: m.status === "active" ? 1 : 0.55 }}>
                   <div className="flex items-center gap-3 flex-wrap">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-[13px] flex-none"
-                      style={{ background: m.persons.type === "youth" ? "#1F5F4A" : "#4D5F57" }}>{m.persons.first_name[0]}{m.persons.last_name[0]}</div>
+                      style={{ background: m.persons.type === "youth" ? "#12355F" : "#4B5568" }}>{m.persons.first_name[0]}{m.persons.last_name[0]}</div>
                     <div className="flex-1 min-w-[160px]">
                       <div className="font-bold text-[15px]">{m.persons.first_name} {m.persons.last_name}</div>
                       <div className="text-[13px] text-smoke">
@@ -251,7 +251,7 @@ export default function MembersClient({
                   )}
 
                   {isOpen && (
-                    <div className="grid md:grid-cols-2 gap-3 pt-2 border-t border-[#EAF0ED]">
+                    <div className="grid md:grid-cols-2 gap-3 pt-2 border-t border-[#EEE8D9]">
                       <Field label="Role">
                         <select className="input" value={m.role} disabled={busy} onChange={(e) => patch(m.id, { role: e.target.value })}>
                           {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
@@ -288,7 +288,7 @@ export default function MembersClient({
                               <label key={b.id} className="flex items-center gap-2 py-1 text-[13px]">
                                 <input type="checkbox" checked={assignments.some((x) => x.person_id === m.persons.id && x.item_id === b.id)}
                                   onChange={() => toggleCounselorBadge(m.persons.id, b.id)} disabled={busy} />
-                                {b.name}{b.eagle_required && <span className="text-[10px] font-bold" style={{ color: "#7A2E00" }}>Eagle</span>}
+                                {b.name}{b.eagle_required && <span className="text-[10px] font-bold" style={{ color: "#5E4400" }}>Eagle</span>}
                               </label>
                             ))}
                           </div>

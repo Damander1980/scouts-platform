@@ -21,7 +21,7 @@ export default async function CounselorPage() {
   return (
     <Shell ctx={ctx}>
       <PageTitle title="Merit badge counselor" sub="Scouts assigned to you and requirements waiting for your sign-off." />
-      <div className="card text-[14px]" style={{ background: "#FFF1E6", borderColor: "#FFD6B8" }}>
+      <div className="card text-[14px]" style={{ background: "#FFF6D6", borderColor: "#F0DA8C" }}>
         <b>Youth protection:</b> every meeting with a Scout needs a buddy present (another Scout, a parent, or a second registered adult), and online meetings
         must include another adult or the parent. No one-on-one contact, in person or online.
       </div>

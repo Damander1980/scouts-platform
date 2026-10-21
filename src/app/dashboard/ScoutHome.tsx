@@ -77,7 +77,7 @@ export default function ScoutHome({ personId, firstName, events: initial }: { pe
         const late = !!e.rsvp_deadline && new Date(e.rsvp_deadline) < new Date();
         const showButtons = !status || changing === e.id;
         return (
-          <div key={e.id} className="card flex flex-col gap-3" style={{ borderWidth: 2, borderColor: status === "going" ? "#1F5F4A" : status === "not_going" ? "#D5DFDA" : "#FF6A1A" }}>
+          <div key={e.id} className="card flex flex-col gap-3" style={{ borderWidth: 2, borderColor: status === "going" ? "#12355F" : status === "not_going" ? "#DDD6C5" : "#F5B700" }}>
             <div>
               <div className="font-display font-extrabold text-[22px] leading-tight">{e.title}</div>
               <div className="text-[16px] mt-1">{when(e)}</div>
@@ -86,7 +86,7 @@ export default function ScoutHome({ personId, firstName, events: initial }: { pe
             </div>
 
             {!showButtons && (
-              <div className="flex items-center justify-between gap-2 rounded-xl p-3" style={{ background: status === "going" ? "#EAF0ED" : status === "waitlisted" ? "#FFF1E6" : "#F4F6F5" }}>
+              <div className="flex items-center justify-between gap-2 rounded-xl p-3" style={{ background: status === "going" ? "#EEE8D9" : status === "waitlisted" ? "#FFF6D6" : "#F8F5EE" }}>
                 <span className="font-bold text-[18px]">
                   {status === "going" ? `${w.going}!` : status === "waitlisted" ? "It's full. You're on the waitlist." : "You said you can't come."}
                 </span>
@@ -94,20 +94,20 @@ export default function ScoutHome({ personId, firstName, events: initial }: { pe
               </div>
             )}
 
-            {showButtons && late && <div className="text-[16px] font-bold" style={{ color: "#7A2E00" }}>Sign-up is closed. Ask a leader.</div>}
+            {showButtons && late && <div className="text-[16px] font-bold" style={{ color: "#5E4400" }}>Sign-up is closed. Ask a leader.</div>}
 
             {showButtons && !late && (askParent === e.id ? (
-              <div className="flex flex-col gap-2 rounded-xl p-3" style={{ background: "#FFF1E6" }}>
+              <div className="flex flex-col gap-2 rounded-xl p-3" style={{ background: "#FFF6D6" }}>
                 <div className="font-bold text-[17px]">Did a parent say yes? This adds {money(e.cost_cents)} to your family&apos;s bill.</div>
-                <button className="w-full rounded-2xl font-bold text-[19px] text-white border-0 cursor-pointer font-sans" style={{ background: "#1F5F4A", minHeight: 60 }}
+                <button className="w-full rounded-2xl font-bold text-[19px] text-white border-0 cursor-pointer font-sans" style={{ background: "#12355F", minHeight: 60 }}
                   disabled={busy === e.id} onClick={() => answer(e, "going")}>{busy === e.id ? "Saving..." : "Yes, sign me up"}</button>
                 <button className="btn-secondary" style={{ minHeight: 48 }} onClick={() => setAskParent(null)}>I'll ask first</button>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button className="rounded-2xl font-bold text-[19px] text-white border-0 cursor-pointer font-sans" style={{ background: "#1F5F4A", minHeight: 64 }}
+                <button className="rounded-2xl font-bold text-[19px] text-white border-0 cursor-pointer font-sans" style={{ background: "#12355F", minHeight: 64 }}
                   disabled={busy === e.id} onClick={() => answer(e, "going")}>{busy === e.id ? "Saving..." : w.yes}</button>
-                <button className="rounded-2xl font-bold text-[19px] border-2 cursor-pointer font-sans bg-white" style={{ borderColor: "#D5DFDA", color: "#14211B", minHeight: 64 }}
+                <button className="rounded-2xl font-bold text-[19px] border-2 cursor-pointer font-sans bg-white" style={{ borderColor: "#DDD6C5", color: "#101B2D", minHeight: 64 }}
                   disabled={busy === e.id} onClick={() => answer(e, "not_going")}>{w.no}</button>
               </div>
             ))}

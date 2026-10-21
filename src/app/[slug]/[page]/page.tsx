@@ -29,7 +29,7 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
   // Members-only pages also come back empty for visitors, so they 404 instead of revealing the page exists.
   if (!site?.org || !p) notFound();
   const org = site.org;
-  const brand = org.site?.brand_color && /^#[0-9a-f]{6}$/i.test(org.site.brand_color) ? org.site.brand_color : "#1F5F4A";
+  const brand = org.site?.brand_color && /^#[0-9a-f]{6}$/i.test(org.site.brand_color) ? org.site.brand_color : "#12355F";
   const storageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site/`;
 
   return (
@@ -44,7 +44,7 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
             {menu.map((m) => (
               <Link key={m.slug} href={`/${org.slug}/${m.slug}`} className="text-white no-underline" style={{ opacity: m.slug === page ? 1 : 0.8, textDecoration: m.slug === page ? "underline" : undefined }}>{m.title}</Link>
             ))}
-            <a href={`/join/${org.slug}`} className="ml-auto px-4 py-1.5 rounded-full no-underline" style={{ background: "#FF6A1A", color: "#14211B" }}>Join us</a>
+            <a href={`/join/${org.slug}`} className="ml-auto px-4 py-1.5 rounded-full no-underline" style={{ background: "#F5B700", color: "#101B2D" }}>Join us</a>
           </div>
         </nav>
       </header>

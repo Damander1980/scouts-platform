@@ -45,7 +45,7 @@ export default async function FamilyPage() {
       <div className="card flex items-center justify-between gap-3">
         <div>
           <div className="text-[12px] font-bold uppercase tracking-widest text-smoke">Family balance</div>
-          <div className="font-display font-extrabold text-[26px]" style={{ color: balance > 0 ? "#7A2E00" : "#1F5F4A" }}>
+          <div className="font-display font-extrabold text-[26px]" style={{ color: balance > 0 ? "#5E4400" : "#12355F" }}>
             {balance > 0 ? `${money(balance)} owed` : balance < 0 ? `${money(-balance)} credit` : "Paid up"}
           </div>
         </div>
@@ -61,7 +61,7 @@ export default async function FamilyPage() {
             <div key={p.id} className="card flex flex-col gap-2">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold"
-                  style={{ background: p.type === "youth" ? "#1F5F4A" : "#4D5F57" }}>{p.first_name[0]}{p.last_name[0] ?? ""}</div>
+                  style={{ background: p.type === "youth" ? "#12355F" : "#4B5568" }}>{p.first_name[0]}{p.last_name[0] ?? ""}</div>
                 <div className="flex-1">
                   <div className="font-bold text-[16px]">{p.first_name} {p.last_name}</div>
                   <div className="text-[13px] text-smoke">

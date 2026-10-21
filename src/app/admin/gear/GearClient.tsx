@@ -33,7 +33,7 @@ export default function GearClient({ orgId, items, outs, people, docs }: { orgId
       <div className="flex gap-2">
         {(["gear", "docs"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: tab === t ? "#1F5F4A" : "white", color: tab === t ? "white" : "#4D5F57", borderColor: tab === t ? "#1F5F4A" : "#D5DFDA" }}>
+            style={{ background: tab === t ? "#12355F" : "white", color: tab === t ? "white" : "#4B5568", borderColor: tab === t ? "#12355F" : "#DDD6C5" }}>
             {t === "gear" ? `Gear (${outs.length} out)` : "Documents"}</button>
         ))}
       </div>

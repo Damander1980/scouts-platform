@@ -47,7 +47,7 @@ export default function GiveClient({ campaign: c, thanks, booth, source }: { cam
           <h1 className="font-display font-extrabold text-[30px] leading-tight m-0 mt-1">{c.title}</h1>
           {pct !== null && (
             <div className="mt-4">
-              <div className="h-3 rounded-full bg-white/20"><div className="h-3 rounded-full" style={{ width: `${pct}%`, background: "#FF6A1A" }} /></div>
+              <div className="h-3 rounded-full bg-white/20"><div className="h-3 rounded-full" style={{ width: `${pct}%`, background: "#F5B700" }} /></div>
               <div className="text-[14px] mt-1">{money(Number(c.raised))} raised of {money(c.target_cents!)}</div>
             </div>
           )}
@@ -62,7 +62,7 @@ export default function GiveClient({ campaign: c, thanks, booth, source }: { cam
             <div className="grid grid-cols-3 gap-2">
               {[1000, 2500, 5000, 10000, 25000].map((a) => (
                 <button key={a} onClick={() => { setAmount(a); setCustom(""); }} className="min-h-[52px] rounded-xl border-2 font-bold text-[17px] cursor-pointer font-sans"
-                  style={{ borderColor: !custom && amount === a ? "#1F5F4A" : "#D5DFDA", background: !custom && amount === a ? "#EAF0ED" : "white" }}>{money(a).replace(".00", "")}</button>
+                  style={{ borderColor: !custom && amount === a ? "#12355F" : "#DDD6C5", background: !custom && amount === a ? "#EEE8D9" : "white" }}>{money(a).replace(".00", "")}</button>
               ))}
               <input className="input text-center" placeholder="Other" inputMode="decimal" value={custom} onChange={(e) => setCustom(e.target.value)} />
             </div>
