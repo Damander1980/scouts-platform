@@ -445,6 +445,11 @@ export default function AdvancementClient({
           <a href={isLeader ? "/admin/members" : "/dashboard"} className="min-h-[44px] px-5 rounded-full font-bold text-[14px] flex items-center no-underline text-white" style={{ border: "1px solid rgba(255,255,255,.3)" }}>
             {isLeader ? "Back to roster" : "Back home"}
           </a>
+          {!scout.id.startsWith("demo") && (
+            <a href={`/scout/${scout.id}/advancement/print`} className="min-h-[44px] px-5 rounded-full font-bold text-[14px] flex items-center no-underline" style={{ background: "#F5B700", color: "#101B2D" }}>
+              Print history
+            </a>
+          )}
         </div>
       </header>
 
