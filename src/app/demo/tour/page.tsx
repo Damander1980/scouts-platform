@@ -14,6 +14,7 @@ const GROUPS: { title: string; sub: string; screens: [string, string, string][] 
     title: "For leaders", sub: "The dashboard a Scoutmaster or treasurer uses at the computer.",
     screens: [
       ["/demo/admin", "Leader tools", "Members, money, advancement and more."],
+      ["/demo/calendar", "Calendar", "The month at a glance, including events shared by a linked pack."],
       ["/demo/advancement", "Advancement", "Rank trail, next steps and merit badge progress for one Scout."],
       ["/demo/trip-sheet", "Trip sheet", "Printable campout list: who's going, drivers, health forms, YPT. Opens offline."],
       ["/demo/recharter", "Recharter helper", "The yearly renewal checklist."],
