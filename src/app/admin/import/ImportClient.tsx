@@ -12,10 +12,10 @@ type Batch = { id: string; kind: string; file_name: string | null; row_count: nu
 const ROSTER_FIELDS: Record<string, string[]> = {
   first: ["first", "first name", "firstname", "given name", "scout first name"],
   last: ["last", "last name", "lastname", "surname", "family name", "scout last name"],
-  type: ["type", "youth/adult", "member type", "youth or adult", "adult/youth"],
+  type: ["type", "youth/adult", "member type", "youth or adult", "adult/youth", "member type (youth/adult)"],
   birthdate: ["birthdate", "birth date", "dob", "date of birth", "birthday"],
-  role: ["role", "position", "leader position"],
-  patrol: ["patrol", "patrol name", "den"],
+  role: ["role", "position", "leader position", "unit position", "positions"],
+  patrol: ["patrol", "patrol name", "den", "sub unit", "subunit", "sub-unit", "sub unit name"],
   household: ["household", "family", "family id"],
   email: ["email", "e-mail", "email address", "parent email", "parent 1 email", "primary email"],
   member_id: ["member id", "bsa member id", "memberid", "bsa id", "member #", "member number"],
@@ -36,6 +36,9 @@ const ROLE_MAP: Record<string, string> = {
   "advancement chair": "advancement_chair", "chartered org rep": "chartered_org_rep", "chartered organization representative": "chartered_org_rep",
   "merit badge counselor": "merit_badge_counselor", parent: "parent_guardian", "parent/guardian": "parent_guardian",
   cubmaster: "cubmaster", "den leader": "den_leader", scout: "scout", youth: "scout",
+  // Scoutbook Plus position names
+  "youth member": "scout", "unit advancement chair": "advancement_chair", "key 3 delegate": "committee_member",
+  "unit leader": "scoutmaster", "unit committee chair": "committee_chair", "assistant scoutmaster (asm)": "assistant_scoutmaster",
 };
 
 function mapRow(row: Record<string, string>, fields: Record<string, string[]>) {
@@ -68,7 +71,17 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
     if (!/\.(csv|txt)$/i.test(f.name)) { setError("Upload a .csv file. In Excel or Google Sheets, use File > Download > CSV."); return; }
     setFile(f.name);
     const parsed = parseCsv(await f.text());
-    const mapped = parsed.map((r) => mapRow(r, kind === "roster" ? ROSTER_FIELDS : ADV_FIELDS)).filter((r) => r.first && r.last);
+    const mapped = parsed.map((r) => {
+      const m = mapRow(r, kind === "roster" ? ROSTER_FIELDS : ADV_FIELDS);
+      // Some exports have a single "Name" column ("Last, First" or "First Last").
+      if (!m.first && !m.last) {
+        const full = Object.entries(r).find(([k]) => ["name", "full name", "member name", "scout name"].includes(k.toLowerCase().trim()))?.[1]?.trim() ?? "";
+        if (full.includes(",")) { const [l, f] = full.split(","); m.last = l.trim(); m.first = (f ?? "").trim(); }
+        else if (full) { const parts = full.split(/\s+/); m.first = parts[0]; m.last = parts.slice(1).join(" "); }
+      }
+      if (m.type) m.type = /^y/i.test(m.type) ? "youth" : /^a/i.test(m.type) ? "adult" : m.type;
+      return m;
+    }).filter((r) => r.first && r.last);
     if (!mapped.length) { setError("We couldn't find First name and Last name columns. Check the header row."); return; }
     setRows(mapped.map((r) => kind === "roster"
       ? { ...r, household: r.household || r.email, birthdate: toIsoDate(r.birthdate), ypt_expires: toIsoDate(r.ypt_expires), role: ROLE_MAP[r.role?.toLowerCase()] ?? "", type: r.type || (ROLE_MAP[r.role?.toLowerCase()] && !["scout"].includes(ROLE_MAP[r.role?.toLowerCase()]) ? "adult" : "youth") }
