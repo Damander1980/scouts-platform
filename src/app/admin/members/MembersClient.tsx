@@ -36,7 +36,7 @@ function age(b: string | null) {
 
 export default function MembersClient({
   members: initial, orgId, myRole, badges = [], counselorAssignments = [], demo = false,
-  joinCode = "", slug = "", isAdmin = true, myPersonId = "", joinRequests = [], patrolOf = {}, initialTab = "members",
+  joinCode = "", slug = "", isAdmin = true, myPersonId = "", joinRequests = [], patrolOf = {}, initialTab = "members", initialSearch = "",
   households = [], personHouseholds = [],
 }: {
   households?: { household_id: string; household_name: string; members: string }[];
@@ -44,7 +44,7 @@ export default function MembersClient({
   members: Member[]; orgId: string; myRole?: string;
   badges?: Badge[]; counselorAssignments?: CounselorAssignment[]; demo?: boolean;
   joinCode?: string; slug?: string; isAdmin?: boolean; myPersonId?: string;
-  joinRequests?: JoinRequest[]; patrolOf?: Record<string, string>; initialTab?: "members" | "requests";
+  joinRequests?: JoinRequest[]; patrolOf?: Record<string, string>; initialTab?: "members" | "requests"; initialSearch?: string;
 }) {
   void myRole;
   const supabase = createClient();
@@ -57,8 +57,8 @@ export default function MembersClient({
   const [badgeSearch, setBadgeSearch] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("active");
+  const [search, setSearch] = useState(initialSearch);
+  const [filter, setFilter] = useState(initialSearch ? "all" : "active");
   const [showAdd, setShowAdd] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [add, setAdd] = useState({ first: "", last: "", type: "youth", role: "scout", birth: "" });

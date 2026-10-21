@@ -102,6 +102,10 @@ export default function AdminLayoutClient({
         </Link>
         <span className="ml-4 min-h-[40px] px-4 rounded-full font-bold text-[14px] flex items-center" style={{ background: "#F5B700", color: "#101B2D" }}>{unitWord} {org.unit_number}</span>
         <span className="text-[14px]" style={{ color: "#D7E0EE" }}>Leader tools</span>
+        <form action="/admin/members" className="ml-6 flex items-center rounded-full px-4 min-h-[40px] gap-2 min-w-[240px]" style={{ background: "#0C2442" }}>
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D7E0EE" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+          <input name="q" aria-label="Find a member" placeholder="Find a member" className="bg-transparent border-0 text-white text-[14px] outline-none flex-1 font-sans placeholder:text-[#AEB9C9]" />
+        </form>
         <Link href="/dashboard" className="ml-auto text-[14px] font-bold no-underline min-h-[40px] px-4 rounded-full flex items-center" style={{ color: "#FFFFFF", border: "1px solid rgba(255,255,255,.3)" }}>Family view</Link>
         <div className="flex flex-col items-end leading-tight">
           <span className="text-[14px] font-bold">{person.first_name} {person.last_name}</span>

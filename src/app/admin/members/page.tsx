@@ -1,8 +1,8 @@
 import { requirePerm } from "@/lib/context";
 import MembersClient, { type Member, type JoinRequest } from "./MembersClient";
 
-export default async function MembersPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  const { tab } = await searchParams;
+export default async function MembersPage({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string }> }) {
+  const { tab, q } = await searchParams;
   const { supabase, current, isAdmin, person } = await requirePerm("leader", "members.manage", "members.private");
   const orgId = current.org.id;
 
@@ -40,7 +40,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
   }));
 
   return (
-    <MembersClient
+    <MembersClient key={q ?? ""}
       members={withBirth as unknown as Member[]}
       orgId={orgId}
       joinCode={current.org.join_code}
@@ -52,6 +52,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
       joinRequests={joinRequests}
       patrolOf={Object.fromEntries((patrols ?? []).map((p) => [p.person_id, (p.patrols as unknown as { name: string })?.name ?? ""]))}
       initialTab={tab === "requests" ? "requests" : "members"}
+      initialSearch={q ?? ""}
       households={(hhList ?? []) as never}
       personHouseholds={(hhOf ?? []) as never}
     />
