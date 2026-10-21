@@ -125,6 +125,18 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="max-w-6xl mx-auto px-5 pb-16 flex flex-col gap-4">
+        <h2 className="font-display font-extrabold text-[26px] m-0">And everything else a troop runs on</h2>
+        <ul className="m-0 p-0 list-none flex flex-wrap gap-2">
+          {["Month calendar and calendar feeds", "Printable rosters and reports", "Update-all grid", "Eagle project tracker", "Patrol Leaders' Council space",
+            "Patrol pages", "Trip plans, meals and duty rosters", "Copy last year's events", "Attendance with QR check-in", "Nights, miles and service hours tallied",
+            "Court of Honor shopping list", "Recharter checklist", "Merit badge counselors", "Gear checkout and documents", "Volunteer shifts and polls",
+            "Fundraising goals and QR donations", "Treasurer reports and budget", "Linked troops and packs", "Discussion boards", "Public troop website"].map((x) => (
+            <li key={x} className="px-4 py-2 rounded-full bg-white text-[14px] font-bold" style={FLOAT}>{x}</li>
+          ))}
+        </ul>
+      </section>
+
       <section id="compare" style={{ background: "#EEE8D9" }}>
         <div className="max-w-6xl mx-auto px-5 py-20 flex flex-col gap-8">
           <div className="flex flex-col gap-2 max-w-2xl">
