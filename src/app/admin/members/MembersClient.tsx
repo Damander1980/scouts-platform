@@ -137,7 +137,8 @@ Or enter join code ${String(joinCode ?? "").toUpperCase()} after you sign up. Ad
           <h1 className="font-display font-extrabold text-[32px] m-0">Members</h1>
           <p className="text-[14px] m-0 mt-1 text-smoke">
             {members.filter((m) => m.status === "active").length} active ·{" "}
-            <a href="/api/export/roster.csv" className="font-bold text-forest">Download roster</a>
+            <a href="/api/export/roster.csv" className="font-bold text-forest">Download roster</a> ·{" "}
+            <a href="/admin/members/bulk" className="font-bold text-forest">Update all</a>
           </p>
         </div>
         <div className="flex gap-2">
