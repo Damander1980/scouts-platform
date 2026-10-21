@@ -106,9 +106,16 @@ export async function GET(request: Request) {
     if (!orgIds.length) continue;
     const { data: evs } = await db.from("events").select("title, start_at").in("org_id", orgIds).eq("canceled", false)
       .gte("start_at", now.toISOString()).lt("start_at", new Date(now.getTime() + 7 * 86400000).toISOString()).order("start_at").limit(5);
-    if (!evs?.length) continue;
-    const list = evs.map((e) => `${e.title} (${new Date(e.start_at).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })})`).join("; ");
-    await notifyPeople([pid], "digest", `This week: ${list}.`, "/events");
+    // What the family owes, so the digest is the one weekly nudge that covers everything.
+    const { data: hh } = await db.from("household_members").select("household_id").eq("person_id", pid).eq("is_guardian", true);
+    const hids = (hh ?? []).map((h) => h.household_id);
+    const { data: ledger } = hids.length ? await db.from("ledger_entries").select("amount_cents").in("household_id", hids).in("org_id", orgIds) : { data: [] as { amount_cents: number }[] };
+    const owed = (ledger ?? []).reduce((t, l) => t + l.amount_cents, 0);
+    if (!evs?.length && owed <= 0) continue;
+    const parts: string[] = [];
+    if (evs?.length) parts.push(`This week: ${evs.map((e) => `${e.title} (${new Date(e.start_at).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })})`).join("; ")}.`);
+    if (owed > 0) parts.push(`Your family owes $${(owed / 100).toFixed(2)}.`);
+    await notifyPeople([pid], "digest", parts.join(" "), owed > 0 && !evs?.length ? "/pay" : "/dashboard");
     digests++;
   }
 
