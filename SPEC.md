@@ -54,7 +54,7 @@ Scouting America's free Scoutbook Plus stays the official record for advancement
 
 Four findings change the design:
 
-1. **Do not try to replace Scoutbook Plus.** Scoutbook has no public API. Two [forum posts from October 2026](https://discussions.scouting.org/t/backend-access-to-scoutbook/512243) say only the web site and its quick export are available, a [2024 thread](https://discussions.scouting.org/t/scoutbook-api-key/412550) relays that Scouting America does not intend to release one, and a [read-only API was postponed indefinitely](https://discussions.scouting.org/t/read-only-api/239364) in 2021. None of these are labeled as official statements, so confirm with a council. We build upload-ready advancement exports and importers for its roster, advancement and activity-log files, and offer no live sync.
+1. **Do not try to replace Scoutbook Plus.** Scoutbook has no public API. Two [forum posts from October 2026](https://discussions.scouting.org/t/backend-access-to-scoutbook/512243) say only the web site and its quick export are available, a [2024 thread](https://discussions.scouting.org/t/scoutbook-api-key/412550) relays that Scouting America does not intend to release one, and a [read-only API was postponed indefinitely](https://discussions.scouting.org/t/read-only-api/239364) in 2021. None of these are labeled as official statements, so confirm with a council. We build upload-ready advancement exports and importers for its roster, advancement and activity-log files. Two-way sync is now wanted (Floyd, 2026-10-21): with no API, it means the server signing in with a leader's stored Scoutbook login (Key 3, Unit Advancement Chair or Key 3 Delegate), encrypted, opt-in and revocable. Check Scouting America's terms of use first; the file route stays as the fallback.
 2. **Do not store the medical form.** Council pages say completed Annual Health and Medical Records [should not be scanned, emailed or stored electronically](https://nycscouting.org/medicalreview22/) by unit leaders. We track status and expiry instead, which is also the data leaders need. Confirm this with the pilot troop and council, since the pages date from 2020 to 2022.
 3. **Our messaging rule matches official guidance.** Scouting America says two-deep leadership and no one-on-one contact apply to [digital communication](https://blog.scoutingmagazine.org/2016/06/15/youth-protection-and-texting-with-scouts), with a parent and another leader copied, and its [social media guidelines](https://scoutingwire.org/social-media-guidelines/) say adult-youth messages should be public or copy authorized adults.
 4. **Two registered adults aged 21 or over** are required at all Scouting activities, so the trip ratio check should test exactly that, plus current Youth Protection Training.
@@ -148,7 +148,7 @@ The data model adds patrols and patrol\_members (person, patrol, role, start and
 
 ## Import and export
 
-Troops move data in and out of the platform by file, in both directions, and there is no live connection to Scoutbook or any other system.
+Troops move data in and out of the platform by file, in both directions. Two-way Scoutbook sync is planned (see Research, finding 1); until it ships, the app counts completed advancement not yet in an upload file and offers a changes-only file.
 
 - **Import.** Scoutbook's three export files (roster, Scout advancement, activity log) and CSV files for rosters, balances and events. A preview shows what will be added or changed before anything is saved, and an import can be undone.
 - **Export.** Scoutbook-ready advancement and activity files for upload, plus CSV of rosters, attendance, the ledger and budgets, and PDF rosters and tour permits for printing.
@@ -218,7 +218,7 @@ All in-app communication is encrypted, saved and tamper-proof, and only a parent
 
 - **Saved by default.** Messages, replies, forum posts and comments go into an append-only log. Nobody can edit or delete a message, including troop admins, leaders, Scouts and our own staff.
 - **Messages live in the app.** Email, text and push only say that a message is waiting, with a link and no message content. Reading it requires signing in.
-- **Protection.** Data is encrypted in transit and at rest. Sign-in is by magic link, Google or Apple, and admins, leaders and treasurers must also use two-step verification. Sessions time out, and every view of the message log is recorded.
+- **Protection.** Data is encrypted in transit and at rest. Sign-in is by email and password or Google, and admins, leaders and treasurers must also use two-step verification (authenticator app) to open leader tools. Sessions time out, and every view of the message log is recorded.
 - **Backups and incidents.** Encrypted daily backups with restore tests, and a written incident plan that tells troops and parents quickly if something goes wrong.
 - **Collect less.** We do not store medical forms (status only), government ID numbers or card numbers; Stripe holds payment data.
 - **Who can request deletion.** Only a verified parent or guardian, for their child's data and their own. Leaders, admins, Scouts and our staff cannot.
@@ -304,7 +304,7 @@ A basic starter page (logo, about text, meeting details, join button) is built i
 
 The MVP is five things; everything else waits.
 
-1. **Sign-in and onboarding.** Email magic link, Google and Apple sign-in; create household, add kids, join a troop by code.
+1. **Sign-in and onboarding.** Email and password or Google sign-in; create household, add kids, join a troop by code.
 2. **Events and RSVP.** Calendar and agenda list; events with dates, location, cost, caps, waitlist and deadlines; multi-day events shown as one bar; per-person yes/no, drivers and seats, dietary notes.
 3. **Payments and family ledger.** Stripe checkout with card, Apple Pay and Google Pay; a balance per household; fees post at sign-up; credits on cancellation by the event's refund rule; treasurer view of who owes what.
 4. **Forms.** Digital permission slips signed once per year and attached to each event roster. For the Annual Health and Medical Record we track only whether each person has Parts A, B and C on file and when each expires; the form itself stays with the troop's designated leader, because council guidance says completed forms should not be scanned or stored electronically.
@@ -414,7 +414,7 @@ Build one mobile-first web app that installs to the home screen (PWA) with no na
 | Layer | Choice | Why |
 | --- | --- | --- |
 | Web app | Next.js (React, TypeScript) | One codebase for site, RSVP pages and admin |
-| Database and auth | Postgres on Supabase | Row-level security enforces troop isolation; built-in magic link, Google, Apple |
+| Database and auth | Postgres on Supabase | Row-level security enforces troop isolation; built-in email and password, Google, and authenticator-app two-step |
 | Payments | Stripe Connect | All money runs through Stripe: each troop has its own connected account, so funds go to the troop, not to us |
 | Email and SMS | Resend and Twilio | RSVP links and reminders |
 | Push | Web push through the installed web app | No app-store review or fees |
