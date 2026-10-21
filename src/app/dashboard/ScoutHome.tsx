@@ -69,6 +69,19 @@ export default function ScoutHome({ personId, firstName, events: initial }: { pe
         <p className="text-[17px] m-0 mt-1">{open.length ? `Tell us if you're coming to ${open.length === 1 ? "this" : `these ${open.length}`}.` : "You've answered everything. Nice!"}</p>
       </div>
 
+      {(
+        <a href={personId === "demo" ? "/demo/advancement" : `/scout/${personId}/advancement`}
+          className="rounded-[18px] p-5 flex items-center gap-4 no-underline text-white"
+          style={{ background: "#12355F", boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
+          <div className="flex-1 flex flex-col gap-0.5">
+            <span className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>My advancement</span>
+            <span className="font-display font-extrabold text-[22px] leading-tight">See what&apos;s next for your rank</span>
+            <span className="text-[15px]" style={{ color: "#D7E0EE" }}>Mark requirements done and ask a leader to sign off.</span>
+          </div>
+          <span className="min-h-[48px] px-5 rounded-full font-bold text-[16px] flex items-center" style={{ background: "#F5B700", color: "#101B2D" }}>Open</span>
+        </a>
+      )}
+
       {events.length === 0 && <div className="card text-[17px]">Nothing on the calendar right now.</div>}
 
       {events.map((e) => {
@@ -77,8 +90,9 @@ export default function ScoutHome({ personId, firstName, events: initial }: { pe
         const late = !!e.rsvp_deadline && new Date(e.rsvp_deadline) < new Date();
         const showButtons = !status || changing === e.id;
         return (
-          <div key={e.id} className="card flex flex-col gap-3" style={{ borderWidth: 2, borderColor: status === "going" ? "#12355F" : status === "not_going" ? "#DDD6C5" : "#F5B700" }}>
+          <div key={e.id} className="card flex flex-col gap-3" style={status === "going" ? { boxShadow: "inset 0 0 0 2px #12355F, 0 10px 28px rgba(16,27,45,.10)" } : undefined}>
             <div>
+              {!status && <span className="inline-block mb-2 text-[12px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ background: "#FFF6D6", color: "#5E4400" }}>Needs your answer</span>}
               <div className="font-display font-extrabold text-[22px] leading-tight">{e.title}</div>
               <div className="text-[16px] mt-1">{when(e)}</div>
               {e.location && <div className="text-[15px] text-smoke">{e.location}</div>}
