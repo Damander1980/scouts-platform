@@ -11,7 +11,7 @@ const FEATURES = [
       </svg>
     ),
     title: "RSVP in seconds",
-    body: "Families tap yes or no from their phone. No logins, no PDFs, no reply-all emails.",
+    body: "Families pick who is going, sign the permission slip and pay in one flow. No PDFs, no reply-all emails.",
   },
   {
     icon: (
@@ -20,7 +20,7 @@ const FEATURES = [
       </svg>
     ),
     title: "Collect money without the drama",
-    body: "Charge for campouts, dues, and uniforms. Parents pay by card. You see who paid and who hasn't — no spreadsheet needed.",
+    body: "Charge for campouts, dues, and uniforms. Parents pay by card, cash or check, as your troop chooses. You see who paid and who hasn't — no spreadsheet needed.",
   },
   {
     icon: (
@@ -29,7 +29,7 @@ const FEATURES = [
       </svg>
     ),
     title: "Roster built for two-deep",
-    body: "Track every leader's YPT expiry. See at a glance if you're covered for every activity — BSA two-deep enforced by design.",
+    body: "Track every leader's YPT expiry. Every trip checks for two registered adults 21 or older before it is confirmed.",
   },
   {
     icon: (
@@ -38,7 +38,7 @@ const FEATURES = [
       </svg>
     ),
     title: "Forms, tracked",
-    body: "Health forms A, B, and C. Permission slips. Background checks. One place — no more 'did Tommy turn in his form?'",
+    body: "Health form Parts A, B and C tracked by status and expiry, never uploaded. Permission slips signed once a year.",
   },
   {
     icon: (
@@ -149,7 +149,7 @@ export default function LandingPage() {
                 <circle cx="18" cy="19" r="2" fill="#FFFFFF" opacity=".9"/>
               </svg>
               <span className="font-bold text-[15px] tracking-wider uppercase" style={{ color: "#D7E0EE" }}>
-                Built for Scouts BSA, Cubs, Venturing &amp; more
+                Built for Scouts BSA troops
               </span>
             </div>
             <h1 className="font-display font-extrabold leading-none m-0"
@@ -225,7 +225,7 @@ export default function LandingPage() {
               ["Installs", "no app store needed"],
               ["$125/yr", "flat — no per-seat fees"],
               ["30 days", "free to start"],
-              ["5 min", "to set up your troop"],
+              ["Card or cash", "your troop decides"],
             ].map(([n, label]) => (
               <div key={n} className="flex items-baseline gap-2">
                 <span className="font-display font-extrabold text-[28px] leading-none" style={{ color: "#F5B700" }}>{n}</span>
@@ -264,15 +264,15 @@ export default function LandingPage() {
           <div className="flex flex-col gap-2">
             <span className="font-bold text-sm tracking-widest uppercase text-forest">Setup in minutes</span>
             <h2 className="font-display font-extrabold text-[38px] leading-tight m-0">
-              From zero to running in 5 minutes.
+              Quick, easy setup.
             </h2>
           </div>
           <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
             {[
-              { n: "1", title: "Pick your program", body: "Scouts BSA, Cubs, Venturing, Sea Scouts, Trail Life, AHG — or any other youth group." },
-              { n: "2", title: "Name your unit", body: "Enter your troop number and city. Your public page is live immediately." },
+              { n: "1", title: "Create your troop", body: "Enter your troop number and city. Cub Scout packs and Venturing crews are coming next." },
+              { n: "2", title: "Get your public page", body: "Your troop page goes live at its own address so new families can find you and ask to join." },
               { n: "3", title: "Import from Scoutbook", body: "Upload your Scoutbook export and your full roster comes with you. Or start fresh and add families as they join." },
-              { n: "4", title: "Invite your families", body: "Share your join link. Parents create an account in 30 seconds — no app download required." },
+              { n: "4", title: "Invite your families", body: "Share your join link. Parents create an account with email and password or Google. Nothing to download." },
             ].map((s) => (
               <div key={s.n} className="flex flex-col gap-3">
                 <div className="w-12 h-12 rounded-full bg-forest text-white flex items-center justify-center font-display font-extrabold text-[22px] flex-none">
@@ -370,7 +370,7 @@ export default function LandingPage() {
                 <span className="text-[15px]" style={{ color: "#AEB9C9" }}>~$10/month · billed annually</span>
               </div>
               <ul className="flex flex-col gap-2 m-0 p-0 list-none">
-                {["Unlimited members","RSVP + attendance tracking","Online payments via Stripe","Forms tracker","SMS + email messaging","Scoutbook import","Public troop page","Mobile-installable PWA"].map((item) => (
+                {["Unlimited members","RSVP + attendance tracking","Online payments via Stripe","Forms tracker","Email and text messaging","Scoutbook import and export","Public troop page","Mobile-installable PWA"].map((item) => (
                   <li key={item} className="flex items-center gap-2 text-[15px]">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5B700" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
                     {item}
@@ -417,7 +417,7 @@ export default function LandingPage() {
             Your troop deserves<br />better than a spreadsheet.
           </h2>
           <p className="text-[19px] m-0 max-w-xl" style={{ color: "#D7E0EE" }}>
-            Set up your troop in 5 minutes. First 30 days are free. No credit card.
+            Quick, easy setup. First 30 days are free. No credit card.
           </p>
           <Link href="/setup"
             className="min-h-[58px] px-10 rounded-full font-bold text-[19px] flex items-center gap-2 no-underline"
@@ -428,7 +428,7 @@ export default function LandingPage() {
             </svg>
           </Link>
           <p className="text-sm m-0" style={{ color: "#AEB9C9" }}>
-            Scouts BSA · Cub Scouts · Venturing · Sea Scouts · Trail Life · AHG · Any youth group
+            Scouts BSA today · Cub Scout packs and Venturing crews coming
           </p>
         </div>
       </section>
