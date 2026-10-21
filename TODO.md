@@ -9,11 +9,21 @@ Build order (Floyd, 2026-10-19): **PC web platform first, then the app, iOS last
 
 ## Needs Floyd
 
-### Before pitching Troop 999 (research 2026-10-21)
+### Start here (2026-10-21)
+- [ ] **Sign in:** `node scripts/set-password.mjs fdkobler@gmail.com` (you type the password).
+- [ ] **Sample troop to click around in:** `node scripts/seed-demo.mjs fdkobler@gmail.com`
+      (fake families, events, sign-ups, forms, balances; `--remove` deletes it).
+- [ ] **Push migrations 0042 and 0043** (`npx supabase db push`): admins need current YPT;
+      Scoutbook upload tracking. Until 0043 is pushed the "not in Scoutbook yet" banner stays hidden.
+- [ ] First time in Leader tools you'll set up two-step sign-in with an authenticator app.
+
+### Before pitching Troop 999
 - [ ] **Host it** (Vercel login) and add Stripe/Resend keys: leaders can't evaluate a site that only runs on this PC, or a pay button that can't pay.
-- [ ] Decide trial terms: landing page says 30 days free, SPEC says free first year for pilot troops.
-- [ ] Get a real TroopWebHost export from a Troop 999 admin (roster Excel/CSV, and the Internet Advancement file from Advancement > Recognize recent achievements). Column names are unverified, so the importer may need tuning. Biggest switching blocker.
-- [ ] Rival Troop Campfire advertises automatic two-way Scoutbook sync (ScoutSmarts, affiliate site, unverified). We say file-only. Ask a council whether that is true before leaders raise it.
+- [x] Trial terms: 30 days free (Floyd, 2026-10-21).
+- [ ] Get a real TroopWebHost export from a Troop 999 admin (roster Excel/CSV, and the Internet Advancement file from Advancement > Recognize recent achievements). Column names are unverified, so the importer may need tuning.
+- [ ] **Two-way Scoutbook sync** (decided 2026-10-21, stored leader login): needs a sanitized browser capture (HAR) from a Key 3 / advancement chair login viewing roster, a Scout profile, a rank and merit badges. Check Scouting America's terms first.
+- [ ] Confirm: on a linked-unit event, the charge goes on the Scout's own family account and a parent pays it.
+- [ ] Pick a product name and domain.
 
 ### Push / deploy
 - [x] Migrations 0036-0041 pushed and all code pushed to GitHub.
