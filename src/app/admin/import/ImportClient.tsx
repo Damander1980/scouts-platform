@@ -110,7 +110,7 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
     <div className="flex flex-col gap-5">
       <div>
         <h1 className="font-display font-extrabold text-[28px] m-0">Import & export</h1>
-        <p className="text-[14px] text-smoke m-0 mt-1">Bring your roster and advancement over by file. We never ask for your Scoutbook or other passwords.</p>
+        <p className="text-[14px] text-smoke m-0 mt-1">Bring your roster and advancement over by file. Preview everything before it's saved, and undo an import any time.</p>
       </div>
       {!isAdmin && <div className="card">Only unit admins can import. You can still export below.</div>}
 

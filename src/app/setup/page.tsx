@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const UNIT_TYPES = [
-  { id: "scouts_bsa", name: "Scouts BSA", sub: "Ages 11–17", word: "Troop", hasScoutbook: true,
+  { id: "scouts_bsa", name: "Scouts BSA", sub: "Ages 11–17", word: "Troop", hasScoutbook: true, ready: true,
     icon: "M2 20 12 4l10 16zM12 4v16" },
   { id: "cubs", name: "Cub Scouts", sub: "Grades K–5", word: "Pack", hasScoutbook: true,
     icon: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.2 6.5 20.2l1-6.2L3 9.6l6.2-.9z" },
@@ -33,6 +33,7 @@ export default function SetupPage() {
   const [number, setNumber] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("TX");
+  const [ypt, setYpt] = useState("");
   const [nextAction, setNextAction] = useState<"import" | "dashboard">("dashboard");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -62,6 +63,12 @@ export default function SetupPage() {
       });
       if (orgErr) throw orgErr;
 
+      // Admins need current YPT to see kids' private details, so record it now if given.
+      if (ypt) {
+        const { data: me2 } = await supabase.from("persons").select("id").eq("user_id", user.id).single();
+        if (me2) await supabase.from("memberships").update({ ypt_expires: ypt }).eq("org_id", orgId).eq("person_id", me2.id);
+      }
+
       await fetch("/api/switch-org", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orgId }) });
       router.push(nextAction === "import" ? "/admin/import" : "/dashboard");
       router.refresh();
@@ -79,7 +86,9 @@ export default function SetupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-canvas flex flex-col max-w-sm mx-auto">
+    <div className="min-h-screen bg-canvas flex items-start sm:items-center justify-center sm:py-10">
+    <div className="w-full max-w-xl flex flex-col bg-white sm:rounded-[20px] overflow-hidden min-h-screen sm:min-h-0"
+      style={{ boxShadow: "0 1px 2px rgba(16,27,45,.06), 0 14px 36px rgba(16,27,45,.12)" }}>
       {/* Header */}
       <div className="bg-forest text-white px-5 pt-6 pb-6 flex flex-col gap-2">
         <span className="text-xs font-bold tracking-widest uppercase text-mist-dark">
@@ -91,12 +100,12 @@ export default function SetupPage() {
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 flex flex-col gap-4">
 
         {step === 1 && (
           <>
             <p className="text-sm text-smoke">
-              Pick your youth program. Everything else adapts to it.
+              Scouts BSA troops first. Cub Scout packs, Venturing crews and other programs are on the way.
             </p>
             <div className="grid grid-cols-2 gap-3">
               {UNIT_TYPES.map((u) => (
@@ -104,11 +113,13 @@ export default function SetupPage() {
                   key={u.id}
                   type="button"
                   aria-pressed={u.id === unitId}
+                  disabled={!("ready" in u)}
                   onClick={() => setUnitId(u.id)}
                   className="min-h-[112px] rounded-2xl p-3.5 flex flex-col items-start justify-between text-left font-sans transition-colors"
                   style={{
                     background: u.id === unitId ? "#EEE8D9" : "#FFFFFF",
                     border: `2px solid ${u.id === unitId ? "#12355F" : "#DDD6C5"}`,
+                    opacity: "ready" in u ? 1 : 0.5, cursor: "ready" in u ? "pointer" : "not-allowed",
                   }}
                 >
                   <span className="text-forest">
@@ -119,7 +130,7 @@ export default function SetupPage() {
                   </span>
                   <span className="flex flex-col gap-0.5">
                     <span className="font-bold text-base leading-tight">{u.name}</span>
-                    <span className="text-xs text-smoke leading-snug">{u.sub}</span>
+                    <span className="text-xs text-smoke leading-snug">{"ready" in u ? u.sub : "Coming later"}</span>
                   </span>
                 </button>
               ))}
@@ -156,6 +167,11 @@ export default function SetupPage() {
               <input id="state" type="text" maxLength={2} value={state}
                 onChange={(e) => setState(e.target.value.toUpperCase())} placeholder="TX" className="input w-full" />
             </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="ypt" className="font-bold text-sm">Your Youth Protection Training expires</label>
+              <input id="ypt" type="date" value={ypt} onChange={(e) => setYpt(e.target.value)} className="input w-full" />
+              <span className="text-xs text-smoke">On your my.scouting.org profile. Leaders need current YPT to see Scouts&apos; private details. You can add it later on the Members page.</span>
+            </div>
             {(number || city) && (
               <div className="card flex flex-col gap-1.5">
                 <span className="text-xs font-bold tracking-widest uppercase text-smoke">
@@ -191,9 +207,6 @@ export default function SetupPage() {
                     </svg>
                     {nextAction === "import" ? "Import right after setup" : "Import my files"}
                   </button>
-                  <span className="text-xs text-smoke">
-                    We never ask for your Scoutbook password.
-                  </span>
                 </div>
                 <div className="card flex flex-col gap-3">
                   <span className="font-bold text-base">Or start from a spreadsheet</span>
@@ -223,7 +236,7 @@ export default function SetupPage() {
       </div>
 
       {/* Footer */}
-      <div className="bg-white border-t border-border px-4 pt-3 pb-5 flex gap-3">
+      <div className="bg-white border-t border-border px-4 sm:px-6 pt-3 pb-5 flex gap-3">
         {step > 1 && (
           <button
             type="button"
@@ -254,6 +267,7 @@ export default function SetupPage() {
           </button>
         )}
       </div>
+    </div>
     </div>
   );
 }
