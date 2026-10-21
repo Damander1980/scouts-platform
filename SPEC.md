@@ -328,14 +328,14 @@ The MVP is five things; everything else waits.
 
 ## Money management on Stripe
 
-Every dollar a troop collects or spends goes through Stripe, so the ledger is built from Stripe records and not typed in by hand. This replaces the bank-import feature I had planned for later.
+Online payments go through Stripe, so most of the ledger is built from Stripe records and not typed in by hand. Cash and checks are always allowed: a troop can run on cash alone and turn on card payments later.
 
 - **Troop account.** Each troop onboards as a Stripe connected account with its own bank account. Funds settle to the troop, and we never hold them.
 - **Ways to pay.** Card, Apple Pay and Google Pay, and bank transfer (ACH), which usually costs less than cards; check current Stripe rates before setting any fee policy.
 - **Dues, event fees and fundraiser orders** are Stripe charges that post to the right household and event automatically through webhooks.
 - **Refunds and credits** follow each event's refund rule and are issued from the app, either back to the card or as credit on the family balance.
 - **Booth sales.** Stripe's card readers (Terminal) take in-person payments at popcorn or concession booths and credit the selling Scout's account.
-- **Cash and checks** still happen in a troop, so the treasurer can record them manually against a household; they appear in the same ledger, marked as manual.
+- **Cash and checks are always allowed** (Floyd). The treasurer records them against a household with no fee; they appear in the same ledger, marked as manual.
 - **Reimbursements.** Leaders submit a receipt photo, the treasurer approves, and the payout is sent through Stripe. Paying individuals this way has account-setup requirements, so confirm the options with Stripe before building it.
 - **Treasurer reports.** Balance by family, income and expenses by event, budget versus actual, and a year-end export, all from the same ledger.
 
