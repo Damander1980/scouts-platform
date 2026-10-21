@@ -83,6 +83,18 @@ confirmation text, website builder (block pages, draft/publish, history).
 
 ---
 
+## Built 2026-10-21 (all pushed to GitHub)
+Redesign: navy/gold/sand, floating cards, Scoutbook-style shell, 7-section leader sidebar, new
+landing page, demo tour (incl. month calendar), Safety and privacy page. Email+password or Google
+sign-in, two-step for leader tools. Payment settings (methods, who pays card fee). Members,
+Money, Overview, Events (list + month), event page, event form, Forms, Messages, Family, Pay,
+counselor, setup, welcome and join pages simplified. Scoutbook upload tracking. Linked-unit
+sign-ups. Scout RSVP setting enforced with parent approval and notice. Eagle project tracker. PLC
+space. Trip duty rosters. Copy an event (with trip plan). Single-event calendar file, Directions.
+Message families who owe. Bulk advancement sign-off. Health form and YPT expiry reminders. Activity
+log for admins. Find-a-member search. Invite message by email. Donors choose to cover the fee.
+Time-zone fix (server UTC). Tests: `npm test` (vitest), 25 passing.
+
 ## Backlog
 - [ ] Verify every money path end to end once Stripe keys exist (test mode).
 - [ ] Multi-troop admin portal
