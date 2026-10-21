@@ -13,6 +13,7 @@ export type Extras = {
   credits: { nights: number; service: number; miles: number; events: number };
   serviceEvents: { at: string; hours: number }[];
   counselors: { id: string; name: string; items: string[] }[];
+  eagle?: { title: string; done: number; total: number; next: string | null; passed: boolean } | null;
 };
 export type Item = {
   id: string; kind: "rank" | "badge" | "adventure"; code: string; name: string;
@@ -492,6 +493,19 @@ export default function AdvancementClient({
             <span className="text-[15px]"><b>{extras.credits.miles}</b> miles</span>
             <span className="text-[15px]"><b>{extras.credits.events}</b> events</span>
             <span className="text-[12px]" style={{ color: "#AEB9C9" }}>Camping merit badge needs 20 nights at Scouting events.</span>
+          </div>
+        )}
+
+        {extras?.eagle && (
+          <div className="bg-white rounded-[18px] shadow-float p-5 flex flex-wrap items-center gap-4">
+            <div className="flex-1 min-w-[220px]">
+              <div className="text-[12px] font-bold uppercase tracking-widest text-forest">Eagle project</div>
+              <div className="font-display font-extrabold text-[20px]">{extras.eagle.title}</div>
+              <div className="text-[14px] text-smoke">{extras.eagle.passed ? "Board of review passed. Eagle Scout!" : extras.eagle.next ? `Next: ${extras.eagle.next}` : "Board of review held"}</div>
+            </div>
+            <div className="w-48 h-2 rounded-full" style={{ background: "#EEE8D9" }}>
+              <div className="h-2 rounded-full" style={{ width: `${(extras.eagle.done / extras.eagle.total) * 100}%`, background: "#12355F" }} />
+            </div>
           </div>
         )}
 

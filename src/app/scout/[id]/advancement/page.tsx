@@ -77,6 +77,11 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
   };
   const serviceEvents = attended.filter((e) => Number(e.service_hours) > 0).map((e) => ({ at: e.start_at, hours: Number(e.service_hours) }));
 
+  // Eagle project progress (read-only here; leaders edit it under Advancement > Eagle projects).
+  const STEPS: [string, string][] = [["proposal_unit_leader_at", "Proposal: unit leader"], ["proposal_committee_at", "Proposal: committee"], ["proposal_beneficiary_at", "Proposal: beneficiary"], ["proposal_council_at", "Proposal: council"], ["work_started_at", "Work started"], ["work_finished_at", "Work finished"], ["final_report_at", "Final report signed"], ["application_at", "Eagle application submitted"], ["board_at", "Board of review"]];
+  const { data: ep } = await supabase.from("eagle_projects").select("*").eq("person_id", id).maybeSingle();
+  const eagle = ep ? { title: ep.title as string, done: STEPS.filter(([k]) => ep[k]).length, total: STEPS.length, next: STEPS.find(([k]) => !ep[k])?.[1] ?? null, passed: !!ep.board_passed } : null;
+
   const counselorList = Object.values(((counselors ?? []) as unknown as { person_id: string; item_id: string; persons: { first_name: string; last_name: string } }[])
     .reduce<Record<string, { id: string; name: string; items: string[] }>>((acc, c) => {
       acc[c.person_id] ??= { id: c.person_id, name: `${c.persons.first_name} ${c.persons.last_name}`, items: [] };
@@ -95,7 +100,7 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
       viewerPersonId={viewer.id}
       program={orgType === "cubs" ? "cubs" : "scouts_bsa"}
       counselorBadgeIds={counselorBadgeIds}
-      extras={{ birthdate: who?.birthdate ?? null, rankEarned, positions: positions ?? [], credits, serviceEvents, counselors: counselorList }}
+      extras={{ birthdate: who?.birthdate ?? null, rankEarned, positions: positions ?? [], credits, serviceEvents, counselors: counselorList, eagle }}
     />
   );
 }
