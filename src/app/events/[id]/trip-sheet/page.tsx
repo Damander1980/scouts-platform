@@ -22,7 +22,7 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
   if (!ev) notFound();
 
   const [{ data: plan }, { data: going }, { data: forms }, { data: ms }, { data: pm }, { data: canMedical }] = await Promise.all([
-    supabase.from("trip_plans").select("itinerary, permits").eq("event_id", id).maybeSingle(),
+    supabase.from("trip_plans").select("*").eq("event_id", id).maybeSingle(),
     supabase.from("rsvps").select("person_id, driver_seats, dietary, persons(first_name, last_name, type)").eq("event_id", id).eq("status", "going"),
     supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId),
     supabase.from("memberships").select("person_id, ypt_expires").eq("org_id", orgId),
@@ -48,7 +48,12 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
   const twoDeep = trainedAdults >= 2;
   const seats = rows.reduce((s, r) => s + (r.driver_seats || 0), 0);
   const drivers = rows.filter((r) => r.driver_seats > 0);
-  const p = (plan as Pick<Plan, "itinerary" | "permits"> | null) ?? { itinerary: [], permits: [] };
+  const p = (plan as Pick<Plan, "itinerary" | "permits" | "duties"> | null) ?? { itinerary: [], permits: [], duties: [] };
+  const { data: patrolNames } = (p.duties ?? []).length ? await supabase.from("patrols").select("id, name").eq("org_id", orgId) : { data: [] as { id: string; name: string }[] };
+  const dutyGroups = Object.entries((p.duties ?? []).reduce<Record<string, NonNullable<Plan["duties"]>>>((acc, d) => {
+    const k = (patrolNames ?? []).find((x) => x.id === d.patrol)?.name ?? "Patrol";
+    (acc[k] ??= []).push(d); return acc;
+  }, {}));
   const when = (iso: string) => new Date(iso).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
   const cell = "border px-2 py-1 text-left";
@@ -115,6 +120,18 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
         <section className="break-inside-avoid">
           <h2 className="font-bold text-[16px] mb-1">Drivers</h2>
           {drivers.map((d) => <div key={d.person_id}>{d.persons.first_name} {d.persons.last_name}: {d.driver_seats} seat{d.driver_seats === 1 ? "" : "s"}</div>)}
+        </section>
+      )}
+
+      {dutyGroups.length > 0 && (
+        <section className="break-inside-avoid">
+          <h2 className="font-bold text-[16px] mb-1">Duty rosters</h2>
+          {dutyGroups.map(([patrol, ds]) => (
+            <div key={patrol} className="mb-2">
+              <div className="font-bold">{patrol}</div>
+              {ds.map((d) => <div key={d.id}>{d.meal}: {d.text}, {d.who || "unassigned"}</div>)}
+            </div>
+          ))}
         </section>
       )}
 
