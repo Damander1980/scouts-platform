@@ -1,456 +1,202 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 
-const FEATURES = [
-  {
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
-      </svg>
-    ),
-    title: "RSVP in seconds",
-    body: "Families pick who is going, sign the permission slip and pay in one flow. No PDFs, no reply-all emails.",
-  },
-  {
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>
-      </svg>
-    ),
-    title: "Collect money without the drama",
-    body: "Charge for campouts, dues, and uniforms. Parents pay by card, cash or check, as your troop chooses. You see who paid and who hasn't — no spreadsheet needed.",
-  },
-  {
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-      </svg>
-    ),
-    title: "Roster built for two-deep",
-    body: "Track every leader's YPT expiry. Every trip checks for two registered adults 21 or older before it is confirmed.",
-  },
-  {
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-      </svg>
-    ),
-    title: "Forms, tracked",
-    body: "Health form Parts A, B and C tracked by status and expiry, never uploaded. Permission slips signed once a year.",
-  },
-  {
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 01.38 1.2 2 2 0 012.36 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.16 6.16l1.27-.77a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
-      </svg>
-    ),
-    title: "Text + email in one tap",
-    body: "Message your whole troop, one patrol, or one family. Delivered by SMS and email. No group chat chaos.",
-  },
-  {
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-      </svg>
-    ),
-    title: "Scoutbook import",
-    body: "Upload your Scoutbook export and your roster, ranks, and merit badges come with you. Nothing typed twice.",
-  },
+// Public marketing page. Every claim about other products is sourced (public help pages and
+// unit-leader forum posts, Oct 2026); keep it that way. No invented testimonials.
+
+const FLOAT = { boxShadow: "0 1px 2px rgba(16,27,45,.06), 0 10px 28px rgba(16,27,45,.10)" };
+const HERO_SHADOW = { boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 24px 60px rgba(16,27,45,.22)" };
+
+const TOOLS = [
+  { title: "Events that fill themselves", body: "Families pick who's going, sign the permission slip and pay in one flow. You see who's in, who owes and who hasn't answered, and nudge only them.", icon: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" },
+  { title: "Advancement, and Scoutbook kept current", body: "Scouts request sign-offs, leaders approve in one tap, and the app counts what isn't in Scoutbook yet. One file brings it up to date before a Court of Honor.", icon: "M12 15a6 6 0 100-12 6 6 0 000 12zM8.5 14L7 22l5-3 5 3-1.5-8" },
+  { title: "Safety built in, not bolted on", body: "Every message to a Scout is logged and copied to parents and leaders. Leaders without current YPT lose access to kids' private details. Leader tools need two-step sign-in.", icon: "M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6zM9 12l2 2 4-4" },
+  { title: "Health forms without storing them", body: "Leaders mark Parts A, B and C received with an expiry date. The form itself never gets uploaded, as councils ask, and every trip roster shows who isn't cleared.", icon: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M9 15l2 2 4-4" },
+  { title: "Money your way", body: "Card through Stripe straight into the troop's own bank account, cash and check recorded by the treasurer, or both. Your troop decides who covers the card fee.", icon: "M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" },
+  { title: "A public site that recruits", body: "Your troop page goes live at its own address with your calendar and a join button, so new families can find you and ask to join.", icon: "M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" },
 ];
 
-// Only claims we can source. TroopWebHost facts come from its public help pages and
-// unit-leader forum posts (Oct 2026); re-check before changing.
-const COMPARISON = [
-  ["", "ScoutPlatform", "TroopWebHost"],
-  ["Price", "$125 / year flat, custom address included", "$109 / year, plus about $25 for a custom domain*"],
-  ["Built for phones", "Phone-first, installs to the home screen", "Leaders describe the app as slow to load and the site as dated"],
-  ["Scoutbook", "Imports Scoutbook exports; Scoutbook-ready advancement files out", "Imports Scoutbook exports; exports an Internet Advancement file"],
-  ["Linked troops (boy/girl, troop + pack)", "Shared calendar", "Yes"],
-  ["Your data", "One-click download of everything", "Export tools per area"],
+const COMPARE: [string, string, string][] = [
+  ["Price", "$125 a year, your own web address included", "$109 a year, plus about $25 for a custom domain*"],
+  ["For leaders at a desk", "Full dashboard: roster, money, advancement, reports", "Full feature set; users call the design dated*"],
+  ["For parents on a phone", "Works in the phone's browser and installs to the home screen", "Separate app; a leader called it slow to load*"],
+  ["Scoutbook", "Imports Scoutbook files and tracks what still needs uploading", "Imports Scoutbook files and exports an advancement file*"],
+  ["Messages to Scouts", "Logged, can't be edited, copied to parents and leaders", "Not described in its public help pages"],
 ];
 
-const ONLY_HERE = [
-  ["Every message to a Scout is logged and copied", "Tamper-proof log; parents and designated leaders are always copied. No private one-on-one threads."],
-  ["Health forms without storing them", "Leaders mark Parts A, B and C received with an expiry date. The form itself never gets uploaded, as council guidance asks."],
-  ["Youth Protection lockout", "A leader whose YPT has lapsed loses access to private kid data until it is renewed."],
-  ["Sign up and pay in one flow", "RSVP, permission slip and Stripe payment from one link. Money goes straight to your troop's own account."],
-  ["Works at the campsite", "The printable trip sheet and attendance open offline."],
-  ["Troop-run extras", "QR check-in, calendar feed to Google and Apple, Court of Honor planner, recharter checklist, adult skills inventory, discussion boards."],
-];
+function Icon({ d }: { d: string }) {
+  return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
+}
 
 export default function LandingPage() {
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
   return (
-    <div className="min-h-screen bg-canvas" style={{ color: "#101B2D", fontFamily: "'DM Sans', sans-serif" }}>
-
-      {/* ── Top nav ── */}
+    <div className="min-h-screen bg-canvas text-ink">
       <header className="bg-forest text-white sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-5 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-white text-forest flex items-center justify-center font-display font-extrabold text-sm flex-none">
-              SP
-            </div>
-            <span className="font-display font-extrabold text-[20px]">ScoutPlatform</span>
-          </div>
-          <nav className="hidden md:flex items-center gap-1">
-            {[["#features","Features"],["#how","How it works"],["#compare","Compare"],["#pricing","Pricing"]].map(([href, label]) => (
-              <a key={href} href={href}
-                className="text-white font-bold text-[15px] no-underline hover:underline min-h-[44px] flex items-center px-2">
-                {label}
-              </a>
-            ))}
-            <Link href="/login"
-              className="ml-3 text-white font-bold text-[15px] no-underline hover:underline min-h-[44px] flex items-center px-2">
-              Sign in
-            </Link>
-            <Link href="/setup"
-              className="ml-2 min-h-[44px] px-5 rounded-full font-bold text-[15px] flex items-center no-underline"
-              style={{ background: "#F5B700", color: "#101B2D" }}>
-              Start free
-            </Link>
+        <div className="max-w-6xl mx-auto px-5 h-16 flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-2.5 no-underline text-white flex-1">
+            <span className="w-9 h-9 rounded-[10px] flex items-center justify-center font-display font-extrabold" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
+            <span className="hidden sm:inline font-display font-extrabold text-[19px]">ScoutPlatform</span>
+          </Link>
+          <nav className="hidden md:flex items-center gap-6 text-[15px] font-bold">
+            <a href="#tools" className="text-white no-underline">Features</a>
+            <a href="#compare" className="text-white no-underline">Compare</a>
+            <a href="#pricing" className="text-white no-underline">Pricing</a>
           </nav>
-          <button className="md:hidden text-white" onClick={() => setMobileNavOpen(!mobileNavOpen)}
-            aria-label="Toggle navigation">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              {mobileNavOpen
-                ? <><path d="M18 6L6 18"/><path d="M6 6l12 12"/></>
-                : <><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></>}
-            </svg>
-          </button>
+          <Link href="/login" className="text-white font-bold text-[15px] no-underline min-h-[44px] flex items-center px-2 whitespace-nowrap">Sign in</Link>
+          <Link href="/login?next=/setup" className="min-h-[44px] px-5 rounded-full font-bold text-[15px] flex items-center no-underline whitespace-nowrap" style={{ background: "#F5B700", color: "#101B2D" }}>Start free</Link>
         </div>
-        {mobileNavOpen && (
-          <div className="md:hidden bg-forest-deep px-5 pb-4 flex flex-col gap-1">
-            {[["#features","Features"],["#how","How it works"],["#pricing","Pricing"],
-              ["/login","Sign in"],["/setup","Start free — 30 days free"]].map(([href, label]) => (
-              <a key={href} href={href}
-                onClick={() => setMobileNavOpen(false)}
-                className="text-white font-bold text-[16px] no-underline min-h-[44px] flex items-center">
-                {label}
-              </a>
-            ))}
-          </div>
-        )}
       </header>
 
-      {/* ── Hero ── */}
-      <section className="bg-forest text-white overflow-hidden">
-        <div className="max-w-5xl mx-auto px-5 pt-14 pb-16 flex flex-wrap gap-10 items-center">
-          <div className="flex flex-col gap-6" style={{ flex: "1 1 380px" }}>
-            {/* Scout fleur-de-lis accent */}
-            <div className="flex items-center gap-3">
-              <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-                <path d="M18 2 C18 2 14 8 14 13 C14 16 16 17 18 17 C20 17 22 16 22 13 C22 8 18 2 18 2Z" fill="#F5B700"/>
-                <path d="M18 17 C18 17 10 14 7 18 C5 21 7 24 10 23 C12 22 13 20 14 18" fill="#F5B700" opacity=".7"/>
-                <path d="M18 17 C18 17 26 14 29 18 C31 21 29 24 26 23 C24 22 23 20 22 18" fill="#F5B700" opacity=".7"/>
-                <path d="M14 23 Q16 27 18 28 Q20 27 22 23" fill="none" stroke="#F5B700" strokeWidth="1.5"/>
-                <circle cx="18" cy="19" r="2" fill="#FFFFFF" opacity=".9"/>
-              </svg>
-              <span className="font-bold text-[15px] tracking-wider uppercase" style={{ color: "#D7E0EE" }}>
-                Built for Scouts BSA troops
-              </span>
-            </div>
-            <h1 className="font-display font-extrabold leading-none m-0"
-              style={{ fontSize: "clamp(44px, 7vw, 72px)" }}>
-              Run your troop.<br />
-              <span style={{ color: "#F5B700" }}>Not your inbox.</span>
-            </h1>
-            <p className="text-[19px] leading-relaxed m-0" style={{ color: "#D7E0EE", maxWidth: 460 }}>
-              RSVP, collect payments, track forms, and message every family — in one place built for the way leaders actually work.
-            </p>
-            <div className="flex flex-wrap gap-3 pt-1">
-              <Link href="/setup"
-                className="min-h-[54px] px-7 rounded-full font-bold text-[18px] flex items-center no-underline gap-2"
-                style={{ background: "#F5B700", color: "#101B2D" }}>
-                Start your free 30 days
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </Link>
-              <a href="#features"
-                className="min-h-[54px] px-7 rounded-full font-bold text-[18px] flex items-center no-underline"
-                style={{ border: "2px solid rgba(255,255,255,0.4)", color: "#FFFFFF" }}>
-                See features
-              </a>
-            </div>
-            <p className="text-sm m-0" style={{ color: "#AEB9C9" }}>
-              No credit card needed. $125/year, custom address included.
-            </p>
-          </div>
-
-          {/* Right side — mock phone UI */}
-          <div style={{ flex: "1 1 300px", minHeight: 340 }} className="flex items-center justify-center">
-            <div className="rounded-3xl overflow-hidden shadow-2xl"
-              style={{ width: 290, background: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)" }}>
-              <div className="bg-forest px-4 py-3">
-                <span className="text-white font-bold text-sm">Troop 999 · Plano</span>
-              </div>
-              <div className="p-4 flex flex-col gap-3">
-                <div className="rounded-xl p-3 flex flex-col gap-1" style={{ background: "#FFF6D6", border: "1px solid #F0DA8C" }}>
-                  <span className="font-bold text-[13px] text-orange-dark">ACTION NEEDED</span>
-                  <span className="font-bold text-[16px]" style={{ color: "#101B2D" }}>Pay for Caprock Campout</span>
-                  <span className="text-[13px] text-smoke">$45.00 due Oct 20</span>
-                  <button className="mt-1 min-h-[36px] rounded-full font-bold text-[13px]"
-                    style={{ background: "#F5B700", color: "#101B2D", border: "none", fontFamily: "inherit" }}>
-                    Pay now
-                  </button>
-                </div>
-                {[
-                  { mon: "OCT", day: "22", title: "Troop Meeting", sub: "7 PM · Charter Org" },
-                  { mon: "OCT", day: "23", title: "Caprock Campout", sub: "Oct 23–25 · 3 days" },
-                  { mon: "NOV", day: "7", title: "Service Project", sub: "9 AM · Food bank" },
-                ].map((ev) => (
-                  <div key={ev.day + ev.title} className="flex gap-3 items-start">
-                    <div className="flex flex-col items-center w-10 flex-none">
-                      <span className="text-[10px] font-bold text-smoke">{ev.mon}</span>
-                      <span className="font-display font-extrabold text-[22px] leading-none" style={{ color: "#101B2D" }}>{ev.day}</span>
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-bold text-[14px]" style={{ color: "#101B2D" }}>{ev.title}</span>
-                      <span className="text-[12px] text-smoke">{ev.sub}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Stat bar */}
-        <div style={{ background: "rgba(0,0,0,0.25)", borderTop: "1px solid rgba(255,255,255,0.12)" }}>
-          <div className="max-w-5xl mx-auto px-5 py-5 flex flex-wrap gap-x-10 gap-y-4">
-            {[
-              ["Installs", "no app store needed"],
-              ["$125/yr", "flat — no per-seat fees"],
-              ["30 days", "free to start"],
-              ["Card or cash", "your troop decides"],
-            ].map(([n, label]) => (
-              <div key={n} className="flex items-baseline gap-2">
-                <span className="font-display font-extrabold text-[28px] leading-none" style={{ color: "#F5B700" }}>{n}</span>
-                <span className="text-[15px]" style={{ color: "#D7E0EE" }}>{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Features ── */}
-      <section id="features" className="max-w-5xl mx-auto px-5 py-20 flex flex-col gap-10">
-        <div className="flex flex-col gap-2">
-          <span className="font-bold text-sm tracking-widest uppercase text-forest">Everything you need</span>
-          <h2 className="font-display font-extrabold text-[38px] leading-tight m-0">
-            Less admin. More Scouting.
-          </h2>
-          <p className="text-[18px] text-smoke max-w-xl m-0">
-            We built every feature around one question: what would make a Scoutmaster's Thursday night easier?
+      <section className="max-w-6xl mx-auto px-5 pt-14 pb-16 flex flex-wrap gap-12 items-center">
+        <div className="flex flex-col gap-6" style={{ flex: "1 1 440px" }}>
+          <span className="text-[13px] font-bold uppercase tracking-[0.14em] text-forest">For Scouts BSA troops</span>
+          <h1 className="font-display font-extrabold leading-[1.02] m-0" style={{ fontSize: "clamp(42px, 6vw, 66px)" }}>
+            Less paperwork.<br /><span className="text-forest">More Scouting.</span>
+          </h1>
+          <p className="text-[19px] leading-relaxed text-smoke m-0 max-w-[520px]">
+            One place for sign-ups, payments, health form status, advancement and messages. A real dashboard for leaders at the computer, and a simple page parents finish on their phone in a minute.
           </p>
-        </div>
-        <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(290px,1fr))" }}>
-          {FEATURES.map((f) => (
-            <div key={f.title} className="bg-white border border-border rounded-2xl p-5 flex flex-col gap-3">
-              <span className="text-forest">{f.icon}</span>
-              <span className="font-bold text-[18px]">{f.title}</span>
-              <span className="text-smoke text-[15px] leading-relaxed">{f.body}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── How it works ── */}
-      <section id="how" style={{ background: "#EEE8D9" }}>
-        <div className="max-w-5xl mx-auto px-5 py-20 flex flex-col gap-10">
-          <div className="flex flex-col gap-2">
-            <span className="font-bold text-sm tracking-widest uppercase text-forest">Setup in minutes</span>
-            <h2 className="font-display font-extrabold text-[38px] leading-tight m-0">
-              Quick, easy setup.
-            </h2>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/login?next=/setup" className="min-h-[54px] px-8 rounded-full font-bold text-[17px] flex items-center no-underline" style={{ background: "#F5B700", color: "#101B2D" }}>Start your free 30 days</Link>
+            <Link href="/demo/tour" className="min-h-[54px] px-7 rounded-full font-bold text-[17px] flex items-center no-underline text-forest" style={{ border: "2px solid #12355F" }}>See it in action</Link>
           </div>
-          <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
-            {[
-              { n: "1", title: "Create your troop", body: "Enter your troop number and city. Cub Scout packs and Venturing crews are coming next." },
-              { n: "2", title: "Get your public page", body: "Your troop page goes live at its own address so new families can find you and ask to join." },
-              { n: "3", title: "Import from Scoutbook", body: "Upload your Scoutbook export and your full roster comes with you. Or start fresh and add families as they join." },
-              { n: "4", title: "Invite your families", body: "Share your join link. Parents create an account with email and password or Google. Nothing to download." },
-            ].map((s) => (
-              <div key={s.n} className="flex flex-col gap-3">
-                <div className="w-12 h-12 rounded-full bg-forest text-white flex items-center justify-center font-display font-extrabold text-[22px] flex-none">
-                  {s.n}
-                </div>
-                <span className="font-bold text-[18px]">{s.title}</span>
-                <span className="text-smoke text-[15px] leading-relaxed">{s.body}</span>
-              </div>
-            ))}
-          </div>
+          <span className="text-[14px] text-smoke">No credit card needed. $125 a year after that, for the whole troop.</span>
         </div>
-      </section>
 
-      {/* ── Comparison ── */}
-      <section id="compare" className="max-w-5xl mx-auto px-5 py-20 flex flex-col gap-8">
-        <div className="flex flex-col gap-2">
-          <span className="font-bold text-sm tracking-widest uppercase text-forest">Compare</span>
-          <h2 className="font-display font-extrabold text-[38px] leading-tight m-0">
-            Switching from TroopWebHost?<br />Here is what changes.
-          </h2>
-        </div>
-        <div className="overflow-x-auto rounded-2xl border border-border">
-          <table className="w-full border-collapse bg-white" style={{ minWidth: 500 }}>
-            <thead>
-              <tr style={{ background: "#101B2D", color: "#FFFFFF" }}>
-                {COMPARISON[0].map((h, i) => (
-                  <th key={h} className="text-left p-4 font-bold text-[15px]"
-                    style={{ borderRight: i < 2 ? "1px solid rgba(255,255,255,0.1)" : "none" }}>
-                    {i === 1 ? (
-                      <span className="flex items-center gap-2">
-                        {h}
-                        <span className="inline-flex items-center h-5 px-2 rounded-full text-[11px] font-bold"
-                          style={{ background: "#F5B700", color: "#101B2D" }}>
-                          us
-                        </span>
-                      </span>
-                    ) : h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {COMPARISON.slice(1).map((row, ri) => (
-                <tr key={row[0]}
-                  style={{ borderBottom: "1px solid #EAE4D6", background: ri % 2 === 0 ? "#FFFFFF" : "#F8F5EE" }}>
-                  {row.map((cell, ci) => (
-                    <td key={ci} className="p-4 text-[15px]"
-                      style={{ borderRight: ci < 2 ? "1px solid #EAE4D6" : "none",
-                        fontWeight: ci === 0 ? 600 : 400,
-                        color: ci === 1 ? "#12355F" : ci === 2 ? "#4B5568" : "#101B2D" }}>
-                      {ci === 1 && cell.startsWith("Yes")
-                        ? <span className="flex items-center gap-1.5">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#12355F" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-                            {cell}
-                          </span>
-                        : cell}
-                    </td>
-                  ))}
-                </tr>
+        <div className="rounded-[20px] overflow-hidden bg-white" style={{ flex: "1 1 460px", ...HERO_SHADOW }} aria-label="Example of the leader dashboard" role="img">
+          <div className="bg-forest px-4 h-11 flex items-center gap-2">
+            <span className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-extrabold" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
+            <span className="text-white text-[13px] font-bold">Troop 999 · Leader tools</span>
+          </div>
+          <div className="flex">
+            <div className="hidden sm:flex flex-col gap-1 p-3 w-32 bg-forest-deep">
+              {["Overview", "People", "Calendar", "Advancement", "Safety", "Money"].map((l, i) => (
+                <span key={l} className="text-[12px] px-2 py-1.5 rounded-md" style={i === 2 ? { background: "#12355F", color: "#fff", fontWeight: 700, boxShadow: "inset 2px 0 0 #F5B700" } : { color: "#D7E0EE" }}>{l}</span>
               ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="text-[13px] text-smoke m-0">
-          *TroopWebHost details are from its public help pages and unit-leader forum posts, October 2026. Prices change, so confirm with each provider. Spot something out of date? Tell us and we will fix it.
-        </p>
-        <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(290px,1fr))" }}>
-          {ONLY_HERE.map(([t, b]) => (
-            <div key={t} className="bg-white border border-border rounded-2xl p-5 flex flex-col gap-2">
-              <span className="font-bold text-[17px]">{t}</span>
-              <span className="text-smoke text-[15px] leading-relaxed">{b}</span>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Pricing ── */}
-      <section id="pricing" style={{ background: "#EEE8D9" }}>
-        <div className="max-w-5xl mx-auto px-5 py-20 flex flex-col gap-10">
-          <div className="flex flex-col gap-2">
-            <span className="font-bold text-sm tracking-widest uppercase text-forest">Simple pricing</span>
-            <h2 className="font-display font-extrabold text-[38px] leading-tight m-0">
-              One price. Everything included.
-            </h2>
-          </div>
-          <div className="flex flex-wrap gap-5 items-start">
-            {/* Main plan */}
-            <div className="rounded-3xl p-8 flex flex-col gap-5 shadow-lg" style={{ flex: "1 1 300px", maxWidth: 440, background: "#101B2D", color: "#FFFFFF" }}>
-              <div>
-                <span className="font-bold text-sm tracking-widest uppercase" style={{ color: "#AEB9C9" }}>ScoutPlatform</span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="font-display font-extrabold text-[56px] leading-none">$125</span>
-                  <span className="text-[18px]" style={{ color: "#AEB9C9" }}>/year</span>
-                </div>
-                <span className="text-[15px]" style={{ color: "#AEB9C9" }}>~$10/month · billed annually</span>
+            <div className="flex-1 p-4 flex flex-col gap-3" style={{ background: "#E9E3D6" }}>
+              <div className="rounded-xl p-3.5 text-white" style={{ background: "#12355F" }}>
+                <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>Next up · Fri, Oct 23</div>
+                <div className="font-display font-extrabold text-[17px]">Caprock Canyons campout</div>
+                <div className="text-[12px]" style={{ color: "#D7E0EE" }}>24 going · 7 haven&apos;t answered · 2-deep covered</div>
               </div>
-              <ul className="flex flex-col gap-2 m-0 p-0 list-none">
-                {["Unlimited members","RSVP + attendance tracking","Online payments via Stripe","Forms tracker","Email and text messaging","Scoutbook import and export","Public troop page","Mobile-installable PWA"].map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-[15px]">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5B700" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/setup"
-                className="min-h-[52px] rounded-full font-bold text-[17px] flex items-center justify-center no-underline mt-2"
-                style={{ background: "#F5B700", color: "#101B2D" }}>
-                Start free — 30 days
-              </Link>
-            </div>
-
-            {/* Notes */}
-            <div className="flex flex-col gap-4" style={{ flex: "1 1 240px", paddingTop: 8 }}>
-              {[
-                { icon: "🏦", title: "Troop money is separate", body: "Payments collected for events go into your troop's Stripe account, not ours. We never touch your troop's money." },
-                { icon: "👨‍👩‍👧", title: "Free for families", body: "Only the troop pays the subscription. Every parent and Scout in your troop uses the app at no charge." },
-                { icon: "📦", title: "No contracts", body: "Pay year-to-year. Cancel any time and your data exports cleanly." },
-              ].map((n) => (
-                <div key={n.title} className="flex gap-3">
-                  <span className="text-2xl flex-none">{n.icon}</span>
-                  <div className="flex flex-col gap-1">
-                    <span className="font-bold text-[16px]">{n.title}</span>
-                    <span className="text-[14px] text-smoke leading-relaxed">{n.body}</span>
+              <div className="grid grid-cols-3 gap-2">
+                {[["4", "forms missing"], ["$135", "still owed"], ["3", "sign-offs waiting"]].map(([n, l]) => (
+                  <div key={l} className="bg-white rounded-xl p-2.5" style={FLOAT}>
+                    <div className="font-display font-extrabold text-[18px]">{n}</div>
+                    <div className="text-[11px] text-smoke">{l}</div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <div className="bg-white rounded-xl overflow-hidden" style={FLOAT}>
+                {[["Jake G.", "Eagles", "On file", "Paid"], ["Ethan B.", "Eagles", "Needed", "Owes $45"], ["Priya S.", "Hawks", "On file", "Paid"]].map(([n, p, f, m]) => (
+                  <div key={n} className="flex items-center gap-2 px-3 py-2 text-[12px] border-b border-[#EAE4D6] last:border-0">
+                    <span className="font-bold flex-1">{n}</span><span className="text-smoke w-14">{p}</span>
+                    <span className="px-2 py-0.5 rounded-full font-bold" style={f === "Needed" ? { background: "#FFF6D6", color: "#5E4400" } : { background: "#EEE8D9", color: "#12355F" }}>{f}</span>
+                    <span className="px-2 py-0.5 rounded-full font-bold" style={m === "Paid" ? { background: "#EEE8D9", color: "#12355F" } : { background: "#FFF6D6", color: "#5E4400" }}>{m}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Final CTA ── */}
       <section className="bg-forest text-white">
-        <div className="max-w-5xl mx-auto px-5 py-20 flex flex-col items-center text-center gap-6">
-          <svg width="52" height="52" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-            <path d="M18 2 C18 2 14 8 14 13 C14 16 16 17 18 17 C20 17 22 16 22 13 C22 8 18 2 18 2Z" fill="#F5B700"/>
-            <path d="M18 17 C18 17 10 14 7 18 C5 21 7 24 10 23 C12 22 13 20 14 18" fill="#F5B700" opacity=".8"/>
-            <path d="M18 17 C18 17 26 14 29 18 C31 21 29 24 26 23 C24 22 23 20 22 18" fill="#F5B700" opacity=".8"/>
-            <circle cx="18" cy="19" r="2.5" fill="#FFFFFF"/>
-          </svg>
-          <h2 className="font-display font-extrabold leading-tight m-0" style={{ fontSize: "clamp(32px, 5vw, 54px)" }}>
-            Your troop deserves<br />better than a spreadsheet.
-          </h2>
-          <p className="text-[19px] m-0 max-w-xl" style={{ color: "#D7E0EE" }}>
-            Quick, easy setup. First 30 days are free. No credit card.
-          </p>
-          <Link href="/setup"
-            className="min-h-[58px] px-10 rounded-full font-bold text-[19px] flex items-center gap-2 no-underline"
-            style={{ background: "#F5B700", color: "#101B2D" }}>
-            Get started
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </Link>
-          <p className="text-sm m-0" style={{ color: "#AEB9C9" }}>
-            Scouts BSA today · Cub Scout packs and Venturing crews coming
-          </p>
+        <div className="max-w-6xl mx-auto px-5 py-8 grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+          {[["Every message logged", "and copied to parents and leaders"], ["No medical forms stored", "status and expiry only"], ["Money to your troop", "straight into its own bank account"], ["Your data is yours", "download everything any time"]].map(([a, b]) => (
+            <div key={a}><div className="font-display font-extrabold text-[22px]" style={{ color: "#F5B700" }}>{a}</div><div className="text-[15px]" style={{ color: "#D7E0EE" }}>{b}</div></div>
+          ))}
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer style={{ background: "#091A30", color: "#AEB9C9" }}>
-        <div className="max-w-5xl mx-auto px-5 py-8 flex flex-wrap gap-6 items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-forest text-white flex items-center justify-center font-display font-extrabold text-xs">
-              SP
+      <section id="tools" className="max-w-6xl mx-auto px-5 py-20 flex flex-col gap-10">
+        <div className="flex flex-col gap-2 max-w-2xl">
+          <span className="text-[13px] font-bold uppercase tracking-[0.14em] text-forest">Leader power tools</span>
+          <h2 className="font-display font-extrabold text-[40px] leading-tight m-0">Built for a Scoutmaster&apos;s Thursday night.</h2>
+        </div>
+        <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
+          {TOOLS.map((t) => (
+            <div key={t.title} className="bg-white rounded-[20px] p-6 flex flex-col gap-3" style={FLOAT}>
+              <span className="w-11 h-11 rounded-xl flex items-center justify-center text-forest" style={{ background: "#EEE8D9" }}><Icon d={t.icon} /></span>
+              <span className="font-bold text-[19px]">{t.title}</span>
+              <span className="text-[15px] leading-relaxed text-smoke">{t.body}</span>
             </div>
-            <span className="font-bold text-[15px] text-white">ScoutPlatform</span>
+          ))}
+        </div>
+      </section>
+
+      <section id="compare" style={{ background: "#EEE8D9" }}>
+        <div className="max-w-6xl mx-auto px-5 py-20 flex flex-col gap-8">
+          <div className="flex flex-col gap-2 max-w-2xl">
+            <span className="text-[13px] font-bold uppercase tracking-[0.14em] text-forest">Compare</span>
+            <h2 className="font-display font-extrabold text-[40px] leading-tight m-0">Switching from TroopWebHost? Here&apos;s what changes.</h2>
           </div>
-          <div className="flex flex-wrap gap-4 text-sm">
-            <a href="#features" className="hover:text-white no-underline" style={{ color: "#AEB9C9" }}>Features</a>
-            <a href="#pricing" className="hover:text-white no-underline" style={{ color: "#AEB9C9" }}>Pricing</a>
-            <Link href="/login" className="hover:text-white no-underline" style={{ color: "#AEB9C9" }}>Sign in</Link>
-            <Link href="/setup" className="hover:text-white no-underline" style={{ color: "#AEB9C9" }}>Get started</Link>
+          <div className="bg-white rounded-[20px] overflow-x-auto" style={FLOAT}>
+            <table className="w-full border-collapse min-w-[640px]">
+              <thead>
+                <tr>
+                  <th className="text-left p-4 w-[22%]" scope="col"><span className="sr-only">Topic</span></th>
+                  <th className="text-left p-4 text-[15px] font-bold text-white bg-forest" scope="col">ScoutPlatform</th>
+                  <th className="text-left p-4 text-[15px] font-bold" scope="col">TroopWebHost</th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARE.map(([k, us, them]) => (
+                  <tr key={k} className="border-t border-[#EAE4D6]">
+                    <th scope="row" className="text-left p-4 text-[15px] font-bold align-top">{k}</th>
+                    <td className="p-4 text-[15px] align-top" style={{ background: "#F8F5EE" }}>{us}</td>
+                    <td className="p-4 text-[15px] text-smoke align-top">{them}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <span className="text-sm">
-            Not affiliated with Scouting America.
-          </span>
+          <p className="text-[13px] text-smoke m-0">*From TroopWebHost&apos;s public help pages and unit-leader forum posts, October 2026. Plenty of leaders like TroopWebHost and its support; confirm current details with them. Spot something out of date? Tell us and we&apos;ll fix it.</p>
+        </div>
+      </section>
+
+      <section id="pricing" className="max-w-6xl mx-auto px-5 py-20 flex flex-wrap gap-10 items-center">
+        <div className="rounded-[24px] p-9 flex flex-col gap-5 text-white" style={{ flex: "1 1 360px", maxWidth: 460, background: "#12355F", ...HERO_SHADOW }}>
+          <span className="text-[13px] font-bold uppercase tracking-[0.14em]" style={{ color: "#D7E0EE" }}>One troop, one price</span>
+          <div className="flex items-baseline gap-2"><span className="font-display font-extrabold text-[64px] leading-none">$125</span><span className="text-[18px]" style={{ color: "#D7E0EE" }}>a year</span></div>
+          <ul className="m-0 p-0 list-none flex flex-col gap-2 text-[15px]">
+            {["Unlimited members, families always free", "Payments, messaging, advancement and forms", "Your troop's own web address", "Download all your data any time", "First 30 days free, no credit card"].map((x) => (
+              <li key={x} className="flex gap-2 items-start"><span style={{ color: "#F5B700" }} aria-hidden="true">✓</span>{x}</li>
+            ))}
+          </ul>
+          <Link href="/login?next=/setup" className="min-h-[54px] rounded-full font-bold text-[17px] flex items-center justify-center no-underline" style={{ background: "#F5B700", color: "#101B2D" }}>Start your free 30 days</Link>
+        </div>
+        <div className="flex flex-col gap-5" style={{ flex: "1 1 360px" }}>
+          <h2 className="font-display font-extrabold text-[36px] leading-tight m-0">Built to earn a volunteer&apos;s trust.</h2>
+          {[
+            ["No ads, no selling data", "This holds children's information. It's never for sale."],
+            ["Troop money stays with the troop", "Card payments land in the troop's own Stripe account, never ours."],
+            ["Real people answer", "Questions get a reply within 24 to 48 business hours."],
+          ].map(([a, b]) => (
+            <div key={a} className="flex flex-col gap-1"><span className="font-bold text-[17px]">{a}</span><span className="text-[15px] text-smoke">{b}</span></div>
+          ))}
+        </div>
+      </section>
+
+      <section className="max-w-6xl mx-auto px-5 pb-20">
+        <div className="bg-white rounded-[24px] p-8 md:p-10 flex flex-wrap gap-6 items-center" style={FLOAT}>
+          <div className="flex flex-col gap-2" style={{ flex: "1 1 420px" }}>
+            <h2 className="font-display font-extrabold text-[30px] leading-tight m-0">Bring your troop over by file.</h2>
+            <p className="text-[16px] text-smoke m-0">Upload your Scoutbook roster and advancement exports, or any roster spreadsheet. You see a preview before anything is saved, and an import can be undone. Run both systems side by side until you&apos;re ready.</p>
+          </div>
+          <Link href="/login?next=/setup" className="min-h-[54px] px-8 rounded-full font-bold text-[17px] flex items-center no-underline" style={{ background: "#F5B700", color: "#101B2D" }}>Set up your troop</Link>
+        </div>
+      </section>
+
+      <footer style={{ background: "#091A30", color: "#AEB9C9" }}>
+        <div className="max-w-6xl mx-auto px-5 py-8 flex flex-wrap gap-6 items-center justify-between text-[14px]">
+          <span className="font-bold text-white">ScoutPlatform</span>
+          <div className="flex gap-5 flex-wrap">
+            <a href="#tools" className="no-underline" style={{ color: "#AEB9C9" }}>Features</a>
+            <a href="#pricing" className="no-underline" style={{ color: "#AEB9C9" }}>Pricing</a>
+            <Link href="/login" className="no-underline" style={{ color: "#AEB9C9" }}>Sign in</Link>
+          </div>
+          <span>Not affiliated with Scouting America.</span>
         </div>
       </footer>
     </div>
