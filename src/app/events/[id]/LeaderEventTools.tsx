@@ -41,6 +41,7 @@ export default function LeaderEventTools({ eventId, canceled, ratioOk, adults, t
         <Link href={`/messages/new?audience=event&ref=${eventId}`} className="text-forest min-h-[44px] flex items-center">Message who&apos;s going</Link>
         <a href={`/api/events/${eventId}/roster.csv`} className="text-forest min-h-[44px] flex items-center">Download roster</a>
         <Link href={`/events/${eventId}/edit`} className="text-forest min-h-[44px] flex items-center">Edit event</Link>
+        <Link href={`/events/new?copy=${eventId}`} className="text-forest min-h-[44px] flex items-center">Copy this event</Link>
         {!canceled && (confirming
           ? <button className="btn-primary" onClick={cancel}>Yes, cancel and credit everyone</button>
           : <button className="bg-transparent border-0 p-0 cursor-pointer font-sans font-bold text-[14px] min-h-[44px] ml-auto" style={{ color: "#A52A1C" }} onClick={() => setConfirming(true)}>Cancel event</button>)}
