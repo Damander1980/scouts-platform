@@ -30,10 +30,10 @@ export default function GearClient({ orgId, items, outs, people, docs }: { orgId
       <div><h1 className="font-display font-extrabold text-[28px] m-0">Gear & documents</h1>
         <p className="text-[14px] text-smoke m-0 mt-1">Who has which tent, and the unit&apos;s file cabinet.</p></div>
       <ErrorBox>{error}</ErrorBox>
-      <div className="flex gap-2">
+      <div role="tablist" className="flex gap-6 overflow-x-auto border-b-2 border-[#DDD6C5]">
         {(["gear", "docs"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: tab === t ? "#12355F" : "white", color: tab === t ? "white" : "#4B5568", borderColor: tab === t ? "#12355F" : "#DDD6C5" }}>
+          <button key={t} onClick={() => setTab(t)} role="tab" aria-selected={tab === t} className="min-h-[44px] -mb-[2px] px-0.5 bg-transparent border-0 border-b-[3px] cursor-pointer font-sans text-[15px] whitespace-nowrap"
+            style={{ borderColor: tab === t ? "#F5B700" : "transparent", color: tab === t ? "#101B2D" : "#4B5568", fontWeight: tab === t ? 700 : 500 }}>
             {t === "gear" ? `Gear (${outs.length} out)` : "Documents"}</button>
         ))}
       </div>

@@ -66,10 +66,10 @@ export default function SiteEditor({ orgId, slug, isAdmin, site: initial, settin
       {ok && <div className="card font-bold" style={{ background: "#EEE8D9" }}>{ok}</div>}
       {!isAdmin && <div className="card">Only unit admins can change the public page. You can manage photos and answer messages.</div>}
 
-      <div className="flex gap-2">
+      <div role="tablist" className="flex gap-6 overflow-x-auto border-b-2 border-[#DDD6C5]">
         {([["page", "Page"], ["photos", "Photos"], ["inbox", `Messages${requests.filter((r) => !r.handled).length ? ` (${requests.filter((r) => !r.handled).length})` : ""}`]] as const).map(([k, l]) => (
-          <button key={k} onClick={() => setTab(k)} className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: tab === k ? "#12355F" : "white", color: tab === k ? "white" : "#4B5568", borderColor: tab === k ? "#12355F" : "#DDD6C5" }}>{l}</button>
+          <button key={k} onClick={() => setTab(k)} role="tab" aria-selected={tab === k} className="min-h-[44px] -mb-[2px] px-0.5 bg-transparent border-0 border-b-[3px] cursor-pointer font-sans text-[15px] whitespace-nowrap"
+            style={{ borderColor: tab === k ? "#F5B700" : "transparent", color: tab === k ? "#101B2D" : "#4B5568", fontWeight: tab === k ? 700 : 500 }}>{l}</button>
         ))}
       </div>
 

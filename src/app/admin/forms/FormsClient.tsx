@@ -81,10 +81,10 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
       {!canMark && <div className="card">Only designated leaders can record forms. Ask a unit admin to make you one.</div>}
       <ErrorBox>{error}</ErrorBox>
 
-      <div className="flex gap-2 flex-wrap items-center">
+      <div role="tablist" className="flex gap-6 overflow-x-auto border-b-2 border-[#DDD6C5] items-center">
         {(["forms", "certs"] as const).map((v) => (
-          <button key={v} onClick={() => setView(v)} className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: view === v ? "#12355F" : "white", color: view === v ? "white" : "#4B5568", borderColor: view === v ? "#12355F" : "#DDD6C5" }}>
+          <button key={v} onClick={() => setView(v)} role="tab" aria-selected={view === v} className="min-h-[44px] -mb-[2px] px-0.5 bg-transparent border-0 border-b-[3px] cursor-pointer font-sans text-[15px] whitespace-nowrap"
+            style={{ borderColor: view === v ? "#F5B700" : "transparent", color: view === v ? "#101B2D" : "#4B5568", fontWeight: view === v ? 700 : 500 }}>
             {v === "forms" ? "Health & permission" : "Skill cards"}
           </button>
         ))}
