@@ -9,6 +9,12 @@ Build order (Floyd, 2026-10-19): **PC web platform first, then the app, iOS last
 
 ## Needs Floyd
 
+### Before pitching Troop 999 (research 2026-10-21)
+- [ ] **Host it** (Vercel login) and add Stripe/Resend keys: leaders can't evaluate a site that only runs on this PC, or a pay button that can't pay.
+- [ ] Decide trial terms: landing page says 30 days free, SPEC says free first year for pilot troops.
+- [ ] Get a real TroopWebHost export from a Troop 999 admin (roster Excel/CSV, and the Internet Advancement file from Advancement > Recognize recent achievements). Column names are unverified, so the importer may need tuning. Biggest switching blocker.
+- [ ] Rival Troop Campfire advertises automatic two-way Scoutbook sync (ScoutSmarts, affiliate site, unverified). We say file-only. Ask a council whether that is true before leaders raise it.
+
 ### Push / deploy
 - [x] Migrations 0036-0041 pushed and all code pushed to GitHub.
 - [ ] **The site is not hosted anywhere yet.** The repo has no Vercel deployments.

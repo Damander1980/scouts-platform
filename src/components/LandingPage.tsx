@@ -60,16 +60,24 @@ const FEATURES = [
   },
 ];
 
+// Only claims we can source. TroopWebHost facts come from its public help pages and
+// unit-leader forum posts (Oct 2026); re-check before changing.
 const COMPARISON = [
-  ["Feature", "ScoutPlatform", "TroopWebHost"],
-  ["RSVP + attendance", "Yes", "Yes"],
-  ["Card payments", "Yes — Stripe", "Extra add-on"],
-  ["Mobile-friendly", "Yes — installable app", "Partial"],
-  ["Two-deep YPT tracker", "Built in", "Manual"],
-  ["Forms tracker", "Yes", "Basic"],
-  ["Text messaging", "Yes — built in", "Extra charge"],
-  ["Scoutbook import", "Yes", "No"],
-  ["Price", "$125 / year flat", "$144 – $216 / year"],
+  ["", "ScoutPlatform", "TroopWebHost"],
+  ["Price", "$125 / year flat, custom address included", "$109 / year, plus about $25 for a custom domain*"],
+  ["Built for phones", "Phone-first, installs to the home screen", "Leaders describe the app as slow to load and the site as dated"],
+  ["Scoutbook", "Imports Scoutbook exports; Scoutbook-ready advancement files out", "Imports Scoutbook exports; exports an Internet Advancement file"],
+  ["Linked troops (boy/girl, troop + pack)", "Shared calendar", "Yes"],
+  ["Your data", "One-click download of everything", "Export tools per area"],
+];
+
+const ONLY_HERE = [
+  ["Every message to a Scout is logged and copied", "Tamper-proof log; parents and designated leaders are always copied. No private one-on-one threads."],
+  ["Health forms without storing them", "Leaders mark Parts A, B and C received with an expiry date. The form itself never gets uploaded, as council guidance asks."],
+  ["Youth Protection lockout", "A leader whose YPT has lapsed loses access to private kid data until it is renewed."],
+  ["Sign up and pay in one flow", "RSVP, permission slip and Stripe payment from one link. Money goes straight to your troop's own account."],
+  ["Works at the campsite", "The printable trip sheet and attendance open offline."],
+  ["Troop-run extras", "QR check-in, calendar feed to Google and Apple, Court of Honor planner, recharter checklist, adult skills inventory, discussion boards."],
 ];
 
 export default function LandingPage() {
@@ -88,7 +96,7 @@ export default function LandingPage() {
             <span className="font-display font-extrabold text-[20px]">ScoutPlatform</span>
           </div>
           <nav className="hidden md:flex items-center gap-1">
-            {[["#features","Features"],["#how","How it works"],["#pricing","Pricing"]].map(([href, label]) => (
+            {[["#features","Features"],["#how","How it works"],["#compare","Compare"],["#pricing","Pricing"]].map(([href, label]) => (
               <a key={href} href={href}
                 className="text-white font-bold text-[15px] no-underline hover:underline min-h-[44px] flex items-center px-2">
                 {label}
@@ -168,7 +176,7 @@ export default function LandingPage() {
               </a>
             </div>
             <p className="text-sm m-0" style={{ color: "#9DB0A7" }}>
-              No credit card needed. $125/year after trial — less than TroopWebHost.
+              No credit card needed. $125/year, custom address included.
             </p>
           </div>
 
@@ -214,7 +222,7 @@ export default function LandingPage() {
         <div style={{ background: "rgba(0,0,0,0.25)", borderTop: "1px solid rgba(255,255,255,0.12)" }}>
           <div className="max-w-5xl mx-auto px-5 py-5 flex flex-wrap gap-x-10 gap-y-4">
             {[
-              ["100%", "built for mobile"],
+              ["Installs", "no app store needed"],
               ["$125/yr", "flat — no per-seat fees"],
               ["30 days", "free to start"],
               ["5 min", "to set up your troop"],
@@ -279,11 +287,11 @@ export default function LandingPage() {
       </section>
 
       {/* ── Comparison ── */}
-      <section className="max-w-5xl mx-auto px-5 py-20 flex flex-col gap-8">
+      <section id="compare" className="max-w-5xl mx-auto px-5 py-20 flex flex-col gap-8">
         <div className="flex flex-col gap-2">
           <span className="font-bold text-sm tracking-widest uppercase text-forest">Compare</span>
           <h2 className="font-display font-extrabold text-[38px] leading-tight m-0">
-            Better than TroopWebHost.<br />At a lower price.
+            Switching from TroopWebHost?<br />Here is what changes.
           </h2>
         </div>
         <div className="overflow-x-auto rounded-2xl border border-border">
@@ -328,6 +336,17 @@ export default function LandingPage() {
             </tbody>
           </table>
         </div>
+        <p className="text-[13px] text-smoke m-0">
+          *TroopWebHost details are from its public help pages and unit-leader forum posts, October 2026. Prices change, so confirm with each provider. Spot something out of date? Tell us and we will fix it.
+        </p>
+        <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(290px,1fr))" }}>
+          {ONLY_HERE.map(([t, b]) => (
+            <div key={t} className="bg-white border border-border rounded-2xl p-5 flex flex-col gap-2">
+              <span className="font-bold text-[17px]">{t}</span>
+              <span className="text-smoke text-[15px] leading-relaxed">{b}</span>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* ── Pricing ── */}
@@ -351,7 +370,7 @@ export default function LandingPage() {
                 <span className="text-[15px]" style={{ color: "#9DB0A7" }}>~$10/month · billed annually</span>
               </div>
               <ul className="flex flex-col gap-2 m-0 p-0 list-none">
-                {["Unlimited members","RSVP + attendance tracking","Online payments via Stripe","Forms tracker","SMS + email messaging","Scoutbook import","Public troop page","Mobile-installable PWA","Priority support"].map((item) => (
+                {["Unlimited members","RSVP + attendance tracking","Online payments via Stripe","Forms tracker","SMS + email messaging","Scoutbook import","Public troop page","Mobile-installable PWA"].map((item) => (
                   <li key={item} className="flex items-center gap-2 text-[15px]">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF6A1A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
                     {item}
