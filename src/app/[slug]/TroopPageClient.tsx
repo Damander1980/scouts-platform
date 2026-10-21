@@ -101,8 +101,8 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
                       {contacts.map((c) => <option key={c.person_id} value={c.person_id}>{c.title}: {c.name}</option>)}
                     </select>
                     <div className="grid sm:grid-cols-2 gap-3">
-                      <input className="input" placeholder="Your name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-                      <input className="input" type="email" placeholder="Your email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                      <input aria-label="Your name" className="input" placeholder="Your name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                      <input aria-label="Your email" className="input" type="email" placeholder="Your email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                     </div>
                     <textarea className="input py-3 min-h-[100px]" placeholder="Your message" required value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
                     {error && <div className="text-[14px] font-bold" style={{ color: "#A52A1C" }}>{error}</div>}

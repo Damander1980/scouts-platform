@@ -24,7 +24,7 @@ export default async function MessageLogPage({ searchParams }: { searchParams: P
     <>
       <PageTitle title="Message log" sub="Every message in the unit, permanent and unedited. Opening this log is itself recorded." />
       {!isAdmin && <div className="card">You see messages you sent or received. Unit admins and designated leaders see the full log.</div>}
-      <form className="flex gap-2"><input name="q" defaultValue={q ?? ""} className="input flex-1" placeholder="Search messages" /><button className="btn-secondary">Search</button></form>
+      <form className="flex gap-2"><input aria-label="Search messages" name="q" defaultValue={q ?? ""} className="input flex-1" placeholder="Search messages" /><button className="btn-secondary">Search</button></form>
       <div className="flex flex-col gap-2">
         {(msgs ?? []).map((m) => {
           const s = m.sender_id ? nameOf[m.sender_id] : null;

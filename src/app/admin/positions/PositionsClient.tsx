@@ -139,7 +139,7 @@ export default function PositionsClient({ orgId, isAdmin, positions, holders, ca
         <section className="card flex flex-col gap-3">
           <b>Add a position</b>
           <div className="flex flex-col md:flex-row gap-2">
-            <input className="input flex-1" placeholder="Title, e.g. Summer Camp Coordinator" maxLength={80}
+            <input aria-label="Title, e.g. Summer Camp Coordinator" className="input flex-1" placeholder="Title, e.g. Summer Camp Coordinator" maxLength={80}
               value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
             <select className="input" value={draft.audience} onChange={(e) => setDraft({ ...draft, audience: e.target.value as "adult" | "youth" })}>
               <option value="adult">For adults</option>

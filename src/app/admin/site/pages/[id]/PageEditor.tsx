@@ -116,22 +116,22 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
                   <button className="btn-ghost" onClick={() => change(blocks.filter((x) => x.id !== b.id))}>Remove</button>
                 </div>
               </div>
-              {b.type === "heading" && <input className="input" value={b.text} onChange={(e) => update(b.id, { text: e.target.value })} placeholder="Heading" />}
+              {b.type === "heading" && <input aria-label="Heading" className="input" value={b.text} onChange={(e) => update(b.id, { text: e.target.value })} placeholder="Heading" />}
               {b.type === "text" && <textarea className="input" rows={5} value={b.text} onChange={(e) => update(b.id, { text: e.target.value })} placeholder="Write here. Use first names only for Scouts, and never share a Scout's school, address, phone or email." />}
               {b.type === "image" && (
                 <div className="flex flex-col gap-2">
                   {b.path && <img src={preview.storageUrl + b.path} alt="" className="max-h-48 rounded-lg self-start" />}
                   <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) run(async () => { const path = await upload(f); update(b.id, { path }); }, "Image uploaded. Save to keep it."); }} />
-                  <input className="input" value={b.caption ?? ""} onChange={(e) => update(b.id, { caption: e.target.value })} placeholder="Caption (optional)" />
+                  <input aria-label="Caption (optional)" className="input" value={b.caption ?? ""} onChange={(e) => update(b.id, { caption: e.target.value })} placeholder="Caption (optional)" />
                   <div className="text-[12px] text-smoke">For photos of Scouts, use a photo album block instead: albums only show photos with a parent&apos;s photo consent.</div>
                 </div>
               )}
               {b.type === "button" && <div className="grid md:grid-cols-2 gap-2">
-                <input className="input" value={b.label} onChange={(e) => update(b.id, { label: e.target.value })} placeholder="Button text" />
-                <input className="input" value={b.href} onChange={(e) => update(b.id, { href: e.target.value })} placeholder="Link (https://… or /page)" />
+                <input aria-label="Button text" className="input" value={b.label} onChange={(e) => update(b.id, { label: e.target.value })} placeholder="Button text" />
+                <input aria-label="Link (https:// or /page)" className="input" value={b.href} onChange={(e) => update(b.id, { href: e.target.value })} placeholder="Link (https://… or /page)" />
               </div>}
-              {b.type === "video" && <input className="input" value={b.url} onChange={(e) => update(b.id, { url: e.target.value })} placeholder="YouTube or Vimeo link" />}
-              {b.type === "map" && <input className="input" value={b.address} onChange={(e) => update(b.id, { address: e.target.value })} placeholder="Meeting place address" />}
+              {b.type === "video" && <input aria-label="YouTube or Vimeo link" className="input" value={b.url} onChange={(e) => update(b.id, { url: e.target.value })} placeholder="YouTube or Vimeo link" />}
+              {b.type === "map" && <input aria-label="Meeting place address" className="input" value={b.address} onChange={(e) => update(b.id, { address: e.target.value })} placeholder="Meeting place address" />}
               {b.type === "album" && (
                 <select className="input" value={b.album_id} onChange={(e) => update(b.id, { album_id: e.target.value })}>
                   <option value="">Pick an album</option>

@@ -52,7 +52,7 @@ export default function LinkedUnits({ orgId, joinCode, links, isAdmin }: { orgId
           const { data, error } = await supabase.rpc("request_unit_link", { p_org: orgId, p_code: code }); if (error) throw error;
           setCode(""); return `Request sent to ${data}. Their admin needs to accept it.`;
         }); }}>
-          <input className="input w-48" placeholder="Their join code" value={code} onChange={(e) => setCode(e.target.value)} required />
+          <input aria-label="Their join code" className="input w-48" placeholder="Their join code" value={code} onChange={(e) => setCode(e.target.value)} required />
           <button className="btn-secondary" disabled={busy}>Ask to link</button>
         </form>
       )}

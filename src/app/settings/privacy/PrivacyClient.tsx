@@ -36,7 +36,7 @@ export default function PrivacyClient({ family, requests }: { family: { id: stri
             <div className="flex flex-col gap-2">
               <p className="text-[14px] m-0">Type <b>DELETE</b> to confirm. This starts the 14-day waiting period.</p>
               <div className="flex gap-2">
-                <input className="input" value={typed[r.id] ?? ""} onChange={(e) => setTyped({ ...typed, [r.id]: e.target.value })} placeholder="DELETE" />
+                <input aria-label="DELETE" className="input" value={typed[r.id] ?? ""} onChange={(e) => setTyped({ ...typed, [r.id]: e.target.value })} placeholder="DELETE" />
                 <button className="btn-primary" disabled={busy || (typed[r.id] ?? "").trim().toUpperCase() !== "DELETE"} onClick={() => run(async () => {
                   const { error } = await supabase.rpc("confirm_deletion", { p_request: r.id }); if (error) throw error;
                 })}>Confirm</button>

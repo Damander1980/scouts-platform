@@ -71,7 +71,7 @@ export default function RsvpPanel({ eventId, costCents, questions, family }: {
             </button>
             {isOpen && (
               <div className="px-4 pb-4 flex flex-col gap-3">
-                <input className="input" placeholder="Food allergies or dietary needs" value={r.dietary}
+                <input aria-label="Food allergies or dietary needs" className="input" placeholder="Food allergies or dietary needs" value={r.dietary}
                   onChange={(e) => update(r.person_id, { dietary: e.target.value })} />
                 {questions.map((q) => (
                   <input key={q} className="input" placeholder={q} value={r.answers[q] ?? ""}
@@ -84,7 +84,7 @@ export default function RsvpPanel({ eventId, costCents, questions, family }: {
                       onChange={(e) => update(r.person_id, { driver_seats: parseInt(e.target.value || "0") || 0 })} />
                   </label>
                 )}
-                <input className="input" placeholder="Anything leaders should know (optional)" value={r.notes}
+                <input aria-label="Anything leaders should know (optional)" className="input" placeholder="Anything leaders should know (optional)" value={r.notes}
                   onChange={(e) => update(r.person_id, { notes: e.target.value })} />
 
                 {confirm?.pid === r.person_id ? (

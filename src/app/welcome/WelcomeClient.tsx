@@ -162,7 +162,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
               <div className="flex flex-col gap-3 mt-3">
                 <p className="text-[13px] text-smoke m-0">Use it if your troop already added your family. You will be linked to your existing record.</p>
                 <div className="flex gap-2">
-                  <input className="input flex-1" value={familyCode} onChange={(e) => setFamilyCode(e.target.value)} placeholder="Claim code" />
+                  <input aria-label="Claim code" className="input flex-1" value={familyCode} onChange={(e) => setFamilyCode(e.target.value)} placeholder="Claim code" />
                   <button type="button" className="btn-secondary" disabled={busy || !familyCode} onClick={() => run(async () => {
                     const { error } = await supabase.rpc("claim_record", { p_code: familyCode });
                     if (error) throw error;
@@ -178,7 +178,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
               <div className="flex flex-col gap-3 mt-3">
                 <p className="text-[13px] text-smoke m-0">Ask them for a family code from their Family page.</p>
                 <div className="flex gap-2">
-                  <input className="input flex-1" value={familyCode} onChange={(e) => setFamilyCode(e.target.value)} placeholder="Family code" />
+                  <input aria-label="Family code" className="input flex-1" value={familyCode} onChange={(e) => setFamilyCode(e.target.value)} placeholder="Family code" />
                   <button type="button" className="btn-secondary" onClick={joinFamily} disabled={busy || !familyCode}>Join</button>
                 </div>
               </div>
@@ -226,7 +226,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
               <form onSubmit={findOrg} className="card flex flex-col gap-3">
                 <div className="font-bold text-[17px]">Join with a code</div>
                 <p className="text-[14px] text-smoke m-0">Your leader can share the troop&apos;s join code or page address.</p>
-                <input className="input" value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. 4f2a9c1e or troop999plano" required />
+                <input aria-label="e.g. 4f2a9c1e or troop999plano" className="input" value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. 4f2a9c1e or troop999plano" required />
                 <button className="btn-primary" disabled={busy}>Find troop</button>
               </form>
             )}

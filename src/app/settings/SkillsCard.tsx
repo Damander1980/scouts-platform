@@ -46,7 +46,7 @@ export default function SkillsCard({ orgId, personId, unitName, initial }: { org
         <input type="checkbox" className="w-5 h-5" checked={drive} onChange={(e) => { setDrive(e.target.checked); setSaved(false); }} />
         I can usually drive to campouts
       </label>
-      <input className="input" placeholder="Anything else (job, hobbies, certifications)" value={other} onChange={(e) => { setOther(e.target.value); setSaved(false); }} />
+      <input aria-label="Anything else (job, hobbies, certifications)" className="input" placeholder="Anything else (job, hobbies, certifications)" value={other} onChange={(e) => { setOther(e.target.value); setSaved(false); }} />
       <ErrorBox>{error}</ErrorBox>
       <div className="flex items-center gap-3">
         <button className="btn-primary" disabled={busy} onClick={save}>Save</button>

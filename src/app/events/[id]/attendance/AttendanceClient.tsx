@@ -93,7 +93,7 @@ export default function AttendanceClient({ orgId, eventId, people, initial, chec
         {goingIds.length > 0 && <button className="btn-primary" onClick={() => mark(goingIds, true)}>Mark {goingIds.length} who RSVP&apos;d yes</button>}
         {selfChecked.length > 0 && <button className="btn-secondary" onClick={() => mark(selfChecked.map((p) => p.id), true)}>Confirm {selfChecked.length} self check-ins</button>}
         <button className="btn-ghost" onClick={() => setShowQr(!showQr)}>{showQr ? "Hide QR" : "Show check-in QR"}</button>
-        <input className="input flex-1 min-w-[160px]" placeholder="Find name or patrol" value={filter} onChange={(e) => setFilter(e.target.value)} />
+        <input aria-label="Find name or patrol" className="input flex-1 min-w-[160px]" placeholder="Find name or patrol" value={filter} onChange={(e) => setFilter(e.target.value)} />
       </div>
 
       {showQr && qr && (

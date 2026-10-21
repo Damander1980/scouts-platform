@@ -64,7 +64,7 @@ export default function GiveClient({ campaign: c, thanks, booth, source }: { cam
                 <button key={a} onClick={() => { setAmount(a); setCustom(""); }} className="min-h-[52px] rounded-xl border-2 font-bold text-[17px] cursor-pointer font-sans"
                   style={{ borderColor: !custom && amount === a ? "#12355F" : "#DDD6C5", background: !custom && amount === a ? "#EEE8D9" : "white" }}>{money(a).replace(".00", "")}</button>
               ))}
-              <input className="input text-center" placeholder="Other" inputMode="decimal" value={custom} onChange={(e) => setCustom(e.target.value)} />
+              <input aria-label="Other" className="input text-center" placeholder="Other" inputMode="decimal" value={custom} onChange={(e) => setCustom(e.target.value)} />
             </div>
             <div className="text-[13px] text-smoke">Giving online adds a card fee ({money(coverFee(gift))}) so {c.org_name} receives your full gift: total <b>{money(gift + coverFee(gift))}</b>. Prefer no fee? Hand your gift to a leader in person.</div>
             {error && <div className="text-[14px] font-bold" style={{ color: "#A52A1C" }}>{error}</div>}

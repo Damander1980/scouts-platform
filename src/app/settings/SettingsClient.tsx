@@ -84,7 +84,7 @@ export default function SettingsClient({ person, email, prefs, weekCount }: {
         <label className="flex items-center gap-3 text-[15px]"><input type="checkbox" className="w-5 h-5" checked={p.sms_on} onChange={() => toggle("sms_on")} /> Text messages</label>
         {p.sms_on && (
           <div className="flex flex-col gap-2 pl-8">
-            <input className="input" type="tel" placeholder="Mobile number" value={p.sms_phone ?? ""} onChange={(e) => setP({ ...p, sms_phone: e.target.value })} />
+            <input aria-label="Mobile number" className="input" type="tel" placeholder="Mobile number" value={p.sms_phone ?? ""} onChange={(e) => setP({ ...p, sms_phone: e.target.value })} />
             {p.sms_consent_at ? (
               <div className="text-[13px] text-smoke">You agreed to texts on {new Date(p.sms_consent_at).toLocaleDateString()}. Turn off anytime, or reply STOP.</div>
             ) : (

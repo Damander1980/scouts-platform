@@ -49,7 +49,7 @@ export default function GearClient({ orgId, items, outs, people, docs }: { orgId
             <Field label="Tag / number"><input className="input w-28" value={f.tag} onChange={(e) => setF({ ...f, tag: e.target.value })} placeholder="T-07" /></Field>
             <button className="btn-primary" disabled={busy}>Add</button>
           </form>
-          <input className="input" placeholder="Find gear" value={q} onChange={(e) => setQ(e.target.value)} />
+          <input aria-label="Find gear" className="input" placeholder="Find gear" value={q} onChange={(e) => setQ(e.target.value)} />
           <div className="flex flex-col gap-2">
             {items.filter((i) => !q || `${i.name} ${i.tag ?? ""} ${i.category ?? ""}`.toLowerCase().includes(q.toLowerCase())).map((i) => {
               const o = outFor(i.id);

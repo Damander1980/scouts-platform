@@ -389,8 +389,8 @@ function Fundraisers(p: Parameters<typeof MoneyClient>[0] & { busy: boolean; run
                 if (error) throw error; setSale({ fid: fr.id, scout: sale.scout, amount: "", customer: "" });
               }, "Sale recorded."); }}>
                 <select className="input" value={sale.scout} onChange={(e) => setSale({ ...sale, scout: e.target.value })}><option value="">Unit sale (no Scout)</option>{p.scouts.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
-                <input className="input w-28" placeholder="$" inputMode="decimal" value={sale.amount} onChange={(e) => setSale({ ...sale, amount: e.target.value })} required />
-                <input className="input" placeholder="Customer (optional)" value={sale.customer} onChange={(e) => setSale({ ...sale, customer: e.target.value })} />
+                <input aria-label="$" className="input w-28" placeholder="$" inputMode="decimal" value={sale.amount} onChange={(e) => setSale({ ...sale, amount: e.target.value })} required />
+                <input aria-label="Customer (optional)" className="input" placeholder="Customer (optional)" value={sale.customer} onChange={(e) => setSale({ ...sale, customer: e.target.value })} />
                 <button className="btn-primary" disabled={p.busy}>Add sale</button>
               </form>
             ) : <button className="btn-secondary self-start" onClick={() => setSale({ fid: fr.id, scout: "", amount: "", customer: "" })}>Record sales</button>}

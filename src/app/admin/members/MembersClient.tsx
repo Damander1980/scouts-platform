@@ -289,7 +289,7 @@ export default function MembersClient({
                       {m.role === "merit_badge_counselor" && (
                         <div className="md:col-span-2 flex flex-col gap-2">
                           <div className="font-bold text-[14px]">Badges this counselor may sign off</div>
-                          <input value={badgeSearch} onChange={(e) => setBadgeSearch(e.target.value)} placeholder="Search badges" className="input" />
+                          <input aria-label="Search badges" value={badgeSearch} onChange={(e) => setBadgeSearch(e.target.value)} placeholder="Search badges" className="input" />
                           <div className="max-h-56 overflow-y-auto grid sm:grid-cols-2">
                             {badges.filter((b) => !badgeSearch || b.name.toLowerCase().includes(badgeSearch.toLowerCase())).map((b) => (
                               <label key={b.id} className="flex items-center gap-2 py-1 text-[13px]">
