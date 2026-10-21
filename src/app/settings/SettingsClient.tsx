@@ -63,9 +63,10 @@ export default function SettingsClient({ person, email, prefs, weekCount }: {
   const toggle = (k: keyof Prefs) => setP({ ...p, [k]: !p[k] });
 
   return (
-    <div className="flex flex-col gap-4 max-w-xl">
+    <div className="flex flex-col gap-5">
       <ErrorBox>{error}</ErrorBox>
       {saved && <div className="card font-bold" style={{ background: "#EEE8D9" }}>{saved}</div>}
+      <div className="grid gap-5 lg:grid-cols-2 items-start">
 
       <section className="card flex flex-col gap-3">
         <div className="font-bold text-[16px]">You</div>
@@ -120,10 +121,13 @@ export default function SettingsClient({ person, email, prefs, weekCount }: {
           </select>
         </Field>
       </section>
+      </div>
 
-      <button className="btn-primary" onClick={save}>Save settings</button>
+      <div className="flex gap-3 flex-wrap items-center">
+      <button className="btn-primary px-10" onClick={save}>Save settings</button>
       <a href="/settings/privacy" className="btn-secondary no-underline">Privacy & data (request deletion)</a>
       <button className="btn-ghost" onClick={async () => { navigator.serviceWorker?.controller?.postMessage("clear-private"); await supabase.auth.signOut(); window.location.href = "/login"; }}>Sign out</button>
+      </div>
     </div>
   );
 }
