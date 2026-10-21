@@ -33,7 +33,7 @@ export default async function SitePage({ params }: { params: Promise<{ slug: str
   const storageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site/`;
 
   return (
-    <div className="min-h-screen bg-paper text-ink">
+    <div className="min-h-screen bg-canvas text-ink">
       <header style={{ background: brand }} className="text-white">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link href={`/${org.slug}`} className="text-white no-underline font-display font-extrabold text-[20px]">{org.name}</Link>

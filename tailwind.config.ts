@@ -14,6 +14,7 @@ const config: Config = {
         orange: "#F5B700",
         mist: "#EEE8D9",
         paper: "#F8F5EE",
+        canvas: "#E9E3D6",
         sage: "#AEB9C9",
         smoke: "#4B5568",
         border: "#DDD6C5",

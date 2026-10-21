@@ -6,7 +6,7 @@
 
 @layer base {
   body {
-    @apply bg-paper text-ink font-sans;
+    @apply bg-canvas text-ink font-sans;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -28,7 +28,8 @@
   }
 
   .card {
-    @apply bg-white border border-border rounded-2xl p-4;
+    @apply bg-white rounded-[18px] p-5;
+    box-shadow: 0 1px 2px rgba(16, 27, 45, 0.06), 0 10px 28px rgba(16, 27, 45, 0.10);
   }
 
   .chip {

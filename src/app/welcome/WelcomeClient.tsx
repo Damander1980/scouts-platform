@@ -103,7 +103,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
   }[step];
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col">
+    <div className="min-h-screen bg-canvas flex flex-col">
       <div className="bg-forest text-white px-5 pt-10 pb-7">
         <div className="max-w-md mx-auto">
           <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#AEB9C9" }}>{header.kicker}</div>

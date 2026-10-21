@@ -152,7 +152,7 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
         </>
       )}
 
-      <div className="flex gap-2 flex-wrap sticky bottom-0 py-3 bg-paper">
+      <div className="flex gap-2 flex-wrap sticky bottom-0 py-3 bg-canvas">
         <button className="btn-secondary" disabled={busy || !dirty} onClick={() => run(saveDraft, "Draft saved. It isn't live until you publish.")}>Save draft</button>
         <button className="btn-primary" disabled={busy || !meta.title.trim()} onClick={() => run(async () => {
           if (dirty) await saveDraft();

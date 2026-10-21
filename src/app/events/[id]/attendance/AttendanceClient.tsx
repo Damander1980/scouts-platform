@@ -80,7 +80,7 @@ export default function AttendanceClient({ orgId, eventId, people, initial, chec
   return (
     <div className="flex flex-col gap-3">
       <ErrorBox>{error}</ErrorBox>
-      <div className="sticky top-14 z-20 bg-paper py-2 flex gap-2 flex-wrap items-center">
+      <div className="sticky top-14 z-20 bg-canvas py-2 flex gap-2 flex-wrap items-center">
         <span className="font-display font-bold text-[22px]">{count} here</span>
         <Chip>{youthPresent} youth · {adultsPresent} adults</Chip>
         {!online && <Chip tone="orange">Offline: saving on this phone</Chip>}

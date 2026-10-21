@@ -43,7 +43,7 @@ export default function ConfirmPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-paper flex items-center justify-center px-6 text-center">
+    <div className="min-h-screen bg-canvas flex items-center justify-center px-6 text-center">
       <div className="flex flex-col gap-3">
         <p className="font-bold text-[17px]">{msg}</p>
         {msg !== "Signing you in…" && <a href="/login" className="text-forest font-bold underline">Back to sign in</a>}

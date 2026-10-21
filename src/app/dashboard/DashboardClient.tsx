@@ -60,7 +60,7 @@ export default function DashboardClient({
   const unitWord = org.type === "cubs" ? "Pack" : org.type === "venturing" ? "Crew" : org.type === "sea" ? "Ship" : "Troop";
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col" style={{ fontFamily: "'DM Sans', sans-serif", color: "#101B2D" }}>
+    <div className="min-h-screen bg-canvas flex flex-col" style={{ fontFamily: "'DM Sans', sans-serif", color: "#101B2D" }}>
 
       {/* ── Header ── */}
       <header className="bg-forest text-white px-4 pt-5 pb-4 flex flex-col gap-3">

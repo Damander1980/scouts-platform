@@ -9,5 +9,5 @@ const events: ScoutEvent[] = [
 ];
 
 export default function DemoScout() {
-  return <div className="min-h-screen bg-paper p-4 max-w-xl mx-auto"><ScoutHome personId="demo" firstName="Sam" events={events} /></div>;
+  return <div className="min-h-screen bg-canvas p-4 max-w-xl mx-auto"><ScoutHome personId="demo" firstName="Sam" events={events} /></div>;
 }

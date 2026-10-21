@@ -15,7 +15,7 @@ const posts = [
 
 export default function DemoForum() {
   return (
-    <div className="min-h-screen bg-paper p-4 max-w-xl mx-auto flex flex-col gap-3">
+    <div className="min-h-screen bg-canvas p-4 max-w-xl mx-auto flex flex-col gap-3">
       <h1 className="font-display font-extrabold text-[28px] m-0">Discussion boards</h1>
       <p className="text-[14px] text-smoke m-0">Posts are saved and can&apos;t be edited or deleted. Scouts only see boards open to everyone, which every parent and leader can read too.</p>
       {topics.map((t) => (

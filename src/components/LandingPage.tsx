@@ -84,7 +84,7 @@ export default function LandingPage() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-paper" style={{ color: "#101B2D", fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="min-h-screen bg-canvas" style={{ color: "#101B2D", fontFamily: "'DM Sans', sans-serif" }}>
 
       {/* ── Top nav ── */}
       <header className="bg-forest text-white sticky top-0 z-50">

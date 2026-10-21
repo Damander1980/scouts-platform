@@ -40,7 +40,7 @@ export default function GiveClient({ campaign: c, thanks, booth, source }: { cam
   }
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-canvas">
       <div className="bg-forest text-white px-5 pt-12 pb-8">
         <div className="max-w-md mx-auto">
           <div className="text-[13px] font-bold" style={{ color: "#CFE0D7" }}>{c.org_name}</div>

@@ -11,7 +11,7 @@ const people: Person[] = [
 
 export default function DemoRecharter() {
   return (
-    <div className="min-h-screen bg-paper p-4 max-w-4xl mx-auto">
+    <div className="min-h-screen bg-canvas p-4 max-w-4xl mx-auto">
       <RecharterClient orgId="demo" year={2027} canEdit={false} people={people}
         recharter={{ id: "d", items: { roster: { done: true, at: "2026-10-12T12:00:00Z" }, key3: { done: true, at: "2026-10-14T12:00:00Z" } }, notes: null, due_on: null, submitted_at: null }} />
     </div>

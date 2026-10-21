@@ -13,7 +13,7 @@ const SCREENS: [string, string, string][] = [
 
 export default function Tour() {
   return (
-    <div className="min-h-screen bg-paper p-4 max-w-xl mx-auto flex flex-col gap-3">
+    <div className="min-h-screen bg-canvas p-4 max-w-xl mx-auto flex flex-col gap-3">
       <div>
         <h1 className="font-display font-extrabold text-[30px] m-0">Troop platform tour</h1>
         <p className="text-[15px] text-smoke m-0 mt-1">Sample screens with made-up data. Nothing here saves.</p>

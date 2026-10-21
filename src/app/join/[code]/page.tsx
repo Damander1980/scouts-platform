@@ -10,7 +10,7 @@ export default async function JoinLanding({ params }: { params: Promise<{ code: 
   const next = `/welcome?code=${encodeURIComponent(code)}`;
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col">
+    <div className="min-h-screen bg-canvas flex flex-col">
       <div className="bg-forest text-white px-5 pt-14 pb-8">
         <div className="max-w-md mx-auto">
           <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#AEB9C9" }}>You&apos;re invited</div>

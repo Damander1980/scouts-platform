@@ -79,7 +79,7 @@ export default function SetupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col max-w-sm mx-auto">
+    <div className="min-h-screen bg-canvas flex flex-col max-w-sm mx-auto">
       {/* Header */}
       <div className="bg-forest text-white px-5 pt-6 pb-6 flex flex-col gap-2">
         <span className="text-xs font-bold tracking-widest uppercase text-mist-dark">
