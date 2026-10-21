@@ -22,6 +22,8 @@ export default async function AdminOverview() {
     .eq("org_id", orgId).gte("start_at", now.toISOString()).eq("canceled", false).order("start_at").limit(1);
   const next = nextEvents?.[0];
   const sb = await supabase.rpc("scoutbook_pending", { p_org: orgId });
+  const { data: orgRow } = await supabase.from("organizations").select("stripe_account_id, settings").eq("id", orgId).single();
+  const cashOnly = (orgRow?.settings as Record<string, unknown> | null)?.payment_methods === "cash";
   const { data: nextRsvps } = next ? await supabase.from("rsvps").select("status").eq("event_id", next.id) : { data: [] as { status: string }[] };
   const going = (nextRsvps ?? []).filter((r) => r.status === "yes" || r.status === "going").length;
 
@@ -39,8 +41,9 @@ export default async function AdminOverview() {
   const setup = [
     { done: admins >= 2, label: "Add a second admin (a unit must never depend on one person)", href: "/admin/members" },
     { done: designated >= 2, label: "Choose at least two designated leaders (they're copied on every message to a Scout)", href: "/admin/members" },
-    { done: youth.length > 0, label: "Add or import your Scouts", href: "/admin/import" },
+    { done: youth.length > 0, label: "Import your roster from Scoutbook (or add Scouts by hand)", href: "/admin/import" },
     { done: (events ?? 0) > 0, label: "Post your first event", href: "/events/new" },
+    { done: cashOnly || !!orgRow?.stripe_account_id, label: "Connect the troop's bank account so families can pay by card (or choose cash only in Unit settings)", href: "/admin/money" },
   ].filter((s) => !s.done);
 
   return (
