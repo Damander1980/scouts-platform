@@ -44,7 +44,11 @@ export default async function DashboardPage() {
     : { data: [] as { event_id: string; person_id: string; status: string }[] };
 
   const rsvpFor = (eventId: string) => (rsvps ?? []).filter((r) => r.event_id === eventId);
-  const needsAnswer = (events ?? []).filter((e) => rsvpFor(e.id).length < ids.length);
+  // An event needs an answer when a Scout in the family hasn't replied; parents coming along is optional.
+  const youthIds = inTroop.filter((f) => f.type === "youth").map((f) => f.id);
+  const mustAnswer = youthIds.length ? youthIds : ids;
+  const unanswered = (eventId: string) => mustAnswer.some((id) => !rsvpFor(eventId).some((r) => r.person_id === id));
+  const needsAnswer = (events ?? []).filter((e) => unanswered(e.id));
 
   // Annual health record: Parts A and B are needed for every activity; expiring within 30 days counts as due.
   const soon = Date.now() + 30 * 86400000;
@@ -74,7 +78,7 @@ export default async function DashboardPage() {
   const next = (events ?? [])[0];
   const word = unitWord(current.org.type);
 
-  const nextAnswered = next ? rsvpFor(next.id).length >= ids.length : true;
+  const nextAnswered = next ? !unanswered(next.id) : true;
   const scouts = inTroop.filter((p) => p.type === "youth");
   const todoCount = (balance > 0 ? 1 : 0) + (formIssues.length ? 1 : 0) + needsAnswer.length;
   const hour = new Date().getHours();
@@ -155,7 +159,7 @@ export default async function DashboardPage() {
           </div>
           {(events ?? []).length === 0 && <span className="text-smoke text-[14px] py-3">{isLeader ? "No events yet. Add your first one from Events." : "No events on the calendar yet."}</span>}
           {(events ?? []).slice(0, 6).map((e) => {
-            const open = rsvpFor(e.id).length < ids.length;
+            const open = unanswered(e.id);
             return (
               <Link key={e.id} href={`/events/${e.id}`} className="flex items-center gap-4 min-h-[56px] border-t border-[#EAE4D6] no-underline text-ink">
                 <span className="w-16 font-bold text-forest text-[14px]">{fmtDate(e.start_at, { month: "short", day: "numeric" })}</span>
