@@ -9,7 +9,7 @@ import { fmtDate } from "@/components/ui";
 const REPORTS: [string, string][] = [
   ["ypt", "YPT aging"], ["patrols", "Patrol rosters"], ["leaders", "Leaders by position"], ["swim", "Swim test results"],
   ["counselors", "Merit badge counselors by badge"], ["sizes", "Shirt sizes"], ["dietary", "Allergies and dietary needs"],
-  ["registrations", "Registration renewals"], ["families", "Scout and parent cross reference"], ["participation", "Participation (last 12 months)"],
+  ["registrations", "Registration renewals"], ["families", "Scout and parent cross reference"], ["participation", "Participation (last 12 months)"], ["positions", "Youth positions"],
 ];
 const SWIM: Record<string, string> = { swimmer: "Swimmer", beginner: "Beginner", nonswimmer: "Non-swimmer" };
 
@@ -103,6 +103,19 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       const t = tally.get(m.person_id) ?? { n: 0, nights: 0, hours: 0 };
       return [name(m), String(t.n), String(t.nights), String(t.hours)];
     }).sort((a, b) => Number(b[1]) - Number(a[1]) || a[0].localeCompare(b[0]))} />;
+  }
+
+  if (r === "positions") {
+    const STANDARD = ["Senior Patrol Leader", "Assistant Senior Patrol Leader", "Troop Guide", "Quartermaster", "Scribe", "Historian", "Librarian",
+      "Chaplain Aide", "Instructor", "Den Chief", "Order of the Arrow Troop Representative", "Outdoor Ethics Guide", "Webmaster", "Bugler"];
+    const { data: lp } = await supabase.from("leadership_positions").select("person_id, title, start_date, end_date").eq("org_id", orgId);
+    const current = (lp ?? []).filter((x) => !x.end_date || new Date(x.end_date) >= today);
+    const titles = [...new Set([...STANDARD, ...current.map((x) => x.title)])];
+    body = <Table head={["Position", "Held by", "Since"]} rows={titles.map((t) => {
+      const holders = current.filter((x) => x.title === t);
+      return [t, holders.length ? holders.map((h) => nameOf[h.person_id] ?? "").join("; ") : "Unfilled",
+        holders.length ? holders.map((h) => fmtDate(h.start_date + "T12:00:00", { month: "short", year: "numeric" })).join("; ") : ""];
+    }).sort((a, b) => (a[1] === "Unfilled" ? 0 : 1) - (b[1] === "Unfilled" ? 0 : 1))} />;
   }
 
   const title = REPORTS.find(([k]) => k === r)?.[1] ?? "Reports";
