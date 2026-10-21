@@ -60,6 +60,7 @@ export default function MembersClient({
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("active");
   const [showAdd, setShowAdd] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
   const [add, setAdd] = useState({ first: "", last: "", type: "youth", role: "scout", birth: "" });
   const [claim, setClaim] = useState<{ pid: string; code: string } | null>(null);
   const badgeName = Object.fromEntries(badges.map((b) => [b.id, b.name]));
@@ -124,27 +125,39 @@ export default function MembersClient({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="flex items-end justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="font-display font-extrabold text-[28px] m-0">Members</h1>
-          <p className="text-[14px] m-0 mt-1 text-smoke">{members.filter((m) => m.status === "active").length} active · role changes are logged</p>
+          <h1 className="font-display font-extrabold text-[32px] m-0">Members</h1>
+          <p className="text-[14px] m-0 mt-1 text-smoke">
+            {members.filter((m) => m.status === "active").length} active ·{" "}
+            <a href="/api/export/roster.csv" className="font-bold text-forest">Download roster</a>
+          </p>
         </div>
         <div className="flex gap-2">
-          <a href="/api/export/roster.csv" className="btn-secondary no-underline">Export CSV</a>
+          {joinCode && <button onClick={() => setShowInvite(!showInvite)} className="btn-secondary">Invite families</button>}
           {isAdmin && <button onClick={() => setShowAdd(!showAdd)} className="btn-primary">+ Add member</button>}
         </div>
       </div>
 
       <ErrorBox>{error}</ErrorBox>
 
-      {joinCode && (
-        <div className="card flex flex-col md:flex-row md:items-center gap-3" style={{ background: "#F4F8F6" }}>
+      {joinCode && showInvite && (
+        <div className="card flex flex-col md:flex-row md:items-center gap-3">
           <div className="flex-1">
             <div className="font-bold text-[15px]">Invite families</div>
-            <div className="text-[13px] text-smoke">Share the link or code. Families sign in, add their kids, and request to join. You approve them here.</div>
+            <div className="text-[13px] text-smoke">Families sign in, add their kids and ask to join. You approve them here.</div>
           </div>
           <div className="font-display font-extrabold text-[22px] tracking-widest">{joinCode.toUpperCase()}</div>
-          <button className="btn-secondary" onClick={() => navigator.clipboard.writeText(`${site}/join/${slug}`)}>Copy invite link</button>
+          <button className="btn-primary" onClick={() => navigator.clipboard.writeText(`${site}/join/${slug}`)}>Copy invite link</button>
+        </div>
+      )}
+
+      {requests.length > 0 && tab !== "requests" && (
+        <div className="card flex items-center gap-3 flex-wrap" style={{ background: "#FFF6D6" }}>
+          <span className="flex-1 font-bold text-[15px]" style={{ color: "#5E4400" }}>
+            {requests.length === 1 ? "1 family is" : `${requests.length} families are`} waiting to join.
+          </span>
+          <button className="btn-primary" onClick={() => setTab("requests")}>Review</button>
         </div>
       )}
 
@@ -171,17 +184,9 @@ export default function MembersClient({
         </form>
       )}
 
-      <div className="flex gap-2">
-        {(["members", "requests"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: tab === t ? "#12355F" : "white", color: tab === t ? "white" : "#4B5568", borderColor: tab === t ? "#12355F" : "#DDD6C5" }}>
-            {t === "members" ? "Members" : `Join requests${requests.length ? ` (${requests.length})` : ""}`}
-          </button>
-        ))}
-      </div>
-
       {tab === "requests" && (
         <div className="flex flex-col gap-2">
+          <button className="btn-ghost self-start" onClick={() => setTab("members")}>← Back to members</button>
           {requests.length === 0 && <div className="card text-smoke">No pending requests.</div>}
           {requests.map((r) => (
             <div key={r.id} className="card flex flex-col gap-2">
@@ -205,20 +210,24 @@ export default function MembersClient({
       {tab === "members" && (
         <>
           <div className="flex items-center gap-2 flex-wrap">
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name" className="input w-56" />
-            {["active", "youth", "adult", "leaders", "inactive", "all"].map((f) => (
-              <button key={f} onClick={() => setFilter(f)} className="px-3 py-1.5 rounded-full text-[12px] font-bold border cursor-pointer capitalize font-sans"
-                style={{ background: filter === f ? "#12355F" : "white", color: filter === f ? "white" : "#4B5568", borderColor: filter === f ? "#12355F" : "#DDD6C5" }}>{f}</button>
-            ))}
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name" aria-label="Search by name" className="input flex-1 min-w-[200px] max-w-md" />
+            <select value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Show" className="input w-auto">
+              <option value="active">Everyone active</option>
+              <option value="youth">Scouts</option>
+              <option value="adult">Adults</option>
+              <option value="leaders">Leaders</option>
+              <option value="inactive">Inactive</option>
+              <option value="all">Everyone</option>
+            </select>
           </div>
 
-          <div className="flex flex-col gap-2">
-            {shown.length === 0 && <div className="card text-smoke">No members match.</div>}
+          <div className="card p-0 overflow-hidden flex flex-col">
+            {shown.length === 0 && <div className="p-5 text-smoke">No members match.</div>}
             {shown.map((m) => {
               const a = age(m.persons.birthdate);
               const isOpen = editing === m.id;
               return (
-                <div key={m.id} className="card flex flex-col gap-2" style={{ opacity: m.status === "active" ? 1 : 0.55 }}>
+                <div key={m.id} className="px-5 py-3.5 flex flex-col gap-2 border-b border-[#EAE4D6] last:border-0" style={{ opacity: m.status === "active" ? 1 : 0.55, background: isOpen ? "#F8F5EE" : undefined }}>
                   <div className="flex items-center gap-3 flex-wrap">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-[13px] flex-none"
                       style={{ background: m.persons.type === "youth" ? "#12355F" : "#4B5568" }}>{m.persons.first_name[0]}{m.persons.last_name[0]}</div>
@@ -231,11 +240,9 @@ export default function MembersClient({
                     </div>
                     <div className="flex gap-1.5 flex-wrap">
                       {m.is_admin && <Chip tone="dark">Admin</Chip>}
-                      {m.is_designated_leader && <Chip tone="green">Designated leader</Chip>}
-                      {m.persons.user_id && <Chip>Has login</Chip>}
                       {m.persons.type === "adult" && !["parent_guardian", "scout"].includes(m.role) && (
-                        m.ypt_expires ? <Chip tone={expired(m.ypt_expires) ? "red" : "green"}>YPT {expired(m.ypt_expires) ? "expired" : `to ${new Date(m.ypt_expires).toLocaleDateString("en-US", { month: "short", year: "numeric" })}`}</Chip>
-                          : <Chip tone="orange">YPT not recorded</Chip>
+                        !m.ypt_expires ? <Chip tone="orange">YPT not recorded</Chip>
+                          : expired(m.ypt_expires) ? <Chip tone="red">YPT expired</Chip> : null
                       )}
                       {m.persons.type === "youth" && a !== null && a >= 18 && <Chip tone="orange">Turned 18</Chip>}
                     </div>
