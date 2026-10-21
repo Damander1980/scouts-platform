@@ -1,6 +1,6 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import { requireOrg } from "@/lib/context";
+import { requirePerm } from "@/lib/context";
 import PrintButton from "@/components/PrintButton";
 import type { Plan } from "../plan/TripPlanClient";
 
@@ -13,9 +13,9 @@ type Going = { person_id: string; driver_seats: number; dietary: string | null; 
 
 export default async function TripSheet({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const ctx = await requireOrg();
-  const { supabase, current, isLeader } = ctx;
-  if (!isLeader && !ctx.can("events.manage")) redirect(`/events/${id}`);
+  // Shows health form status for every attendee, so it sits behind leader two-step sign-in too.
+  const ctx = await requirePerm("leader", "events.manage");
+  const { supabase, current } = ctx;
   const orgId = current.org.id;
 
   const { data: ev } = await supabase.from("events").select("id, title, description, location, start_at, end_at").eq("id", id).eq("org_id", orgId).maybeSingle();
