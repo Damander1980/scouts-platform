@@ -11,7 +11,7 @@ import { money } from "@/components/ui";
 export type ScoutEvent = {
   id: string; title: string; start_at: string; end_at: string | null; location: string | null; kind: string; cost_cents: number;
   rsvp_deadline: string | null;
-  mine: { status: string; notes: string | null; dietary: string | null; answers: Record<string, string> } | null;
+  mine: { status: string; notes: string | null; dietary: string | null; answers: Record<string, string>; pending?: boolean } | null;
 };
 
 const WORDS: Record<string, { yes: string; no: string; going: string }> = {
@@ -112,7 +112,7 @@ export default function ScoutHome({ personId, firstName, events: initial, plc = 
             {!showButtons && (
               <div className="flex items-center justify-between gap-2 rounded-xl p-3" style={{ background: status === "going" ? "#EEE8D9" : status === "waitlisted" ? "#FFF6D6" : "#F8F5EE" }}>
                 <span className="font-bold text-[18px]">
-                  {status === "going" ? `${w.going}!` : status === "waitlisted" ? "It's full. You're on the waitlist." : "You said you can't come."}
+                  {status === "going" && e.mine?.pending ? "Waiting for a parent's OK." : status === "going" ? `${w.going}!` : status === "waitlisted" ? "It's full. You're on the waitlist." : "You said you can't come."}
                 </span>
                 {!late && <button className="btn-ghost text-[15px]" onClick={() => setChanging(e.id)}>Change</button>}
               </div>

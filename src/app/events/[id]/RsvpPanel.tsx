@@ -7,11 +7,11 @@ import { ErrorBox, money } from "@/components/ui";
 
 export type RsvpRow = {
   person_id: string; first_name: string; type: string; status: string | null;
-  notes: string; dietary: string; driver_seats: number; answers: Record<string, string>;
+  notes: string; dietary: string; driver_seats: number; answers: Record<string, string>; pending?: boolean;
 };
 
-export default function RsvpPanel({ eventId, costCents, questions, family }: {
-  eventId: string; costCents: number; questions: string[]; family: RsvpRow[];
+export default function RsvpPanel({ eventId, canApprove = false, costCents, questions, family }: {
+  eventId: string; canApprove?: boolean; costCents: number; questions: string[]; family: RsvpRow[];
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -45,7 +45,15 @@ export default function RsvpPanel({ eventId, costCents, questions, family }: {
     setBusy(null);
   }
 
-  const goingCount = rows.filter((r) => r.status === "going").length;
+  const goingCount = rows.filter((r) => r.status === "going" && !r.pending).length;
+
+  async function decide(row: RsvpRow, approve: boolean) {
+    setBusy(row.person_id); setError("");
+    const { data, error } = await supabase.rpc("decide_scout_rsvp", { p_event: eventId, p_person: row.person_id, p_approve: approve });
+    if (error) setError(error.message);
+    else { update(row.person_id, { status: data as string, pending: false }); router.refresh(); }
+    setBusy(null);
+  }
 
   return (
     <section className="card flex flex-col gap-3">
@@ -66,9 +74,18 @@ export default function RsvpPanel({ eventId, costCents, questions, family }: {
                 background: r.status === "going" ? "#12355F" : r.status === "waitlisted" ? "#FFF6D6" : r.status === "not_going" ? "#F8F5EE" : "#FFF6D6",
                 color: r.status === "going" ? "white" : r.status === "not_going" ? "#4B5568" : "#5E4400",
               }}>
-                {r.status === "going" ? "Going" : r.status === "waitlisted" ? "Waitlist" : r.status === "not_going" ? "Not going" : "Reply needed"}
+                {r.pending ? "Needs your OK" : r.status === "going" ? "Going" : r.status === "waitlisted" ? "Waitlist" : r.status === "not_going" ? "Not going" : "Reply needed"}
               </span>
             </button>
+            {r.pending && canApprove && (
+              <div className="px-4 pb-4 flex flex-col gap-2">
+                <span className="text-[14px]">{r.first_name} signed up. Approving adds {money(costCents)} to your family balance.</span>
+                <div className="flex gap-2">
+                  <button className="btn-primary flex-1" disabled={!!busy} onClick={() => decide(r, true)}>Approve and add to our bill</button>
+                  <button className="btn-secondary" disabled={!!busy} onClick={() => decide(r, false)}>Decline</button>
+                </div>
+              </div>
+            )}
             {isOpen && (
               <div className="px-4 pb-4 flex flex-col gap-3">
                 <input aria-label="Food allergies or dietary needs" className="input" placeholder="Food allergies or dietary needs" value={r.dietary}

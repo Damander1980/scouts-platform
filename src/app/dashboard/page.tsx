@@ -16,12 +16,12 @@ export default async function DashboardPage() {
       .eq("org_id", orgId).eq("canceled", false).gte("start_at", new Date().toISOString()).order("start_at").limit(12);
     const evIds = (evs ?? []).map((e) => e.id);
     const { data: mine } = evIds.length
-      ? await supabase.from("rsvps").select("event_id, status, notes, dietary, answers").eq("person_id", person.id).in("event_id", evIds)
-      : { data: [] as { event_id: string; status: string; notes: string | null; dietary: string | null; answers: Record<string, string> }[] };
+      ? await supabase.from("rsvps").select("event_id, status, notes, dietary, answers, rsvp_approval_status").eq("person_id", person.id).in("event_id", evIds)
+      : { data: [] as { event_id: string; status: string; notes: string | null; dietary: string | null; answers: Record<string, string>; rsvp_approval_status: string | null }[] };
     const byEvent = Object.fromEntries((mine ?? []).map((r) => [r.event_id, r]));
     const scoutEvents: ScoutEvent[] = (evs ?? []).map((e) => {
       const r = byEvent[e.id];
-      return { ...e, mine: r ? { status: r.status, notes: r.notes, dietary: r.dietary, answers: (r.answers ?? {}) as Record<string, string> } : null };
+      return { ...e, mine: r ? { status: r.status, notes: r.notes, dietary: r.dietary, answers: (r.answers ?? {}) as Record<string, string>, pending: r.rsvp_approval_status === "pending" } : null };
     });
     const { data: plc } = await supabase.rpc("is_plc_member", { org: orgId });
     return <Shell ctx={ctx}><ScoutHome personId={person.id} firstName={person.first_name} events={scoutEvents} plc={!!plc} /></Shell>;
@@ -79,6 +79,13 @@ export default async function DashboardPage() {
   const next = (events ?? [])[0];
   const word = unitWord(current.org.type);
 
+  // Scouts' paid sign-ups waiting for a parent's OK (unit setting; nothing is charged until approved).
+  const youthIdsForOk = inTroop.filter((f) => f.type === "youth").map((f) => f.id);
+  const { data: pendingRows } = youthIdsForOk.length
+    ? await supabase.from("rsvps").select("event_id, person_id, events(title, cost_cents)").in("person_id", youthIdsForOk).eq("rsvp_approval_status", "pending").eq("status", "going")
+    : { data: [] as { event_id: string; person_id: string; events: unknown }[] };
+  const pendingOk = (pendingRows ?? []).map((r) => ({ ...r, ev: r.events as { title: string; cost_cents: number } | null, who: inTroop.find((f) => f.id === r.person_id)?.first_name ?? "Your Scout" }));
+
   // Trips short on drivers: youth going vs seats adults have offered (campouts and high adventure).
   const trips = (events ?? []).filter((e) => ["campout", "high_adventure"].includes(e.kind ?? ""));
   const { data: tripRsvps } = trips.length
@@ -105,6 +112,13 @@ export default async function DashboardPage() {
           {todoCount === 0 ? "You're all caught up." : todoCount === 1 ? "One thing needs you." : `${todoCount} things need you.`}
         </p>
       </div>
+
+      {pendingOk.map((p) => (
+        <Link key={p.event_id + p.person_id} href={`/events/${p.event_id}`} className="card flex items-center gap-4 flex-wrap no-underline text-ink" style={{ background: "#FFF6D6" }}>
+          <span className="flex-1 min-w-[220px] text-[16px]"><b>{p.who}</b> signed up for <b>{p.ev?.title ?? "an event"}</b>{p.ev?.cost_cents ? ` (${money(p.ev.cost_cents)})` : ""}. Nothing is charged until you say OK.</span>
+          <span className="btn-primary">Review</span>
+        </Link>
+      ))}
 
       {next && (
         <Link href={`/events/${next.id}`} className="rounded-[20px] p-6 md:p-7 flex flex-wrap items-center gap-5 no-underline text-white"

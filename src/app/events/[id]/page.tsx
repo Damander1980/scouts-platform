@@ -29,7 +29,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const itinerary = ((tripPlan?.itinerary ?? []) as { id: string; day?: string; time?: string; text: string }[]);
 
   const [{ data: rsvps }, { data: roster }, { data: patrolRows }, family, { data: orgForms }, { data: ageFlags }] = await Promise.all([
-    supabase.from("rsvps").select("person_id, status, notes, driver_seats, dietary, answers").eq("event_id", id),
+    supabase.from("rsvps").select("person_id, status, notes, driver_seats, dietary, answers, rsvp_approval_status").eq("event_id", id),
     supabase.from("memberships").select("person_id, role, ypt_expires, persons(first_name, last_name, type)").eq("org_id", orgId).eq("status", "active"),
     supabase.from("patrol_members").select("person_id, patrols(name)").eq("org_id", orgId).is("end_date", null),
     loadFamily(supabase, orgId),
@@ -80,6 +80,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
     person_id: f.id, first_name: f.first_name, type: f.type,
     status: byPerson[f.id]?.status ?? null, notes: byPerson[f.id]?.notes ?? "", dietary: byPerson[f.id]?.dietary ?? "",
     driver_seats: byPerson[f.id]?.driver_seats ?? 0, answers: (byPerson[f.id]?.answers ?? {}) as Record<string, string>,
+    pending: byPerson[f.id]?.rsvp_approval_status === "pending",
   }));
 
   const List = ({ title, list, tone }: { title: string; list: Roster[]; tone: "green" | "gray" | "orange" }) => (
@@ -138,7 +139,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         <div className="flex flex-col gap-5 min-w-0">
           {ev.description && <div className="card text-[15px] whitespace-pre-wrap">{ev.description}</div>}
           {!ev.canceled && myFamily.length > 0 && (
-            <RsvpPanel eventId={ev.id} costCents={ev.cost_cents} questions={(ev.questions ?? []) as string[]} family={famRsvps} />
+            <RsvpPanel eventId={ev.id} canApprove={ctx.person.type === "adult"} costCents={ev.cost_cents} questions={(ev.questions ?? []) as string[]} family={famRsvps} />
           )}
         </div>
         <aside className="card flex flex-col gap-3 lg:sticky lg:top-24">
@@ -147,14 +148,14 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
           {famRsvps.map((f) => (
             <div key={f.person_id} className="flex justify-between text-[15px]">
               <span>{f.first_name}</span>
-              <span className="text-smoke">{f.status === "going" ? (ev.cost_cents > 0 ? money(ev.cost_cents) : "Going") : f.status === "not_going" ? "Not going" : f.status === "waitlisted" ? "Waitlist" : "No reply"}</span>
+              <span className="text-smoke">{f.pending ? "Needs your OK" : f.status === "going" ? (ev.cost_cents > 0 ? money(ev.cost_cents) : "Going") : f.status === "not_going" ? "Not going" : f.status === "waitlisted" ? "Waitlist" : "No reply"}</span>
             </div>
           ))}
           {ev.cost_cents > 0 && (
             <>
               <div className="flex justify-between items-baseline border-t border-[#EAE4D6] pt-3">
                 <span className="font-bold">Added to your balance</span>
-                <span className="font-display font-extrabold text-[28px]">{money(famRsvps.filter((f) => f.status === "going").length * ev.cost_cents)}</span>
+                <span className="font-display font-extrabold text-[28px]">{money(famRsvps.filter((f) => f.status === "going" && !f.pending).length * ev.cost_cents)}</span>
               </div>
               {famRsvps.some((f) => f.status === "going") && <Link href="/pay" className="btn-primary no-underline">Pay now</Link>}
               <span className="text-[13px] text-smoke">

@@ -1,3 +1,4 @@
+-- Also: the unit's "When a Scout with a login RSVPs" setting is now enforced (see set_rsvp).
 -- Linked units, phase 2: combined sign-ups (Floyd, 2026-10-21: "every payer is an individual
 -- account; parents can pay for their kids, including on linked-unit events").
 -- A member of a linked unit can sign up for a shared event. The charge goes on that person's
@@ -35,6 +36,7 @@ create or replace function public.set_rsvp(
 declare
   e record; prev record; hid uuid; final_status text; going_count int; me uuid;
   charged int; credited int; refund int; nxt record; pay_org uuid; nxt_org uuid; label text;
+  scout_self boolean; mode text; needs_ok boolean := false;
 begin
   me := public.my_person_id();
   select * into e from public.events where id = p_event;
@@ -46,6 +48,14 @@ begin
   if e.rsvp_deadline is not null and now() > e.rsvp_deadline and not public.is_org_leader(e.org_id) then
     raise exception 'The sign-up deadline has passed. Ask a leader to add you.';
   end if;
+  -- Unit setting "When a Scout with a login RSVPs" (SPEC: Scouts do it themselves; parents keep the
+  -- final say on money). Default: a Scout's paid sign-up waits for a parent's OK before any charge.
+  scout_self := me = p_person and exists (select 1 from public.persons where id = me and type = 'youth');
+  mode := coalesce((select settings->>'scout_rsvp' from public.organizations where id = pay_org), 'parent_approves_paid');
+  if scout_self and mode = 'parent_only' then
+    raise exception 'Your troop asks a parent to sign you up. Ask a parent to do it from their account.';
+  end if;
+
   label := e.title || case when pay_org <> e.org_id
     then ' (hosted by ' || (select name from public.organizations where id = e.org_id) || ')' else '' end;
 
@@ -57,14 +67,19 @@ begin
   end if;
   if p_status = 'going' and prev.status = 'waitlisted' then final_status := 'waitlisted'; end if;
 
-  insert into public.rsvps (event_id, person_id, status, notes, driver_seats, dietary, answers, updated_by, updated_at)
-  values (p_event, p_person, final_status, p_notes, coalesce(p_driver_seats, 0), p_dietary, coalesce(p_answers, '{}'), me, now())
+  needs_ok := scout_self and mode = 'parent_approves_paid' and e.cost_cents > 0 and final_status = 'going'
+    and coalesce(prev.rsvp_approval_status, 'pending') <> 'approved';
+
+  insert into public.rsvps (event_id, person_id, status, notes, driver_seats, dietary, answers, updated_by, updated_at, rsvp_approval_status)
+  values (p_event, p_person, final_status, p_notes, coalesce(p_driver_seats, 0), p_dietary, coalesce(p_answers, '{}'), me, now(),
+          case when needs_ok then 'pending' else 'approved' end)
   on conflict (event_id, person_id) do update set status = excluded.status, notes = excluded.notes,
     driver_seats = excluded.driver_seats, dietary = excluded.dietary, answers = excluded.answers,
-    updated_by = me, updated_at = now();
+    updated_by = me, updated_at = now(), rsvp_approval_status = excluded.rsvp_approval_status;
 
   hid := coalesce(public.person_household_in(p_person, pay_org), public.person_household(p_person));
-  if hid is not null and e.cost_cents > 0 then
+  -- Nothing is charged while a parent's OK is pending.
+  if hid is not null and e.cost_cents > 0 and not needs_ok then
     select coalesce(sum(amount_cents) filter (where type = 'charge'), 0),
            coalesce(-sum(amount_cents) filter (where type in ('credit','refund')), 0)
       into charged, credited
@@ -120,6 +135,28 @@ language sql stable security definer set search_path = public as $$
     and not exists (select 1 from public.memberships m where m.org_id = e.org_id and m.person_id = r.person_id and m.status = 'active');
 $$;
 
+-- A parent approves (charges the family) or declines a Scout's paid sign-up.
+create or replace function public.decide_scout_rsvp(p_event uuid, p_person uuid, p_approve boolean)
+returns text language plpgsql security definer set search_path = public as $$
+declare r record; me uuid;
+begin
+  me := public.my_person_id();
+  if not public.can_act_for(p_person) or exists (select 1 from public.persons where id = me and type = 'youth') then
+    raise exception 'Only a parent or guardian can approve this';
+  end if;
+  select * into r from public.rsvps where event_id = p_event and person_id = p_person;
+  if r is null or r.rsvp_approval_status <> 'pending' then raise exception 'Nothing is waiting for approval'; end if;
+  if p_approve then
+    update public.rsvps set rsvp_approval_status = 'approved' where id = r.id;
+    -- Re-run as the parent: the sign-up stands and the charge posts to the family.
+    return public.set_rsvp(p_event, p_person, 'going', r.notes, r.driver_seats, r.dietary, r.answers);
+  end if;
+  update public.rsvps set rsvp_approval_status = 'denied' where id = r.id;
+  return public.set_rsvp(p_event, p_person, 'not_going', r.notes, r.driver_seats, r.dietary, r.answers);
+end;
+$$;
+
+grant execute on function public.decide_scout_rsvp(uuid, uuid, boolean) to authenticated;
 grant execute on function public.person_household_in(uuid, uuid) to authenticated;
 grant execute on function public.rsvp_unit(uuid, uuid) to authenticated;
 grant execute on function public.event_guests(uuid) to authenticated;
