@@ -10,6 +10,7 @@ type C = { slug: string; title: string; description: string | null; target_cents
 export default function GiveClient({ campaign: c, thanks, booth, source }: { campaign: C; thanks: boolean; booth: boolean; source: string }) {
   const [amount, setAmount] = useState(2500);
   const [custom, setCustom] = useState("");
+  const [cover, setCover] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [qr, setQr] = useState("");
@@ -23,7 +24,7 @@ export default function GiveClient({ campaign: c, thanks, booth, source }: { cam
   async function give() {
     setBusy(true); setError("");
     const cents = custom ? Math.round(parseFloat(custom) * 100) : amount;
-    const res = await fetch("/api/stripe/donate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campaign: c.slug, amountCents: cents, source }) });
+    const res = await fetch("/api/stripe/donate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campaign: c.slug, amountCents: cents, source, coverFee: cover }) });
     const body = await res.json().catch(() => ({}));
     if (body.url) window.location.href = body.url; else { setError(body.error ?? "Couldn't start checkout"); setBusy(false); }
   }
@@ -66,7 +67,10 @@ export default function GiveClient({ campaign: c, thanks, booth, source }: { cam
               ))}
               <input aria-label="Other" className="input text-center" placeholder="Other" inputMode="decimal" value={custom} onChange={(e) => setCustom(e.target.value)} />
             </div>
-            <div className="text-[13px] text-smoke">Giving online adds a card fee ({money(coverFee(gift))}) so {c.org_name} receives your full gift: total <b>{money(gift + coverFee(gift))}</b>. Prefer no fee? Hand your gift to a leader in person.</div>
+            <label className="flex items-start gap-3 text-[14px]">
+              <input type="checkbox" className="w-5 h-5 mt-0.5" checked={cover} onChange={(e) => setCover(e.target.checked)} />
+              <span>Add {money(coverFee(gift))} to cover the card fee so {c.org_name} receives the full {money(gift)}. Total <b>{money(gift + (cover ? coverFee(gift) : 0))}</b>.</span>
+            </label>
             {error && <div className="text-[14px] font-bold" style={{ color: "#A52A1C" }}>{error}</div>}
             <button className="btn-primary" disabled={busy || !c.connected} onClick={give}>{busy ? "Opening…" : "Give with card, Apple Pay or Google Pay"}</button>
             {!c.connected && <div className="text-[13px] text-smoke">Online giving opens once the unit finishes connecting its bank account.</div>}
