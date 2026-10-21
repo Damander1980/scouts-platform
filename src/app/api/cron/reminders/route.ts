@@ -75,6 +75,20 @@ export async function GET(request: Request) {
     }
   }
 
+  // Leaders' Youth Protection Training, 30 and 7 days out: without it they lose access to kids' private details.
+  for (const days of [30, 7]) {
+    const day = new Date(now.getTime() + days * 86400000).toISOString().slice(0, 10);
+    const { data: lapsing } = await db.from("memberships").select("id, person_id").eq("status", "active").eq("ypt_expires", day);
+    for (const m of lapsing ?? []) {
+      const key = `ypt:${m.id}:${days}`;
+      const { data: done } = await db.from("notification_log").select("id").eq("category", key).limit(1);
+      if (done?.length) continue;
+      await notifyPeople([m.person_id], "reminders", `Your Youth Protection Training expires in ${days} days. Retake it at my.scouting.org, then update your date so you keep access to leader tools.`, "/settings");
+      formReminders++;
+      await db.from("notification_log").insert({ category: key, channel: "system", status: "done" });
+    }
+  }
+
   const today = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][now.getDay()];
   const { data: prefs } = await db.from("notification_prefs").select("person_id, digest_day, categories").eq("digest_day", today);
   const { data: noPrefsAdults } = today === "sun"
