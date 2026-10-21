@@ -8,5 +8,6 @@ export default async function HomeRouter() {
   const ctx = await getContext();
   if (!ctx.person || !ctx.householdId) redirect("/welcome");
   if (!ctx.current) redirect("/welcome?step=troop");
-  redirect("/dashboard");
+  // The people running the troop start on the Leader Overview; their own family is one click away (Family view).
+  redirect(ctx.isStaff ? "/admin" : "/dashboard");
 }
