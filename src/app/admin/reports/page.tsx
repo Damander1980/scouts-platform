@@ -9,6 +9,7 @@ import { fmtDate } from "@/components/ui";
 const REPORTS: [string, string][] = [
   ["ypt", "YPT aging"], ["patrols", "Patrol rosters"], ["leaders", "Leaders by position"], ["swim", "Swim test results"],
   ["counselors", "Merit badge counselors by badge"], ["sizes", "Shirt sizes"], ["dietary", "Allergies and dietary needs"],
+  ["registrations", "Registration renewals"], ["families", "Scout and parent cross reference"],
 ];
 const SWIM: Record<string, string> = { swimmer: "Swimmer", beginner: "Beginner", nonswimmer: "Non-swimmer" };
 
@@ -16,8 +17,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const { r = "ypt" } = await searchParams;
   const { supabase, current } = await requireLeader();
   const orgId = current.org.id;
-  const { data: ms } = await supabase.from("memberships").select("person_id, role, position, ypt_expires, swim_class, uniform_size, persons(first_name, last_name, type)").eq("org_id", orgId).eq("status", "active");
-  type M = { person_id: string; role: string; position: string | null; ypt_expires: string | null; swim_class: string | null; uniform_size: string | null; persons: { first_name: string; last_name: string; type: string } };
+  const { data: ms } = await supabase.from("memberships").select("person_id, role, position, ypt_expires, registration_expires, swim_class, uniform_size, persons(first_name, last_name, type)").eq("org_id", orgId).eq("status", "active");
+  type M = { person_id: string; role: string; position: string | null; ypt_expires: string | null; registration_expires: string | null; swim_class: string | null; uniform_size: string | null; persons: { first_name: string; last_name: string; type: string } };
   const members = ((ms ?? []) as unknown as M[]).sort((a, b) => a.persons.last_name.localeCompare(b.persons.last_name) || a.persons.first_name.localeCompare(b.persons.first_name));
   const name = (m: M) => `${m.persons.last_name}, ${m.persons.first_name}`;
   const nameOf = Object.fromEntries(members.map((m) => [m.person_id, name(m)]));
@@ -68,6 +69,22 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     const latest = new Map<string, string>();
     for (const x of (rs ?? []) as { person_id: string; dietary: string | null }[]) if (x.dietary?.trim() && !latest.has(x.person_id)) latest.set(x.person_id, x.dietary.trim());
     body = <Table head={["Name", "Most recent allergy or dietary note"]} rows={[...latest.entries()].map(([pid, d]) => [nameOf[pid] ?? "", d]).filter((x) => x[0]).sort((a, b) => a[0].localeCompare(b[0]))} />;
+  }
+
+  if (r === "registrations") {
+    const rows = members.filter((m) => m.persons.type === "adult")
+      .sort((a, b) => (a.registration_expires ?? "0000").localeCompare(b.registration_expires ?? "0000"));
+    body = <Table head={["Name", "Position", "Registration expires"]} rows={rows.map((m) => [name(m), ROLE_LABELS[m.role] ?? m.role,
+      m.registration_expires ? fmtDate(m.registration_expires + "T12:00:00", { month: "short", day: "numeric", year: "numeric" }) : "Not recorded"])} />;
+  } else if (r === "families") {
+    const { data: hm } = await supabase.from("household_members").select("household_id, person_id, is_guardian, households!inner(org_id, name)").eq("households.org_id", orgId);
+    const rowsF = ((hm ?? []) as unknown as { household_id: string; person_id: string; is_guardian: boolean; households: { name: string } }[]);
+    const byHh = rowsF.reduce<Record<string, { name: string; scouts: string[]; parents: string[] }>>((acc, x) => {
+      const h = (acc[x.household_id] ??= { name: x.households.name, scouts: [], parents: [] });
+      const n = nameOf[x.person_id]; if (!n) return acc;
+      (x.is_guardian ? h.parents : h.scouts).push(n); return acc;
+    }, {});
+    body = <Table head={["Family", "Scouts", "Parents and guardians"]} rows={Object.values(byHh).filter((h) => h.scouts.length).sort((a, b) => a.name.localeCompare(b.name)).map((h) => [h.name, h.scouts.join("; "), h.parents.join("; ")])} />;
   }
 
   const title = REPORTS.find(([k]) => k === r)?.[1] ?? "Reports";
