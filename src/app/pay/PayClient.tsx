@@ -37,7 +37,7 @@ export default function PayClient({ orgId, balance, online, prefs, scoutBalances
   }
 
   return (
-    <section className="card flex flex-col gap-3" style={{ borderColor: balance > 0 ? "#F5B700" : undefined, borderWidth: balance > 0 ? 2 : 1 }}>
+    <section className="card flex flex-col gap-4">
       <div>
         <div className="text-[12px] font-bold uppercase tracking-widest text-smoke">Balance</div>
         <div className="font-display font-extrabold text-[34px]" style={{ color: balance > 0 ? "#5E4400" : "#12355F" }}>
@@ -60,7 +60,7 @@ export default function PayClient({ orgId, balance, online, prefs, scoutBalances
             <div className="font-bold text-[15px]">Pay a leader in person</div>
             <div className="text-[13px] text-smoke">Cash or check. <b>No fee.</b> Hand it to your treasurer or a leader and they&apos;ll record it here.</div>
           </div>}
-          {showCard && <div className="rounded-xl border-2 p-3 flex flex-col gap-2" style={{ borderColor: online ? "#12355F" : "#DDD6C5" }}>
+          {showCard && <div className="rounded-xl p-4 flex flex-col gap-2" style={{ background: "#F8F5EE", boxShadow: online ? "inset 0 0 0 2px #12355F" : undefined }}>
             <div className="font-bold text-[15px]">Pay online</div>
             {online ? (
               <>
