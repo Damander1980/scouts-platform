@@ -13,8 +13,9 @@ Build order (Floyd, 2026-10-19): **PC web platform first, then the app, iOS last
 - [ ] **Sign in:** `node scripts/set-password.mjs fdkobler@gmail.com` (you type the password).
 - [ ] **Sample troop to click around in:** `node scripts/seed-demo.mjs fdkobler@gmail.com`
       (fake families, events, sign-ups, forms, balances; `--remove` deletes it).
-- [ ] **Push migrations 0042 and 0043** (`npx supabase db push`): admins need current YPT;
-      Scoutbook upload tracking. Until 0043 is pushed the "not in Scoutbook yet" banner stays hidden.
+- [ ] **Push migrations 0042-0044** (`npx supabase db push`): 0042 admins need current YPT and
+      private kid data needs a two-step session; 0043 Scoutbook upload tracking; 0044 linked-unit
+      sign-ups. Until pushed, those features stay hidden or fall back to the old behavior.
 - [ ] First time in Leader tools you'll set up two-step sign-in with an authenticator app.
 
 ### Before pitching Troop 999
@@ -22,7 +23,7 @@ Build order (Floyd, 2026-10-19): **PC web platform first, then the app, iOS last
 - [x] Trial terms: 30 days free (Floyd, 2026-10-21).
 - [ ] Get a real TroopWebHost export from a Troop 999 admin (roster Excel/CSV, and the Internet Advancement file from Advancement > Recognize recent achievements). Column names are unverified, so the importer may need tuning.
 - [ ] **Two-way Scoutbook sync** (decided 2026-10-21, stored leader login): needs a sanitized browser capture (HAR) from a Key 3 / advancement chair login viewing roster, a Scout profile, a rank and merit badges. Check Scouting America's terms first.
-- [ ] Confirm: on a linked-unit event, the charge goes on the Scout's own family account and a parent pays it.
+- [x] Linked-unit sign-ups: charge goes on the guest's family account in their own unit (built, 0044).
 - [ ] Pick a product name and domain.
 
 ### Push / deploy
