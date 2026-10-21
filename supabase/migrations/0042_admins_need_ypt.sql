@@ -1,7 +1,15 @@
 -- Safety first (Floyd, 2026-10-21): unit admins no longer skip the Youth Protection check.
 -- Private member details, health form status and the message log now need current YPT for
--- everyone, admins and designated leaders included. Admins keep every other tool, including
--- recording YPT dates on the Members page, so a new unit can still get set up.
+-- everyone, admins and designated leaders included, AND a two-step verified session (aal2),
+-- so a stolen password alone can't read children's data even through the API. Admins keep
+-- every other tool, including recording YPT dates on the Members page, so a new unit can
+-- still get set up.
+
+create or replace function public.session_two_step()
+returns boolean language sql stable as $$
+  select coalesce(auth.jwt() ->> 'aal', '') = 'aal2';
+$$;
+grant execute on function public.session_two_step() to authenticated;
 
 create or replace function public.has_perm(org uuid, perm text)
 returns boolean language sql stable security definer set search_path = public as $$
@@ -18,7 +26,7 @@ returns boolean language sql stable security definer set search_path = public as
       )
       -- Checked again at use time, not just at assignment: a Scout never gets adult-only access.
       and (p.type = 'adult' or not coalesce(c.adult_only, true))
-      and (not coalesce(c.needs_ypt, false) or m.ypt_expires >= current_date)
+      and (not coalesce(c.needs_ypt, false) or (m.ypt_expires >= current_date and public.session_two_step()))
   );
 $$;
 
@@ -42,7 +50,8 @@ create or replace function public.my_ypt_current(org uuid)
 returns boolean language sql stable security definer set search_path = public as $$
   select exists (
     select 1 from public.memberships m join public.persons p on p.id = m.person_id
-    where m.org_id = org and p.user_id = auth.uid() and m.status = 'active' and m.ypt_expires >= current_date);
+    where m.org_id = org and p.user_id = auth.uid() and m.status = 'active' and m.ypt_expires >= current_date)
+    and public.session_two_step();
 $$;
 grant execute on function public.my_ypt_current(uuid) to authenticated;
 
