@@ -16,9 +16,9 @@ export default async function NewEventPage({ searchParams }: { searchParams: Pro
   const initial = source ? ({ ...(source as EventInput), id: undefined, start_at: "", end_at: null, rsvp_deadline: null } as EventInput) : undefined;
   return (
     <Shell ctx={ctx}>
-      <PageTitle title={source ? `New event from ${source.title}` : "New event"} sub={source ? "Everything is copied except the dates. Set the new dates below." : "Families get the link right away and can RSVP and pay in one step."} />
+      <PageTitle title={source ? `New event from ${source.title}` : "New event"} sub={source ? "Everything is copied, including the trip plan, except the dates. Set the new dates below." : "Families get the link right away and can RSVP and pay in one step."} />
       {(recent ?? []).length > 0 && <CopyPicker events={(recent ?? []) as { id: string; title: string; start_at: string }[]} current={copy ?? ""} />}
-      <EventForm key={copy ?? "blank"} orgId={orgId} initial={initial} />
+      <EventForm key={copy ?? "blank"} orgId={orgId} initial={initial} copyFrom={source ? copy : undefined} />
     </Shell>
   );
 }

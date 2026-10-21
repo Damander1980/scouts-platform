@@ -24,7 +24,7 @@ const KINDS = [
   ["fundraiser", "Fundraiser"], ["high_adventure", "High adventure / summer camp"], ["event", "Other event"],
 ];
 
-export default function EventForm({ orgId, initial }: { orgId: string; initial?: EventInput }) {
+export default function EventForm({ orgId, initial, copyFrom }: { orgId: string; initial?: EventInput; copyFrom?: string }) {
   const router = useRouter();
   const supabase = createClient();
   const [f, setF] = useState({
@@ -98,6 +98,16 @@ export default function EventForm({ orgId, initial }: { orgId: string; initial?:
         ? await supabase.from("events").update(row).eq("id", initial.id).select("id").single()
         : await supabase.from("events").insert(row).select("id").single();
       if (error) throw error;
+      // Copying an event brings its trip plan along, with every checkbox cleared for the new trip.
+      if (!initial?.id && copyFrom) {
+        const { data: plan } = await supabase.from("trip_plans").select("*").eq("event_id", copyFrom).maybeSingle();
+        if (plan) {
+          const clear = (xs: unknown) => (Array.isArray(xs) ? xs.map((x) => ({ ...x, done: false })) : xs);
+          const { event_id: _e, updated_at: _u, ...rest } = plan as Record<string, unknown>;
+          void _e; void _u;
+          await supabase.from("trip_plans").insert({ ...rest, event_id: data.id, org_id: orgId, tasks: clear(rest.tasks), permits: clear(rest.permits) });
+        }
+      }
       router.push(`/events/${data.id}`);
       router.refresh();
     } catch (e: any) { setError(e.message); }
