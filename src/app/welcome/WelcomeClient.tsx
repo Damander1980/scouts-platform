@@ -103,15 +103,18 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
   }[step];
 
   return (
-    <div className="min-h-screen bg-canvas flex flex-col">
-      <div className="bg-forest text-white px-5 pt-10 pb-7">
-        <div className="max-w-md mx-auto">
-          <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#AEB9C9" }}>{header.kicker}</div>
-          <h1 className="font-display font-extrabold text-[30px] leading-tight m-0 mt-1">{header.title}</h1>
+    <div className="min-h-screen bg-canvas flex flex-col sm:py-10">
+      <div className="w-full max-w-xl mx-auto bg-forest text-white px-6 pt-10 pb-7 sm:rounded-[20px]"
+        style={{ boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
+        <div className="flex items-center gap-2.5 mb-5">
+          <span className="w-8 h-8 rounded-[9px] flex items-center justify-center font-display font-extrabold text-[14px]" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
+          <span className="font-display font-extrabold text-[17px]">ScoutPlatform</span>
         </div>
+        <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#F5B700" }}>{header.kicker}</div>
+        <h1 className="font-display font-extrabold text-[32px] leading-tight m-0 mt-1">{header.title}</h1>
       </div>
 
-      <div className="flex-1 w-full max-w-md mx-auto px-4 py-6 flex flex-col gap-5">
+      <div className="flex-1 w-full max-w-xl mx-auto px-4 sm:px-0 py-6 flex flex-col gap-5">
         <ErrorBox>{error}</ErrorBox>
 
         {step === "name" && (
