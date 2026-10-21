@@ -21,6 +21,8 @@ export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitT
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [me, setMe] = useState<string | null>(null);
+  const [confirmAll, setConfirmAll] = useState(false);
+  const allSignable = queue.filter((q) => q.can_sign).map((q) => q.progress_id);
   void orgId;
 
   const run = async (fn: () => Promise<void>) => { setBusy(true); setError(""); try { await fn(); router.refresh(); } catch (e: any) { setError(e.message); } setBusy(false); };
@@ -78,6 +80,15 @@ export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitT
             </div>
           )}
           {queue.length === 0 && requests.length === 0 && <div className="card text-smoke">Nothing waiting. Nice work.</div>}
+          {allSignable.length > 1 && (
+            <div className="card flex items-center gap-3 flex-wrap">
+              <span className="flex-1 text-[15px]"><b>{allSignable.length} requirements</b> are waiting for your sign-off.</span>
+              {confirmAll
+                ? <><button className="btn-primary" disabled={busy} onClick={() => { setConfirmAll(false); sign(allSignable); }}>Yes, sign all {allSignable.length}</button>
+                    <button className="btn-secondary" onClick={() => setConfirmAll(false)}>Cancel</button></>
+                : <button className="btn-primary" disabled={busy} onClick={() => setConfirmAll(true)}>Sign everything I can</button>}
+            </div>
+          )}
           {Object.entries(grouped).map(([k, list]) => {
             const [scout, item] = k.split("|");
             const signable = list.filter((q) => q.can_sign).map((q) => q.progress_id);
