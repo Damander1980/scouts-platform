@@ -65,6 +65,12 @@ export default function MembersClient({
   const [claim, setClaim] = useState<{ pid: string; code: string } | null>(null);
   const badgeName = Object.fromEntries(badges.map((b) => [b.id, b.name]));
   const site = typeof window !== "undefined" ? window.location.origin : "";
+  // Ready-to-send invite for an email or group text; families finish setup in a couple of minutes.
+  const inviteText = `Our troop is moving sign-ups, payments and forms online. Create your family's account and ask to join here:
+
+${site}/join/${slug}
+
+Or enter join code ${String(joinCode ?? "").toUpperCase()} after you sign up. Add your Scouts when it asks; a leader will approve you.`;
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true); setError("");
@@ -148,7 +154,11 @@ export default function MembersClient({
             <div className="text-[13px] text-smoke">Families sign in, add their kids and ask to join. You approve them here.</div>
           </div>
           <div className="font-display font-extrabold text-[22px] tracking-widest">{joinCode.toUpperCase()}</div>
-          <button className="btn-primary" onClick={() => navigator.clipboard.writeText(`${site}/join/${slug}`)}>Copy invite link</button>
+          <div className="flex gap-2 flex-wrap">
+            <button className="btn-primary" onClick={() => navigator.clipboard.writeText(`${site}/join/${slug}`)}>Copy invite link</button>
+            <a className="btn-secondary no-underline" href={`mailto:?subject=${encodeURIComponent("Join our troop online")}&body=${encodeURIComponent(inviteText)}`}>Email the invite</a>
+            <button className="btn-ghost" onClick={() => navigator.clipboard.writeText(inviteText)}>Copy invite message</button>
+          </div>
         </div>
       )}
 
