@@ -105,8 +105,10 @@ export default function EventForm({ orgId, initial }: { orgId: string; initial?:
   }
 
   return (
-    <form onSubmit={save} className="flex flex-col gap-4 max-w-xl">
+    <form onSubmit={save} className="flex flex-col gap-5 max-w-2xl">
       <ErrorBox>{error}</ErrorBox>
+      <div className="card flex flex-col gap-4">
+      <div className="font-display font-extrabold text-[20px]">The basics</div>
       <Field label="What is it?"><input className="input" value={f.title} onChange={set("title")} required placeholder="Caprock Canyons campout" /></Field>
       <Field label="Type">
         <select className="input" value={f.kind} onChange={set("kind")}>{KINDS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
@@ -123,8 +125,10 @@ export default function EventForm({ orgId, initial }: { orgId: string; initial?:
       <Field label="Where"><input className="input" value={f.location} onChange={set("location")} placeholder="Caprock Canyons State Park" /></Field>
       <Field label="Details for families"><textarea className="input py-3 min-h-[100px]" value={f.description} onChange={set("description")} placeholder="Meet at the church parking lot at 5:30 PM Friday." /></Field>
 
+      </div>
+
       <div className="card flex flex-col gap-3">
-        <div className="font-bold text-[16px]">Sign-up and cost</div>
+        <div className="font-display font-extrabold text-[20px]">Sign-up and cost</div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Cost per person ($)"><input className="input" inputMode="decimal" value={f.cost} onChange={set("cost")} placeholder="0" /></Field>
           <Field label="Spots (blank = no limit)"><input className="input" inputMode="numeric" value={f.cap} onChange={set("cap")} /></Field>
@@ -143,12 +147,15 @@ export default function EventForm({ orgId, initial }: { orgId: string; initial?:
           <input type="checkbox" className="w-5 h-5" checked={f.permission} onChange={set("permission")} />
           Needs a signed permission slip
         </label>
+
+      </div>
+
+      <details className="card flex flex-col gap-3" open={["campout", "service", "high_adventure"].includes(f.kind)}>
+        <summary className="font-display font-extrabold text-[20px] cursor-pointer min-h-[44px] flex items-center">More options</summary>
+        <div className="flex flex-col gap-4 mt-3">
         <Field label="Questions to ask families (one per line)" hint="Dietary needs are always asked.">
           <textarea className="input py-3 min-h-[80px]" value={f.questions} onChange={set("questions")} placeholder={"Bringing a hammock?\nShirt size"} />
         </Field>
-      </div>
-
-      <div className="card flex flex-col gap-3">
         <div className="font-bold text-[16px]">Credit toward advancement</div>
         <p className="text-[13px] text-smoke m-0">Counted for each Scout marked present when you take attendance.</p>
         <div className="grid grid-cols-3 gap-3">
@@ -156,7 +163,6 @@ export default function EventForm({ orgId, initial }: { orgId: string; initial?:
           <Field label="Service hours"><input className="input" inputMode="decimal" value={f.hours} onChange={set("hours")} placeholder="0" /></Field>
           <Field label="Miles"><input className="input" inputMode="decimal" value={f.miles} onChange={set("miles")} placeholder="0" /></Field>
         </div>
-      </div>
 
       <Field label="Who can see it">
         <select className="input" value={f.visibility} onChange={set("visibility")}>
@@ -169,8 +175,10 @@ export default function EventForm({ orgId, initial }: { orgId: string; initial?:
         <input type="checkbox" className="w-5 h-5" checked={f.shareLinked} onChange={(e) => setF({ ...f, shareLinked: e.target.checked })} />
         Show on linked units&apos; calendars
       </label>
+        </div>
+      </details>
 
-      <button className="btn-primary" disabled={busy}>{busy ? "Saving…" : initial?.id ? "Save changes" : "Post event"}</button>
+      <button className="btn-primary self-start px-10" disabled={busy}>{busy ? "Saving…" : initial?.id ? "Save changes" : "Post event"}</button>
     </form>
   );
 }
