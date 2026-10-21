@@ -21,6 +21,16 @@ export default function ScoutbookConnect({ orgId, canConnect, connection }: {
   const [f, setF] = useState({ username: "", password: "", position: "unit_advancement_chair", consent: false });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [test, setTest] = useState("");
+
+  async function testConnection() {
+    setBusy(true); setTest(""); setError("");
+    const res = await fetch("/api/scoutbook/test", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orgId }) });
+    const body = await res.json().catch(() => ({}));
+    if (body.ok) setTest(`Connected. Scoutbook answered and listed ${body.ranks} ranks.`); else setError(body.error ?? "Couldn't reach Scoutbook.");
+    setBusy(false);
+    router.refresh();
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -48,7 +58,13 @@ export default function ScoutbookConnect({ orgId, canConnect, connection }: {
             {connection.last_sync_at ? ` Last synced ${new Date(connection.last_sync_at).toLocaleString()}.` : " Not synced yet."}
           </p>
           {connection.last_error && <p className="text-[13px] m-0" style={{ color: "#A52A1C" }}>Last sync problem: {connection.last_error}</p>}
-          {canConnect && <button className="btn-secondary self-start" disabled={busy} onClick={remove}>Turn off and delete my stored login</button>}
+          {test && <p className="text-[14px] font-bold m-0 text-forest">{test}</p>}
+          {canConnect && (
+            <div className="flex gap-2 flex-wrap">
+              <button className="btn-primary" disabled={busy} onClick={testConnection}>{busy ? "Checking…" : "Test connection"}</button>
+              <button className="btn-secondary" disabled={busy} onClick={remove}>Turn off and delete my stored login</button>
+            </div>
+          )}
         </>
       ) : canConnect ? (
         <form onSubmit={save} className="flex flex-col gap-3">
