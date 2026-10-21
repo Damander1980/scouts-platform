@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient, createEmailLinkClient } from "@/lib/supabase/client";
 
 type Mode = "signin" | "signup" | "forgot";
 
 export default function LoginPage() {
   const [mode, setMode] = useState<Mode>("signin");
+  // Invite links open straight to account creation (?mode=signup); read after mount to avoid a hydration mismatch.
+  useEffect(() => { if (new URLSearchParams(window.location.search).get("mode") === "signup") setMode("signup"); }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
