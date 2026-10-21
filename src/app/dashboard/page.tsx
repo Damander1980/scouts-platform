@@ -79,6 +79,18 @@ export default async function DashboardPage() {
   const next = (events ?? [])[0];
   const word = unitWord(current.org.type);
 
+  // Trips short on drivers: youth going vs seats adults have offered (campouts and high adventure).
+  const trips = (events ?? []).filter((e) => ["campout", "high_adventure"].includes(e.kind ?? ""));
+  const { data: tripRsvps } = trips.length
+    ? await supabase.from("rsvps").select("event_id, driver_seats, persons(type)").in("event_id", trips.map((e) => e.id)).eq("status", "going")
+    : { data: [] as { event_id: string; driver_seats: number; persons: unknown }[] };
+  const needDrivers = trips.map((e) => {
+    const rs = (tripRsvps ?? []).filter((r) => r.event_id === e.id);
+    const youth = rs.filter((r) => (r.persons as { type: string } | null)?.type === "youth").length;
+    const seats = rs.reduce((t, r) => t + (r.driver_seats || 0), 0);
+    return { e, short: youth - seats };
+  }).filter((x) => x.short > 0);
+
   const nextAnswered = next ? !unanswered(next.id) : true;
   const scouts = inTroop.filter((p) => p.type === "youth");
   const todoCount = (balance > 0 ? 1 : 0) + (formIssues.length ? 1 : 0) + needsAnswer.length;
@@ -144,9 +156,19 @@ export default async function DashboardPage() {
             </>
           ) : (
             <>
-              <span className="font-display font-extrabold text-[34px] leading-tight">Pitch in</span>
-              <span className="text-[14px] text-smoke">Drive, staff a booth or vote in a troop poll.</span>
-              <Link href="/volunteer" className="font-bold text-forest min-h-[44px] flex items-center">See how to help</Link>
+              {needDrivers.length ? (
+                <>
+                  <span className="font-display font-extrabold text-[34px] leading-tight">Drivers needed</span>
+                  <span className="text-[14px] text-smoke">{needDrivers[0].e.title}: {needDrivers[0].short} more seat{needDrivers[0].short === 1 ? "" : "s"} needed.</span>
+                  <Link href={`/events/${needDrivers[0].e.id}`} className="font-bold text-forest min-h-[44px] flex items-center">Offer seats</Link>
+                </>
+              ) : (
+                <>
+                  <span className="font-display font-extrabold text-[34px] leading-tight">Pitch in</span>
+                  <span className="text-[14px] text-smoke">Drive, staff a booth or vote in a troop poll.</span>
+                  <Link href="/volunteer" className="font-bold text-forest min-h-[44px] flex items-center">See how to help</Link>
+                </>
+              )}
             </>
           )}
         </div>
