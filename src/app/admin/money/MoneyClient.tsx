@@ -119,7 +119,8 @@ function Balances({ balances }: { balances: Balance[] }) {
       <div className="flex gap-3 flex-wrap items-center">
         <input className="input flex-1 min-w-[200px] max-w-md" placeholder="Find a family" aria-label="Find a family" value={q} onChange={(e) => setQ(e.target.value)} />
         <label className="flex items-center gap-2 text-[14px] font-bold min-h-[44px]"><input type="checkbox" className="w-5 h-5" checked={owingOnly} onChange={(e) => setOwingOnly(e.target.checked)} /> Only families who owe</label>
-        <a className="ml-auto text-[14px] font-bold text-forest min-h-[44px] flex items-center" href="/api/export/ledger.csv">Download ledger</a>
+        <a className="ml-auto text-[14px] font-bold text-forest min-h-[44px] flex items-center" href="/messages/new?audience=owing">Message families who owe</a>
+        <a className="text-[14px] font-bold text-forest min-h-[44px] flex items-center" href="/api/export/ledger.csv">Download ledger</a>
       </div>
       <div className="card p-0 overflow-hidden">
         {rows.length === 0 && <div className="p-5 text-smoke">{owingOnly ? "Nobody owes anything right now." : "No activity yet."}</div>}

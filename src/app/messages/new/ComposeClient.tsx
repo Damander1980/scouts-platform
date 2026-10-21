@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ErrorBox, Field } from "@/components/ui";
 
-export default function ComposeClient({ orgId, isLeader, patrols, events, members, initialAudience, initialRef }: {
-  orgId: string; isLeader: boolean;
+export default function ComposeClient({ orgId, isLeader, canMoney = false, patrols, events, members, initialAudience, initialRef }: {
+  orgId: string; isLeader: boolean; canMoney?: boolean;
   patrols: { id: string; name: string }[];
   events: { id: string; title: string; start_at: string }[];
   members: { id: string; name: string; type: string }[];
@@ -25,6 +25,7 @@ export default function ComposeClient({ orgId, isLeader, patrols, events, member
 
   const options = [
     ...(isLeader ? [["troop", "Everyone active in the unit"], ["event", "Everyone going to an event"], ["nonresponders", "Families who haven't replied to an event"], ["people", "Pick people"]] : []),
+    ...(isLeader || canMoney ? [["owing", "Families who owe money (parents only)"]] : []),
     ...(patrols.length ? [["patrol", "A patrol"]] : []),
     ["leaders", "My leaders"],
   ];

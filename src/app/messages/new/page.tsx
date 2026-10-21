@@ -25,6 +25,7 @@ export default async function NewMessagePage({ searchParams }: { searchParams: P
       <ComposeClient
         orgId={orgId}
         isLeader={isLeader}
+        canMoney={ctx.can("money.manage", "money.view")}
         patrols={allowedPatrols}
         events={(events ?? []) as { id: string; title: string; start_at: string }[]}
         members={((members ?? []) as unknown as { person_id: string; persons: { first_name: string; last_name: string; type: string } }[])
