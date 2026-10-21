@@ -19,7 +19,7 @@ The product wins if a busy parent and a volunteer leader can do their jobs witho
 
 - **Start from "what do I need to do?"** The home screen shows the next event, an RSVP button, and any balance due or form missing, not a menu of features.
 - **Phone first.** Design for a thumb on a phone, then scale up. Text at least 16px, strong contrast, and large tap targets.
-- **No password required.** Text and email links open the right page directly; sign-in uses magic link, Google or Apple.
+- **Simple sign-in.** Email and password, or Google (Floyd, 2026-10-21). Text and email links still open the right page after sign-in.
 - **Menus by task, not feature.** A parent sees Events, Pay, Forms and Family; Venturing or Sea Scout options appear only for units that use them.
 - **Plain language.** "You owe $45 for Caprock Canyons" instead of ledger terms; every refund rule is stated at sign-up.
 - **Undo is easy.** Cancelling an RSVP, correcting attendance, or reversing a charge takes one step and is recorded in the history.

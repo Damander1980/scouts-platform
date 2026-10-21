@@ -16,7 +16,7 @@ export default function ConfirmPage() {
     const rawNext = url.searchParams.get("next") || "/home";
     const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/home";
     const tokenHash = url.searchParams.get("token_hash");
-    const type = (url.searchParams.get("type") || "email") as "email" | "magiclink" | "signup";
+    const type = (url.searchParams.get("type") || "email") as "email" | "magiclink" | "signup" | "recovery";
     const hash = new URLSearchParams(window.location.hash.slice(1));
 
     (async () => {

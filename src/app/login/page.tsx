@@ -3,24 +3,48 @@
 import { useState } from "react";
 import { createClient, createEmailLinkClient } from "@/lib/supabase/client";
 
+type Mode = "signin" | "signup" | "forgot";
+
 export default function LoginPage() {
+  const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   const next = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("next") ?? "/home" : "/home";
 
-  async function sendLink(e: React.FormEvent) {
+  function switchMode(m: Mode) { setMode(m); setError(""); setNotice(""); }
+
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-    const { error } = await createEmailLinkClient().auth.signInWithOtp({
-      email: email.trim(),
-      options: { emailRedirectTo: `${location.origin}/auth/confirm?next=${encodeURIComponent(next)}`, shouldCreateUser: true },
-    });
-    if (error) setError(error.message);
-    else setSent(true);
+    setLoading(true); setError(""); setNotice("");
+    try {
+      const supabase = createClient();
+      if (mode === "signin") {
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (error) throw new Error(error.message === "Invalid login credentials" ? "That email and password don't match. Try again or reset your password." : error.message);
+        window.location.href = next;
+        return;
+      }
+      if (mode === "signup") {
+        if (password.length < 8) throw new Error("Use at least 8 characters for your password.");
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(), password,
+          options: { emailRedirectTo: `${location.origin}/auth/confirm?next=${encodeURIComponent(next)}` },
+        });
+        if (error) throw error;
+        if (data.session) { window.location.href = next; return; }
+        setNotice(`Almost done. We sent a confirmation to ${email.trim()}. Open it once, then sign in with your password.`);
+      } else {
+        const { error } = await createEmailLinkClient().auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: `${location.origin}/auth/confirm?next=${encodeURIComponent("/reset-password")}`,
+        });
+        if (error) throw error;
+        setNotice(`If ${email.trim()} has an account, a reset link is on its way.`);
+      }
+    } catch (e: any) { setError(e.message); }
     setLoading(false);
   }
 
@@ -31,64 +55,77 @@ export default function LoginPage() {
     });
   }
 
+  const title = mode === "signin" ? "Sign in" : mode === "signup" ? "Create your account" : "Reset your password";
+  const action = mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Send reset link";
+
   return (
-    <div className="min-h-screen bg-paper flex flex-col">
-      <div className="bg-forest text-white px-5 pt-14 pb-8">
-        <div className="max-w-sm mx-auto">
-          <a href="/" className="flex items-center gap-3 mb-5 no-underline text-white">
-            <div className="w-11 h-11 rounded-full bg-white text-forest flex items-center justify-center font-display font-extrabold text-base">SP</div>
-            <span className="font-bold text-base">ScoutPlatform</span>
-          </a>
-          <h1 className="font-display font-extrabold text-[32px] leading-tight m-0">Your troop,<br />organized.</h1>
-          <p className="text-[15px] mt-2 mb-0" style={{ color: "#CFE0D7" }}>RSVP, pay, track forms and advancement. No password needed.</p>
+    <div className="min-h-screen flex flex-wrap" style={{ background: "#E9E3D6" }}>
+      <div className="bg-forest text-white flex flex-col justify-between gap-10 px-10 py-12" style={{ flex: "1 1 420px" }}>
+        <a href="/" className="flex items-center gap-3 no-underline text-white">
+          <div className="w-10 h-10 rounded-[10px] flex items-center justify-center font-display font-extrabold" style={{ background: "#F5B700", color: "#101B2D" }}>S</div>
+          <span className="font-display font-extrabold text-[20px]">ScoutPlatform</span>
+        </a>
+        <div className="flex flex-col gap-4 max-w-md">
+          <h1 className="font-display font-extrabold text-[44px] leading-[1.05] m-0">Your troop,<br /><span style={{ color: "#F5B700" }}>all in one place.</span></h1>
+          <p className="text-[17px] m-0" style={{ color: "#D7E0EE" }}>Sign-ups, payments, health form status, advancement and messages for every family and leader.</p>
         </div>
+        <p className="text-[13px] m-0" style={{ color: "#AEB9C9" }}>Not affiliated with Scouting America.</p>
       </div>
 
-      <div className="flex-1 px-4 py-8 flex flex-col gap-5 max-w-sm mx-auto w-full">
-        {sent ? (
-          <div className="card flex flex-col gap-3 text-center py-8">
-            <h2 className="font-display font-bold text-xl m-0">Check your email</h2>
-            <p className="text-smoke text-[15px] m-0">
-              We sent a sign-in link to <strong>{email}</strong>. Tap it on any device to continue.
-            </p>
-            <p className="text-smoke text-[13px] m-0">Nothing there? Check spam, or try again in a minute.</p>
-            <button className="btn-ghost text-sm mt-2" onClick={() => setSent(false)}>Use a different email</button>
-          </div>
-        ) : (
-          <>
-            <form onSubmit={sendLink} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="email" className="font-bold text-sm">Email address</label>
-                <input id="email" type="email" required autoFocus autoComplete="email" inputMode="email"
-                  value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="input w-full" />
-              </div>
-              {error && <p className="text-sm m-0" style={{ color: "#5E4400" }}>{error}</p>}
-              <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-50">
-                {loading ? "Sending…" : "Email me a sign-in link"}
-              </button>
-            </form>
+      <div className="flex items-center justify-center px-5 py-12" style={{ flex: "1 1 480px" }}>
+        <div className="w-full max-w-[420px] bg-white rounded-[20px] p-8 flex flex-col gap-5"
+          style={{ boxShadow: "0 1px 2px rgba(16,27,45,.06), 0 14px 36px rgba(16,27,45,.12)" }}>
+          <h2 className="font-display font-extrabold text-[28px] m-0">{title}</h2>
 
-            <div className="flex items-center gap-3 my-1">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-smoke text-xs">or</span>
-              <div className="flex-1 h-px bg-border" />
+          <form onSubmit={submit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="email" className="font-bold text-sm">Email</label>
+              <input id="email" type="email" required autoFocus autoComplete="email" inputMode="email"
+                value={email} onChange={(e) => setEmail(e.target.value)} className="input w-full" />
             </div>
-
-            <button onClick={google} className="btn-secondary w-full flex items-center justify-center gap-2">
-              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Continue with Google
+            {mode !== "forgot" && (
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="password" className="font-bold text-sm">Password</label>
+                  {mode === "signin" && (
+                    <button type="button" onClick={() => switchMode("forgot")} className="text-[13px] font-bold text-forest bg-transparent border-none cursor-pointer min-h-[44px] px-0">Forgot password?</button>
+                  )}
+                </div>
+                <input id="password" type="password" required minLength={mode === "signup" ? 8 : undefined}
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  value={password} onChange={(e) => setPassword(e.target.value)} className="input w-full" />
+                {mode === "signup" && <span className="text-[12px] text-smoke">At least 8 characters.</span>}
+              </div>
+            )}
+            {error && <p role="alert" className="text-sm m-0 rounded-xl p-3" style={{ background: "#FFF6D6", color: "#5E4400" }}>{error}</p>}
+            {notice && <p role="status" className="text-sm m-0 rounded-xl p-3" style={{ background: "#EEE8D9", color: "#12355F" }}>{notice}</p>}
+            <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-50">
+              {loading ? "One moment…" : action}
             </button>
+          </form>
 
-            <p className="text-center text-[13px] text-smoke m-0">
-              New here? Sign in first, then start a troop or join one with a code.
-            </p>
-          </>
-        )}
+          {mode !== "forgot" && (
+            <>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-border" /><span className="text-smoke text-xs">or</span><div className="flex-1 h-px bg-border" />
+              </div>
+              <button onClick={google} className="btn-secondary w-full flex items-center justify-center gap-2">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continue with Google
+              </button>
+            </>
+          )}
+
+          <p className="text-center text-[14px] text-smoke m-0">
+            {mode === "signin" && <>New here? <button type="button" onClick={() => switchMode("signup")} className="font-bold text-forest bg-transparent border-none cursor-pointer min-h-[44px] text-[14px]">Create an account</button></>}
+            {mode !== "signin" && <button type="button" onClick={() => switchMode("signin")} className="font-bold text-forest bg-transparent border-none cursor-pointer min-h-[44px] text-[14px]">Back to sign in</button>}
+          </p>
+        </div>
       </div>
     </div>
   );
