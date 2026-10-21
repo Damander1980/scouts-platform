@@ -60,7 +60,7 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
       </section>
 
       <section className="card flex flex-col gap-3">
-        <div className="font-bold text-[16px]">Scouts and sign-ups</div>
+        <div className="font-bold text-[16px]">Scouts and families</div>
         <Field label="When a Scout with a login RSVPs">
           <select className="input" value={f.scout_rsvp} onChange={(e) => setF({ ...f, scout_rsvp: e.target.value })}>
             <option value="parent_approves_paid">Scout RSVPs; a parent approves anything that costs money</option>
@@ -68,6 +68,16 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
             <option value="parent_only">Only parents can RSVP</option>
           </select>
         </Field>
+        <Field label="Family contact info on the member roster">
+          <select className="input" value={f.contact_default} onChange={(e) => setF({ ...f, contact_default: e.target.value })}>
+            <option value="opt_in">Hidden unless a family opts in (recommended)</option>
+            <option value="opt_out">Shown unless a family opts out</option>
+          </select>
+        </Field>
+      </section>
+
+      <section className="card flex flex-col gap-3">
+        <div className="font-bold text-[16px]">Money</div>
         <Field label="How families can pay">
           <select className="input" value={f.payment_methods} onChange={(e) => setF({ ...f, payment_methods: e.target.value })}>
             <option value="both">Card online, or cash and check in person</option>
@@ -85,12 +95,6 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
         )}
         <Field label="Reimbursements over this amount need a second approver ($)"><input className="input w-40" inputMode="decimal" value={f.second} onChange={(e) => setF({ ...f, second: e.target.value })} /></Field>
         <label className="flex items-center gap-3 text-[14px]"><input type="checkbox" className="w-5 h-5" checked={f.leaderboard} onChange={(e) => setF({ ...f, leaderboard: e.target.checked })} /> Show a fundraising leaderboard of individual Scouts</label>
-        <Field label="Family contact info on the member roster">
-          <select className="input" value={f.contact_default} onChange={(e) => setF({ ...f, contact_default: e.target.value })}>
-            <option value="opt_in">Hidden unless a family opts in (recommended)</option>
-            <option value="opt_out">Shown unless a family opts out</option>
-          </select>
-        </Field>
       </section>
 
       <section className="card flex flex-col gap-2">
