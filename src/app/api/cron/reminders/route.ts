@@ -5,6 +5,7 @@ import { notifyPeople } from "@/lib/notify";
 // Runs daily (see vercel.json). Protected by CRON_SECRET.
 //  1) RSVP deadline reminders, only to families who haven't responded.
 //  2) Weekly digest on each person's chosen day.
+//  3) Health form expiry: guardians hear 30 and 7 days before a Scout's form runs out.
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -24,15 +25,20 @@ export async function GET(request: Request) {
     const { data: rsvps } = await db.from("rsvps").select("person_id").eq("event_id", ev.id);
     const replied = new Set((rsvps ?? []).map((r) => r.person_id));
     const waiting = (members ?? []).filter((m) => !replied.has(m.person_id));
-    // Youth are reached through their parents: notify guardians of youth who haven't replied, and adults who haven't.
+    // Youth are reached through their parents. Parents of Scouts are reminded only about their Scouts
+    // (a parent coming along is optional); adults with no Scout in the unit (leaders) about themselves.
     const guardianIds = new Set<string>();
-    for (const m of waiting) {
-      if ((m.persons as unknown as { type: string }).type === "adult") { guardianIds.add(m.person_id); continue; }
+    const parentsOfYouth = new Set<string>();
+    for (const m of members ?? []) {
+      if ((m.persons as unknown as { type: string }).type !== "youth") continue;
       const { data: hh } = await db.from("household_members").select("household_id").eq("person_id", m.person_id);
       for (const h of hh ?? []) {
         const { data: gs } = await db.from("household_members").select("person_id").eq("household_id", h.household_id).eq("is_guardian", true);
-        (gs ?? []).forEach((g) => guardianIds.add(g.person_id));
+        (gs ?? []).forEach((g) => { parentsOfYouth.add(g.person_id); if (!replied.has(m.person_id)) guardianIds.add(g.person_id); });
       }
+    }
+    for (const m of waiting) {
+      if ((m.persons as unknown as { type: string }).type === "adult" && !parentsOfYouth.has(m.person_id)) guardianIds.add(m.person_id);
     }
     const ids = [...guardianIds];
     if (ids.length) {
@@ -40,6 +46,33 @@ export async function GET(request: Request) {
       reminders += ids.length;
     }
     await db.from("notification_log").insert({ category: `deadline:${ev.id}`, channel: "system", status: "done" });
+  }
+
+  // Health form expiry, 30 and 7 days out. Status only: we never hold the form itself.
+  let formReminders = 0;
+  for (const days of [30, 7]) {
+    const day = new Date(now.getTime() + days * 86400000).toISOString().slice(0, 10);
+    const { data: expiring } = await db.from("forms").select("id, org_id, person_id, type, expires_at, persons(first_name, type)")
+      .in("type", ["health_ab", "health_c"]).gte("expires_at", day).lt("expires_at", day + "T23:59:59");
+    for (const f of expiring ?? []) {
+      const key = `form:${f.id}:${days}`;
+      const { data: done } = await db.from("notification_log").select("id").eq("category", key).limit(1);
+      if (done?.length) continue;
+      const who = f.persons as unknown as { first_name: string; type: string };
+      const ids = new Set<string>();
+      if (who.type === "adult") ids.add(f.person_id);
+      const { data: hh } = await db.from("household_members").select("household_id").eq("person_id", f.person_id);
+      for (const h of hh ?? []) {
+        const { data: gs } = await db.from("household_members").select("person_id").eq("household_id", h.household_id).eq("is_guardian", true);
+        (gs ?? []).forEach((g) => ids.add(g.person_id));
+      }
+      if (ids.size) {
+        const part = f.type === "health_c" ? "Part C" : "Parts A and B";
+        await notifyPeople([...ids], "reminders", `${who.first_name}'s health form (${part}) expires in ${days} days. Download a blank form and give the new one to a leader.`, "/forms");
+        formReminders += ids.size;
+      }
+      await db.from("notification_log").insert({ category: key, channel: "system", status: "done" });
+    }
   }
 
   const today = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][now.getDay()];
@@ -65,5 +98,5 @@ export async function GET(request: Request) {
     digests++;
   }
 
-  return NextResponse.json({ reminders, digests });
+  return NextResponse.json({ reminders, digests, formReminders });
 }
