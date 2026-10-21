@@ -10,7 +10,10 @@ Build order (Floyd, 2026-10-19): **PC web platform first, then the app, iOS last
 ## Needs Floyd
 
 ### Push / deploy
-- [x] Migrations 0036-0040 pushed and all code pushed 2026-10-19.
+- [x] Migrations 0036-0041 pushed and all code pushed to GitHub.
+- [ ] **The site is not hosted anywhere yet.** The repo has no Vercel deployments.
+      Connect Vercel to `Damander1980/scouts-platform` so pushes go live. Until
+      then, view on a phone on home Wi-Fi at `http://<this PC's IP>:3000/demo/tour`.
 - [ ] Note: an old unused `site_pages` table (0016, 0 rows) is still on the
       database. The builder uses `web_pages`. Safe to drop later if wanted.
 - [ ] Forums and linked units weren't tested with real data (forum posts are
