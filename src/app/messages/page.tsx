@@ -30,14 +30,15 @@ export default async function MessagesPage() {
       <PageTitle title="Messages" sub="Every message is saved and can't be edited or deleted. Messages to Scouts always copy their parents and leaders."
         action={<div className="flex gap-2"><LinkButton href="/forum" variant="secondary">Discussion boards</LinkButton><LinkButton href="/messages/new">New message</LinkButton></div>} />
       {rows.length === 0 && <Empty>No messages yet.</Empty>}
-      <div className="flex flex-col gap-2">
+      {rows.length > 0 && <div className="card p-0 overflow-hidden flex flex-col">
         {rows.map((r) => {
           const m = r.message_log!;
           const unread = !r.read_at;
           return (
-            <Link key={m.id} href={`/messages/${m.id}`} className="card flex flex-col gap-1 no-underline text-ink"
-              style={{ borderColor: unread ? "#12355F" : undefined, borderWidth: unread ? 2 : 1 }}>
+            <Link key={m.id} href={`/messages/${m.id}`} className="flex flex-col gap-1 px-5 py-3.5 no-underline text-ink border-b border-[#EAE4D6] last:border-0"
+              style={{ background: unread ? "#FFFFFF" : "#FBF9F4" }}>
               <div className="flex items-center gap-2">
+                {unread && <span className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: "#F5B700" }} aria-label="Unread" />}
                 <span className={`text-[15px] ${unread ? "font-bold" : ""}`}>{m.sender_id ? nameOf[m.sender_id] ?? "Member" : "System"}</span>
                 {r.copy_reason && REASON[r.copy_reason] && <Chip>{REASON[r.copy_reason]}</Chip>}
                 <span className="ml-auto text-[12px] text-smoke">{fmtDate(m.created_at, { month: "short", day: "numeric" })} {fmtTime(m.created_at)}</span>
@@ -47,7 +48,7 @@ export default async function MessagesPage() {
             </Link>
           );
         })}
-      </div>
+      </div>}
     </Shell>
   );
 }
