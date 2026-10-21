@@ -61,12 +61,21 @@ export function money(cents: number) {
   return `${sign}$${(Math.abs(cents) / 100).toFixed(2)}`;
 }
 
+// Servers run on UTC, so dates are always shown in the unit's time zone (Central for the pilot;
+// set NEXT_PUBLIC_TIME_ZONE to change it). Same zone on server and browser, so no hydration mismatch.
+export const TIME_ZONE = process.env.NEXT_PUBLIC_TIME_ZONE || "America/Chicago";
+
 export function fmtDate(iso: string, opts: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric" }) {
-  return new Date(iso).toLocaleDateString("en-US", opts);
+  return new Date(iso).toLocaleDateString("en-US", { timeZone: TIME_ZONE, ...opts });
 }
 
 export function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TIME_ZONE });
+}
+
+// Day of the month in the unit's time zone (instead of Date#getDate, which uses the server's zone).
+export function dayOfMonth(iso: string) {
+  return Number(new Date(iso).toLocaleDateString("en-US", { day: "numeric", timeZone: TIME_ZONE }));
 }
 
 export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {

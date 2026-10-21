@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireOrg } from "@/lib/context";
 import Shell from "@/components/Shell";
-import { Empty, LinkButton, PageTitle, fmtDate, fmtTime, money } from "@/components/ui";
+import { Empty, LinkButton, PageTitle, dayOfMonth, fmtDate, fmtTime, money } from "@/components/ui";
 
 const KIND_LABEL: Record<string, string> = {
   meeting: "Meeting", campout: "Campout", service: "Service", fundraiser: "Fundraiser", event: "Event", high_adventure: "High adventure",
@@ -74,7 +74,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
                   style={{ opacity: e.canceled ? 0.55 : 1 }}>
                   <div className="w-12 text-center flex-none">
                     <div className="text-[11px] font-bold uppercase text-smoke">{fmtDate(e.start_at, { weekday: "short" })}</div>
-                    <div className="font-display font-extrabold text-[24px] leading-none text-forest">{new Date(e.start_at).getDate()}</div>
+                    <div className="font-display font-extrabold text-[24px] leading-none text-forest">{dayOfMonth(e.start_at)}</div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-bold text-[16px] truncate">{e.title}{e.canceled ? " (canceled)" : ""}</div>
