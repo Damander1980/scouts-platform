@@ -209,6 +209,7 @@ export default function LandingPage() {
             <a href="#pricing" className="no-underline" style={{ color: "#AEB9C9" }}>Pricing</a>
             <Link href="/safety" className="no-underline" style={{ color: "#AEB9C9" }}>Safety and privacy</Link>
             <Link href="/help" className="no-underline" style={{ color: "#AEB9C9" }}>Help</Link>
+            <Link href="/changes" className="no-underline" style={{ color: "#AEB9C9" }}>What&apos;s new</Link>
             <Link href="/login" className="no-underline" style={{ color: "#AEB9C9" }}>Sign in</Link>
           </div>
           <span>Not affiliated with Scouting America.</span>

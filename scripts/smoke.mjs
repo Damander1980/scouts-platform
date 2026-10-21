@@ -1,7 +1,7 @@
 // Loads every public page and reports anything that isn't a success. Pages behind sign-in should
 // redirect to /login (that counts as OK). Usage: node scripts/smoke.mjs [base-url]
 const base = (process.argv[2] || "http://localhost:3000").replace(/\/$/, "");
-const pages = ["/", "/login", "/safety", "/help", "/demo/tour", "/demo", "/demo/scout", "/demo/admin", "/demo/advancement",
+const pages = ["/", "/login", "/safety", "/help", "/changes", "/demo/tour", "/demo", "/demo/scout", "/demo/admin", "/demo/advancement",
   "/demo/calendar", "/demo/trip-sheet", "/demo/forum", "/demo/recharter", "/manifest.webmanifest"];
 const gated = ["/dashboard", "/events", "/admin", "/pay", "/forms", "/patrols", "/plc", "/settings"];
 let bad = 0;
