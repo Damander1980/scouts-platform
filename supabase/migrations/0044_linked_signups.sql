@@ -36,7 +36,7 @@ create or replace function public.set_rsvp(
 declare
   e record; prev record; hid uuid; final_status text; going_count int; me uuid;
   charged int; credited int; refund int; nxt record; pay_org uuid; nxt_org uuid; label text;
-  scout_self boolean; mode text; needs_ok boolean := false;
+  scout_self boolean; mode text; needs_ok boolean := false; owe_limit int; owed int; fam uuid;
 begin
   me := public.my_person_id();
   select * into e from public.events where id = p_event;
@@ -60,6 +60,17 @@ begin
     then ' (hosted by ' || (select name from public.organizations where id = e.org_id) || ')' else '' end;
 
   select * into prev from public.rsvps where event_id = p_event and person_id = p_person;
+  -- Unit setting: block new sign-ups for families who owe more than a set amount (leaders can still add anyone).
+  owe_limit := nullif(coalesce((select settings->>'block_owing_cents' from public.organizations where id = pay_org), ''), '')::int;
+  if owe_limit is not null and p_status = 'going' and coalesce(prev.status, '') <> 'going'
+     and not (public.is_org_leader(e.org_id) or public.is_org_leader(pay_org)) then
+    fam := coalesce(public.person_household_in(p_person, pay_org), public.person_household(p_person));
+    select coalesce(sum(amount_cents), 0) into owed from public.ledger_entries where household_id = fam and org_id = pay_org;
+    if owed > owe_limit then
+      raise exception 'Your family owes $% to the unit. Please pay before signing up for new events.', to_char(owed / 100.0, 'FM999999990.00');
+    end if;
+  end if;
+
   final_status := p_status;
   if p_status = 'going' and coalesce(prev.status, '') not in ('going') and e.cap is not null then
     select count(*) into going_count from public.rsvps where event_id = p_event and status = 'going';

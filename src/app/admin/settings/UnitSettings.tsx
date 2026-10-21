@@ -19,6 +19,7 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
     contact_default: (st.contact_default as string) ?? "opt_in",
     payment_methods: (st.payment_methods as string) ?? "both",
     card_fee_payer: (st.card_fee_payer as string) ?? "family",
+    block_owing: st.block_owing_cents != null && st.block_owing_cents !== "" ? String(Number(st.block_owing_cents) / 100) : "",
     second: String(org.second_approval_cents / 100),
   });
   const [ok, setOk] = useState("");
@@ -29,7 +30,8 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
     setOk(""); setError("");
     const { error } = await supabase.from("organizations").update({
       name: f.name, city: f.city, state: f.state || null, second_approval_cents: Math.round(parseFloat(f.second || "500") * 100),
-      settings: { ...st, email_mode: f.email_mode, scout_rsvp: f.scout_rsvp, fundraising_leaderboard: f.leaderboard, contact_default: f.contact_default, payment_methods: f.payment_methods, card_fee_payer: f.card_fee_payer },
+      settings: { ...st, email_mode: f.email_mode, scout_rsvp: f.scout_rsvp, fundraising_leaderboard: f.leaderboard, contact_default: f.contact_default, payment_methods: f.payment_methods, card_fee_payer: f.card_fee_payer,
+        block_owing_cents: f.block_owing.trim() === "" ? null : Math.round(parseFloat(f.block_owing) * 100) },
     }).eq("id", org.id);
     if (error) setError(error.message); else { setOk("Saved."); router.refresh(); }
   }
@@ -93,6 +95,9 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
             </select>
           </Field>
         )}
+        <Field label="Block new sign-ups when a family owes more than ($)" hint="Leave blank to never block. Leaders can still add anyone.">
+          <input className="input w-40" inputMode="decimal" value={f.block_owing} onChange={(e) => setF({ ...f, block_owing: e.target.value })} placeholder="Never" />
+        </Field>
         <Field label="Reimbursements over this amount need a second approver ($)"><input className="input w-40" inputMode="decimal" value={f.second} onChange={(e) => setF({ ...f, second: e.target.value })} /></Field>
         <label className="flex items-center gap-3 text-[14px]"><input type="checkbox" className="w-5 h-5" checked={f.leaderboard} onChange={(e) => setF({ ...f, leaderboard: e.target.checked })} /> Show a fundraising leaderboard of individual Scouts</label>
       </section>
