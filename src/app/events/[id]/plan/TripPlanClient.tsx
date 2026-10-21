@@ -70,7 +70,7 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
         <div className="font-bold text-[16px]">Cost calculator</div>
         {plan.costs.map((c) => (
           <div key={c.id} className="flex gap-2 items-center flex-wrap text-[14px]">
-            <input className="input flex-1 min-w-[140px] h-10 min-h-0" value={c.text} disabled={!canEdit} onChange={(e) => update("costs", c.id, { text: e.target.value })} placeholder="Campsite fee" />
+            <input aria-label="Campsite fee" className="input flex-1 min-w-[140px] h-10 min-h-0" value={c.text} disabled={!canEdit} onChange={(e) => update("costs", c.id, { text: e.target.value })} placeholder="Campsite fee" />
             <input className="input w-28 h-10 min-h-0" inputMode="decimal" disabled={!canEdit} value={((c.amount ?? 0) / 100).toString()} onChange={(e) => update("costs", c.id, { amount: Math.round(parseFloat(e.target.value || "0") * 100) })} />
             <select className="input h-10 min-h-0" disabled={!canEdit} value={c.kind ?? "flat"} onChange={(e) => update("costs", c.id, { kind: e.target.value as Item["kind"] })}>
               <option value="flat">total</option><option value="per_person">per Scout</option>
@@ -95,9 +95,9 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
         <div className="font-bold text-[16px]">Itinerary</div>
         {plan.itinerary.map((i) => (
           <div key={i.id} className="flex gap-2 items-center flex-wrap">
-            <input className="input w-32 h-10 min-h-0" disabled={!canEdit} value={i.day ?? ""} onChange={(e) => update("itinerary", i.id, { day: e.target.value })} placeholder="Fri" />
-            <input className="input w-28 h-10 min-h-0" disabled={!canEdit} value={i.time ?? ""} onChange={(e) => update("itinerary", i.id, { time: e.target.value })} placeholder="5:30 PM" />
-            <input className="input flex-1 min-w-[160px] h-10 min-h-0" disabled={!canEdit} value={i.text} onChange={(e) => update("itinerary", i.id, { text: e.target.value })} placeholder="Depart from church parking lot" />
+            <input aria-label="Fri" className="input w-32 h-10 min-h-0" disabled={!canEdit} value={i.day ?? ""} onChange={(e) => update("itinerary", i.id, { day: e.target.value })} placeholder="Fri" />
+            <input aria-label="5:30 PM" className="input w-28 h-10 min-h-0" disabled={!canEdit} value={i.time ?? ""} onChange={(e) => update("itinerary", i.id, { time: e.target.value })} placeholder="5:30 PM" />
+            <input aria-label="Depart from church parking lot" className="input flex-1 min-w-[160px] h-10 min-h-0" disabled={!canEdit} value={i.text} onChange={(e) => update("itinerary", i.id, { text: e.target.value })} placeholder="Depart from church parking lot" />
             {canEdit && <button className="btn-ghost" onClick={() => remove("itinerary", i.id)}>×</button>}
           </div>
         ))}
@@ -114,10 +114,10 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
               <div className="font-bold">{p.name} <span className="text-smoke font-normal">· {p.going} going</span></div>
               {meals.map((m) => (
                 <div key={m.id} className="flex gap-2 flex-wrap items-center text-[14px]">
-                  <input className="input w-32 h-9 min-h-0" value={m.meal ?? ""} onChange={(e) => update("meals", m.id, { meal: e.target.value })} placeholder="Sat breakfast" />
-                  <input className="input flex-1 min-w-[140px] h-9 min-h-0" value={m.text} onChange={(e) => update("meals", m.id, { text: e.target.value })} placeholder="Pancake mix" />
-                  <input className="input w-20 h-9 min-h-0" inputMode="decimal" value={m.per ?? ""} onChange={(e) => update("meals", m.id, { per: parseFloat(e.target.value || "0") })} placeholder="per" />
-                  <input className="input w-20 h-9 min-h-0" value={m.qty ?? ""} onChange={(e) => update("meals", m.id, { qty: e.target.value })} placeholder="cups" />
+                  <input aria-label="Sat breakfast" className="input w-32 h-9 min-h-0" value={m.meal ?? ""} onChange={(e) => update("meals", m.id, { meal: e.target.value })} placeholder="Sat breakfast" />
+                  <input aria-label="Pancake mix" className="input flex-1 min-w-[140px] h-9 min-h-0" value={m.text} onChange={(e) => update("meals", m.id, { text: e.target.value })} placeholder="Pancake mix" />
+                  <input aria-label="per" className="input w-20 h-9 min-h-0" inputMode="decimal" value={m.per ?? ""} onChange={(e) => update("meals", m.id, { per: parseFloat(e.target.value || "0") })} placeholder="per" />
+                  <input aria-label="cups" className="input w-20 h-9 min-h-0" value={m.qty ?? ""} onChange={(e) => update("meals", m.id, { qty: e.target.value })} placeholder="cups" />
                   <Chip tone="green">Buy {Math.ceil((m.per ?? 0) * p.going * 10) / 10} {m.qty}</Chip>
                   <button className="btn-ghost" onClick={() => remove("meals", m.id)}>×</button>
                 </div>
@@ -179,7 +179,7 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
         ))}
         {canEdit && (
           <div className="flex gap-2">
-            <input className="input flex-1 h-10 min-h-0" value={draft.packing ?? ""} onChange={(e) => setDraft({ ...draft, packing: e.target.value })} placeholder="Add an item" />
+            <input aria-label="Add an item" className="input flex-1 h-10 min-h-0" value={draft.packing ?? ""} onChange={(e) => setDraft({ ...draft, packing: e.target.value })} placeholder="Add an item" />
             <button className="btn-secondary min-h-[40px]" disabled={!draft.packing} onClick={() => { add("packing", { text: draft.packing }); setDraft({ ...draft, packing: "" }); }}>Add</button>
           </div>
         )}
@@ -190,7 +190,7 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
         {plan.tasks.map((t) => (
           <div key={t.id} className="flex gap-2 items-center flex-wrap text-[14px]">
             <input type="checkbox" className="w-5 h-5" checked={!!t.done} disabled={!canEdit} onChange={(e) => update("tasks", t.id, { done: e.target.checked })} />
-            <input className="input flex-1 min-w-[160px] h-10 min-h-0" disabled={!canEdit} value={t.text} onChange={(e) => update("tasks", t.id, { text: e.target.value })} placeholder="Reserve campsite" />
+            <input aria-label="Reserve campsite" className="input flex-1 min-w-[160px] h-10 min-h-0" disabled={!canEdit} value={t.text} onChange={(e) => update("tasks", t.id, { text: e.target.value })} placeholder="Reserve campsite" />
             <select className="input h-10 min-h-0" disabled={!canEdit} value={t.who ?? ""} onChange={(e) => update("tasks", t.id, { who: e.target.value })}>
               <option value="">Unassigned</option>{adults.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
@@ -213,7 +213,7 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
         ))}
         {canEdit && (
           <div className="flex gap-2">
-            <input className="input flex-1 h-10 min-h-0" value={draft.permit ?? ""} onChange={(e) => setDraft({ ...draft, permit: e.target.value })} placeholder="e.g. State park campsite reservation #" />
+            <input aria-label="e.g. State park campsite reservation #" className="input flex-1 h-10 min-h-0" value={draft.permit ?? ""} onChange={(e) => setDraft({ ...draft, permit: e.target.value })} placeholder="e.g. State park campsite reservation #" />
             <button className="btn-secondary min-h-[40px]" disabled={!draft.permit} onClick={() => { add("permits", { text: draft.permit }); setDraft({ ...draft, permit: "" }); }}>Add</button>
           </div>
         )}
