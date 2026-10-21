@@ -97,7 +97,7 @@ export default async function TreasurerReport({ searchParams }: { searchParams: 
 
       <div>
         <div className="text-[14px] font-bold text-smoke">{current.org.name}</div>
-        <h1 className="font-display font-extrabold text-[28px] m-0">{r.label}</h1>
+        <h1 className="font-display font-extrabold text-[32px] m-0">{r.label}</h1>
         <p className="text-[13px] text-smoke m-0 mt-1">Prepared {now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} for the unit committee.</p>
       </div>
 

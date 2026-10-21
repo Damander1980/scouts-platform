@@ -46,7 +46,7 @@ export default function TwoStepPage() {
     <div className="min-h-screen bg-canvas flex items-center justify-center px-5 py-10">
       <form onSubmit={verify} className="w-full max-w-[460px] bg-white rounded-[20px] p-8 flex flex-col gap-4"
         style={{ boxShadow: "0 1px 2px rgba(16,27,45,.06), 0 14px 36px rgba(16,27,45,.12)" }}>
-        <h1 className="font-display font-extrabold text-[28px] m-0">{qr ? "Set up two-step sign-in" : "Enter your code"}</h1>
+        <h1 className="font-display font-extrabold text-[32px] m-0">{qr ? "Set up two-step sign-in" : "Enter your code"}</h1>
         <p className="text-[15px] text-smoke m-0">
           {qr
             ? "Leader tools show children's information, so leaders, treasurers and admins confirm it's them with a code from an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password and others)."

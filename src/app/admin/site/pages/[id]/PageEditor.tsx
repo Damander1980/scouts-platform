@@ -70,7 +70,7 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
       <a href="/admin/site/pages" className="text-[13px] font-bold text-forest no-underline">← Pages</a>
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="font-display font-extrabold text-[28px] m-0">{meta.title || "Untitled"}</h1>
+          <h1 className="font-display font-extrabold text-[32px] m-0">{meta.title || "Untitled"}</h1>
           <div className="flex gap-1.5 mt-1 items-center flex-wrap text-[13px]">
             {!page.published_at ? <Chip tone="orange">Draft, not live</Chip> : <Chip tone="green">Live since {new Date(page.published_at).toLocaleDateString()}</Chip>}
             {dirty && <Chip tone="orange">Unsaved changes</Chip>}

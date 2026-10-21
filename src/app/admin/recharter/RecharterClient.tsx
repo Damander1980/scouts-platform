@@ -55,7 +55,7 @@ export default function RecharterClient({ orgId, year, canEdit, people, recharte
     <div className="flex flex-col gap-5">
       <div className="flex items-end justify-between flex-wrap gap-2">
         <div>
-          <h1 className="font-display font-extrabold text-[28px] m-0">Recharter {year}</h1>
+          <h1 className="font-display font-extrabold text-[32px] m-0">Recharter {year}</h1>
           <p className="text-[14px] text-smoke m-0 mt-1">Yearly renewal checklist. Steps vary a little by council; use this as a guide.</p>
         </div>
         <div className="flex gap-2 flex-wrap">

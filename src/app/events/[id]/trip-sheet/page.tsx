@@ -64,7 +64,7 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
 
       <div>
         <div className="font-bold text-smoke">{current.org.name}</div>
-        <h1 className="font-display font-extrabold text-[28px] m-0">Trip sheet: {ev.title}</h1>
+        <h1 className="font-display font-extrabold text-[32px] m-0">Trip sheet: {ev.title}</h1>
         <div>{when(ev.start_at)}{ev.end_at ? ` to ${when(ev.end_at)}` : ""}</div>
         {ev.location && <div>{ev.location}</div>}
       </div>

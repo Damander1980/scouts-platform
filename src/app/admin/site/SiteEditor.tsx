@@ -56,7 +56,7 @@ export default function SiteEditor({ orgId, slug, isAdmin, site: initial, settin
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="font-display font-extrabold text-[28px] m-0">Website</h1>
+          <h1 className="font-display font-extrabold text-[32px] m-0">Website</h1>
           <p className="text-[14px] text-smoke m-0 mt-1">Your public page is at <a href={`/${slug}`} target="_blank" className="font-bold text-forest">/{slug}</a>. Families find you, read about you, and ask to join.</p>
           <a href="/admin/site/pages" className="btn-secondary no-underline inline-block mt-2">More pages (About, New families, and so on)</a>
         </div>

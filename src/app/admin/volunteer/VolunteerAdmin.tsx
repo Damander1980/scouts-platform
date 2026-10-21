@@ -21,7 +21,7 @@ export default function VolunteerAdmin({ orgId, shifts, signups, polls, votes }:
 
   return (
     <div className="flex flex-col gap-5">
-      <div><h1 className="font-display font-extrabold text-[28px] m-0">Volunteers & polls</h1>
+      <div><h1 className="font-display font-extrabold text-[32px] m-0">Volunteers & polls</h1>
         <p className="text-[14px] text-smoke m-0 mt-1">Shift sign-ups for booths and fundraisers, and quick votes for families or the Patrol Leaders&apos; Council.</p></div>
       <ErrorBox>{error}</ErrorBox>
 

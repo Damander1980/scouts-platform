@@ -37,7 +37,7 @@ export default async function CourtOfHonor() {
       <section className="coh-page flex flex-col gap-3">
         <div>
           <div className="font-bold text-smoke">{current.org.name}</div>
-          <h1 className="font-display font-extrabold text-[28px] m-0">Court of Honor shopping list</h1>
+          <h1 className="font-display font-extrabold text-[32px] m-0">Court of Honor shopping list</h1>
           <p className="text-smoke m-0">{toBuy.length} award{toBuy.length === 1 ? "" : "s"} still to buy. Bring the Scoutbook advancement report; most Scout Shops need it.</p>
         </div>
         {toBuy.length === 0 && <div className="card text-smoke">Everything earned has been bought.</div>}
@@ -54,7 +54,7 @@ export default async function CourtOfHonor() {
       <section className="flex flex-col gap-3">
         <div>
           <div className="font-bold text-smoke">{current.org.name}</div>
-          <h1 className="font-display font-extrabold text-[28px] m-0">Court of Honor program</h1>
+          <h1 className="font-display font-extrabold text-[32px] m-0">Court of Honor program</h1>
           <p className="text-smoke m-0">Awards to present, by Scout. Ranks first.</p>
         </div>
         {scouts.length === 0 && <div className="card text-smoke">Nothing waiting to be presented.</div>}

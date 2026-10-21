@@ -73,7 +73,7 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="font-display font-extrabold text-[28px] m-0">Forms & safety</h1>
+        <h1 className="font-display font-extrabold text-[32px] m-0">Forms & safety</h1>
         <p className="text-[14px] text-smoke m-0 mt-1">
           Completed medical forms stay on paper with your designated leader. Here you only record that each part was received and when it expires.
         </p>

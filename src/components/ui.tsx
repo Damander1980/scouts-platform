@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 
 export function PageTitle({ title, sub, action }: { title: string; sub?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-3 flex-wrap">
+    <div className="flex items-end justify-between gap-3 flex-wrap">
       <div>
-        <h1 className="font-display font-extrabold text-[26px] leading-tight m-0">{title}</h1>
+        <h1 className="font-display font-extrabold text-[32px] leading-tight m-0">{title}</h1>
         {sub && <p className="text-[14px] m-0 mt-1 text-smoke">{sub}</p>}
       </div>
       {action}
@@ -50,8 +50,8 @@ export function LinkButton({ href, children, variant = "primary" }: { href: stri
 export function Stat({ label, value, tone }: { label: string; value: ReactNode; tone?: string }) {
   return (
     <div className="card">
-      <div className="text-[11px] font-bold tracking-widest uppercase text-smoke">{label}</div>
-      <div className="font-display font-extrabold text-[24px] mt-1" style={tone ? { color: tone } : undefined}>{value}</div>
+      <div className="text-[12px] font-bold tracking-widest uppercase text-forest">{label}</div>
+      <div className="font-display font-extrabold text-[30px] leading-tight mt-1" style={tone ? { color: tone } : undefined}>{value}</div>
     </div>
   );
 }

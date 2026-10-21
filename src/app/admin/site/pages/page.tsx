@@ -12,7 +12,7 @@ export default async function SitePages() {
     <div className="flex flex-col gap-4">
       <Link href="/admin/site" className="text-[13px] font-bold text-forest no-underline">← Website</Link>
       <div>
-        <h1 className="font-display font-extrabold text-[28px] m-0">Pages</h1>
+        <h1 className="font-display font-extrabold text-[32px] m-0">Pages</h1>
         <p className="text-[14px] text-smoke m-0 mt-1">Extra pages for your site, built from blocks. Your home page is edited on the Website screen.</p>
       </div>
       <NewPage orgId={current.org.id} taken={(pages ?? []).map((p) => p.slug)} />

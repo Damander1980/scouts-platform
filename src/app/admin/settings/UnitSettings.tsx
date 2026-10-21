@@ -40,7 +40,7 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
 
   return (
     <div className="flex flex-col gap-4 max-w-2xl">
-      <div><h1 className="font-display font-extrabold text-[28px] m-0">Unit settings</h1></div>
+      <div><h1 className="font-display font-extrabold text-[32px] m-0">Unit settings</h1></div>
       {!isAdmin && <div className="card">Only unit admins can change settings.</div>}
       <ErrorBox>{error}</ErrorBox>
       {ok && <div className="card font-bold" style={{ background: "#EEE8D9" }}>{ok}</div>}

@@ -27,7 +27,7 @@ export default function GearClient({ orgId, items, outs, people, docs }: { orgId
 
   return (
     <div className="flex flex-col gap-5">
-      <div><h1 className="font-display font-extrabold text-[28px] m-0">Gear & documents</h1>
+      <div><h1 className="font-display font-extrabold text-[32px] m-0">Gear & documents</h1>
         <p className="text-[14px] text-smoke m-0 mt-1">Who has which tent, and the unit&apos;s file cabinet.</p></div>
       <ErrorBox>{error}</ErrorBox>
       <div role="tablist" className="flex gap-6 overflow-x-auto border-b-2 border-[#DDD6C5]">

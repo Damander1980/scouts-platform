@@ -73,7 +73,7 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="font-display font-extrabold text-[28px] m-0">{groupWord}s & positions</h1>
+        <h1 className="font-display font-extrabold text-[32px] m-0">{groupWord}s & positions</h1>
         <p className="text-[14px] text-smoke m-0 mt-1">Moves keep their history. Position dates count toward rank leadership time automatically.</p>
       </div>
       <ErrorBox>{error}</ErrorBox>
