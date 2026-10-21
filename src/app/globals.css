@@ -13,11 +13,11 @@
     @apply font-display;
   }
 
-  /* Visible keyboard focus everywhere; gold reads on both navy and sand. */
+  /* Visible keyboard focus everywhere: a dark ring shows on sand and white, the gold halo on navy. */
   a:focus-visible, button:focus-visible, [role="tab"]:focus-visible, summary:focus-visible {
-    outline: 3px solid #F5B700;
+    outline: 2px solid #101B2D;
     outline-offset: 2px;
-    border-radius: 8px;
+    box-shadow: 0 0 0 5px #F5B700;
   }
 }
 
