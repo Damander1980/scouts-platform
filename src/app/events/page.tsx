@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { requireOrg } from "@/lib/context";
 import Shell from "@/components/Shell";
-import { Empty, LinkButton, PageTitle, dayOfMonth, fmtDate, fmtTime, money } from "@/components/ui";
+import MonthGrid from "./MonthGrid";
+import { Empty, LinkButton, PageTitle, TIME_ZONE, dayOfMonth, fmtDate, fmtTime, money } from "@/components/ui";
 
 const KIND_LABEL: Record<string, string> = {
   meeting: "Meeting", campout: "Campout", service: "Service", fundraiser: "Fundraiser", event: "Event", high_adventure: "High adventure",
 };
 
-export default async function EventsPage({ searchParams }: { searchParams: Promise<{ past?: string }> }) {
-  const { past } = await searchParams;
+export default async function EventsPage({ searchParams }: { searchParams: Promise<{ past?: string; view?: string; month?: string }> }) {
+  const sp = await searchParams;
+  const monthView = sp.view === "month";
+  const month = /^\d{4}-\d{2}$/.test(sp.month ?? "") ? sp.month! : new Date().toLocaleDateString("en-CA", { timeZone: TIME_ZONE }).slice(0, 7);
+  const past = monthView ? undefined : sp.past;
   const ctx = await requireOrg();
   const { supabase, current } = ctx;
   const isLeader = ctx.can("leader", "events.manage");
@@ -16,7 +20,12 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
 
   let q = supabase.from("events").select("id, title, start_at, end_at, location, cost_cents, kind, canceled, cap")
     .eq("org_id", current.org.id);
-  q = past ? q.lt("start_at", now).order("start_at", { ascending: false }).limit(50) : q.gte("start_at", now).order("start_at").limit(100);
+  // Month view: everything that starts within a week either side of the month (multi-day trips spill over).
+  const [my, mm] = month.split("-").map(Number);
+  const winStart = new Date(Date.UTC(my, mm - 1, 1) - 7 * 86400000).toISOString();
+  const winEnd = new Date(Date.UTC(my, mm, 1) + 86400000).toISOString();
+  q = monthView ? q.gte("start_at", winStart).lt("start_at", winEnd).order("start_at").limit(300)
+    : past ? q.lt("start_at", now).order("start_at", { ascending: false }).limit(50) : q.gte("start_at", now).order("start_at").limit(100);
   const [{ data: own }, { data: calToken }, { data: links }] = await Promise.all([
     q, supabase.rpc("org_calendar_token", { p_org: current.org.id }), supabase.rpc("linked_units", { p_org: current.org.id }),
   ]);
@@ -28,7 +37,8 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   if (linked.length) {
     let sq = supabase.from("events").select("id, title, start_at, end_at, location, cost_cents, kind, canceled, cap, org_id")
       .in("org_id", linked.map((l) => l.org_id)).eq("share_linked", true);
-    sq = past ? sq.lt("start_at", now).limit(50) : sq.gte("start_at", now).limit(100);
+    sq = monthView ? sq.gte("start_at", winStart).lt("start_at", winEnd).limit(300)
+      : past ? sq.lt("start_at", now).limit(50) : sq.gte("start_at", now).limit(100);
     shared = ((await sq).data ?? []) as typeof shared;
   }
   const events = [...(own ?? []).map((e) => ({ ...e, org_id: current.org.id })), ...shared]
@@ -52,7 +62,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
         action={isLeader ? <LinkButton href="/events/new">+ New event</LinkButton> : undefined} />
 
       <div className="flex items-end gap-6 border-b-2 border-[#DDD6C5]">
-        {[["/events", "Upcoming", !past], ["/events?past=1", "Past", past]].map(([href, label, on]) => (
+        {[["/events", "Upcoming", !past && !monthView], ["/events?view=month", "Month", monthView], ["/events?past=1", "Past", !!past]].map(([href, label, on]) => (
           <Link key={String(href)} href={String(href)} className="min-h-[44px] -mb-[2px] px-0.5 flex items-center border-b-[3px] no-underline text-[15px]"
             style={{ borderColor: on ? "#F5B700" : "transparent", color: on ? "#101B2D" : "#4B5568", fontWeight: on ? 700 : 500 }}>{String(label)}</Link>
         ))}
@@ -60,9 +70,11 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
           className="ml-auto min-h-[44px] flex items-center text-[14px] font-bold text-forest no-underline">Add to my calendar</a>
       </div>
 
-      {!events.length && <Empty>{past ? "No past events yet." : isLeader ? "No events yet. Tap + New event to post your first one." : "Nothing on the calendar yet."}</Empty>}
+      {monthView && <MonthGrid month={month} events={events} ownOrg={current.org.id} />}
 
-      {[...byMonth.entries()].map(([month, list]) => (
+      {!monthView && !events.length && <Empty>{past ? "No past events yet." : isLeader ? "No events yet. Tap + New event to post your first one." : "Nothing on the calendar yet."}</Empty>}
+
+      {!monthView && [...byMonth.entries()].map(([month, list]) => (
         <section key={month} className="flex flex-col gap-2">
           <h2 className="font-bold text-[13px] tracking-widest uppercase m-0 text-smoke">{month}</h2>
           <div className="card p-0 overflow-hidden">
