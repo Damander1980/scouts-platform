@@ -4,55 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { parseCsv } from "@/lib/csv";
+import { mapAdvancement, mapRoster } from "@/lib/importMap";
 import { Chip, ErrorBox } from "@/components/ui";
 
 type Batch = { id: string; kind: string; file_name: string | null; row_count: number; created_at: string; undone_at: string | null };
-
-// Header aliases cover our template, Scoutbook Plus exports and common spreadsheets.
-const ROSTER_FIELDS: Record<string, string[]> = {
-  first: ["first", "first name", "firstname", "given name", "scout first name"],
-  last: ["last", "last name", "lastname", "surname", "family name", "scout last name"],
-  type: ["type", "youth/adult", "member type", "youth or adult", "adult/youth", "member type (youth/adult)"],
-  birthdate: ["birthdate", "birth date", "dob", "date of birth", "birthday"],
-  role: ["role", "position", "leader position", "unit position", "positions"],
-  patrol: ["patrol", "patrol name", "den", "sub unit", "subunit", "sub-unit", "sub unit name"],
-  household: ["household", "family", "family id"],
-  email: ["email", "e-mail", "email address", "parent email", "parent 1 email", "primary email"],
-  member_id: ["member id", "bsa member id", "memberid", "bsa id", "member #", "member number"],
-  ypt_expires: ["ypt expires", "ypt expiration", "ypt expiration date", "ypt exp", "youth protection expires",
-    "youth protection expiration", "youth protection expiration date", "y01 expires", "safeguarding youth expires"],
-};
-const ADV_FIELDS: Record<string, string[]> = {
-  first: ["first name", "first", "firstname"],
-  last: ["last name", "last", "lastname"],
-  type: ["advancement type", "type"],
-  item: ["advancement", "award", "rank", "merit badge", "item"],
-  date: ["date completed", "date earned", "completed", "date", "awarded date"],
-};
-
-const ROLE_MAP: Record<string, string> = {
-  scoutmaster: "scoutmaster", "assistant scoutmaster": "assistant_scoutmaster", asm: "assistant_scoutmaster",
-  "committee chair": "committee_chair", "committee member": "committee_member", treasurer: "treasurer",
-  "advancement chair": "advancement_chair", "chartered org rep": "chartered_org_rep", "chartered organization representative": "chartered_org_rep",
-  "merit badge counselor": "merit_badge_counselor", parent: "parent_guardian", "parent/guardian": "parent_guardian",
-  cubmaster: "cubmaster", "den leader": "den_leader", scout: "scout", youth: "scout",
-  // Scoutbook Plus position names
-  "youth member": "scout", "unit advancement chair": "advancement_chair", "key 3 delegate": "committee_member",
-  "unit leader": "scoutmaster", "unit committee chair": "committee_chair", "assistant scoutmaster (asm)": "assistant_scoutmaster",
-};
-
-function mapRow(row: Record<string, string>, fields: Record<string, string[]>) {
-  const lower = Object.fromEntries(Object.entries(row).map(([k, v]) => [k.toLowerCase().trim(), v]));
-  return Object.fromEntries(Object.entries(fields).map(([f, aliases]) => [f, aliases.map((a) => lower[a]).find((v) => v !== undefined && v !== "") ?? ""]));
-}
-
-function toIsoDate(s: string) {
-  if (!s) return "";
-  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-  if (m) { const y = m[3].length === 2 ? `20${m[3]}` : m[3]; return `${y}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`; }
-  const d = new Date(s);
-  return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
-}
 
 export default function ImportClient({ orgId, isAdmin, batches }: { orgId: string; isAdmin: boolean; batches: Batch[] }) {
   const supabase = createClient();
@@ -70,30 +25,9 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
     if (f.size > 5_000_000) { setError("That file is too large (5 MB max)."); return; }
     if (!/\.(csv|txt)$/i.test(f.name)) { setError("Upload a .csv file. In Excel or Google Sheets, use File > Download > CSV."); return; }
     setFile(f.name);
-    const parsed = parseCsv(await f.text());
-    const mapped = parsed.map((r) => {
-      const m = mapRow(r, kind === "roster" ? ROSTER_FIELDS : ADV_FIELDS);
-      // Some exports have a single "Name" column ("Last, First" or "First Last").
-      if (!m.first && !m.last) {
-        const full = Object.entries(r).find(([k]) => ["name", "full name", "member name", "scout name"].includes(k.toLowerCase().trim()))?.[1]?.trim() ?? "";
-        if (full.includes(",")) { const [l, f] = full.split(","); m.last = l.trim(); m.first = (f ?? "").trim(); }
-        else if (full) { const parts = full.split(/\s+/); m.first = parts[0]; m.last = parts.slice(1).join(" "); }
-      }
-      if (m.type) m.type = /^y/i.test(m.type) ? "youth" : /^a/i.test(m.type) ? "adult" : m.type;
-      return m;
-    }).filter((r) => r.first && r.last);
+    const mapped = kind === "roster" ? mapRoster(parseCsv(await f.text())) : mapAdvancement(parseCsv(await f.text()));
     if (!mapped.length) { setError("We couldn't find First name and Last name columns. Check the header row."); return; }
-    setRows(mapped.map((r) => kind === "roster"
-      ? { ...r, household: r.household || r.email, birthdate: toIsoDate(r.birthdate), ypt_expires: toIsoDate(r.ypt_expires), role: ROLE_MAP[r.role?.toLowerCase()] ?? "", type: r.type || (ROLE_MAP[r.role?.toLowerCase()] && !["scout"].includes(ROLE_MAP[r.role?.toLowerCase()]) ? "adult" : "youth") }
-      : { ...r, date: toIsoDate(r.date), ...parseAdvancement(r.item, r.type) }));
-  }
-
-  function parseAdvancement(item: string, type: string) {
-    // Scoutbook lists requirements as e.g. "Tenderfoot #4a" or "Camping #9a".
-    const m = item.match(/^(.*?)\s*#\s*([0-9]+[a-z]?)/i);
-    if (m) return { item: m[1].trim(), requirement: m[2] };
-    if (/requirement/i.test(type)) return { item, requirement: "" };
-    return { item: item.replace(/\s*merit badge$/i, "").trim(), requirement: "" };
+    setRows(mapped);
   }
 
   async function runImport() {
