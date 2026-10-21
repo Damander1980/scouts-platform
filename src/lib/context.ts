@@ -102,5 +102,8 @@ export async function requirePerm(...any: Perm[]) {
 export async function requireStaff() {
   const ctx = await requireOrg();
   if (!ctx.isStaff) redirect("/dashboard");
+  // Leader tools show children's data, so staff must have passed two-step verification this session.
+  const { data: aal } = await ctx.supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.currentLevel !== "aal2") redirect("/two-step?next=/admin");
   return ctx;
 }
