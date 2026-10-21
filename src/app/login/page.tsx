@@ -13,7 +13,9 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
-  const next = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("next") ?? "/home" : "/home";
+  // Only same-site paths, so a crafted link can't bounce someone to another site after sign-in.
+  const rawNext = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("next") ?? "/home" : "/home";
+  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.startsWith("/\\") ? rawNext : "/home";
 
   function switchMode(m: Mode) { setMode(m); setError(""); setNotice(""); }
 
