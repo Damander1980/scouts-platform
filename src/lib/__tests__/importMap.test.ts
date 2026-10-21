@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseCsv } from "../csv";
-import { mapAdvancement, mapRoster, toIsoDate } from "../importMap";
+import { mapActivity, mapAdvancement, mapRoster, toIsoDate } from "../importMap";
 
 describe("mapRoster", () => {
   it("reads a Scoutbook Plus style roster", () => {
@@ -45,5 +45,22 @@ describe("toIsoDate", () => {
     expect(toIsoDate("4/11/27")).toBe("2027-04-11");
     expect(toIsoDate("")).toBe("");
     expect(toIsoDate("not a date")).toBe("");
+  });
+});
+
+describe("mapActivity", () => {
+  it("reads a type + amount layout", () => {
+    const rows = mapActivity(parseCsv("First Name,Last Name,Log Type,Amount,Date,Location\nJake,Garcia,Camping,2,10/23/2025,Caprock\nJake,Garcia,Service,3,11/7/2025,Food bank\n"));
+    expect(rows).toEqual([
+      { first: "Jake", last: "Garcia", kind: "camping", amount: "2", date: "2025-10-23", note: "Caprock" },
+      { first: "Jake", last: "Garcia", kind: "service", amount: "3", date: "2025-11-07", note: "Food bank" },
+    ]);
+  });
+  it("reads separate Nights / Miles / Hours columns", () => {
+    const rows = mapActivity(parseCsv("First Name,Last Name,Date,Nights,Miles,Hours\nMaya,Garcia,2025-09-01,,5,\n"));
+    expect(rows[0]).toMatchObject({ kind: "hiking", amount: "5" });
+  });
+  it("skips rows with no amount or unknown type", () => {
+    expect(mapActivity(parseCsv("First Name,Last Name,Log Type,Amount\nA,B,Swimming,2\nC,D,Camping,\n"))).toHaveLength(0);
   });
 });

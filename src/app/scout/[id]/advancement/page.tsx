@@ -77,6 +77,15 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
   };
   const serviceEvents = attended.filter((e) => Number(e.service_hours) > 0).map((e) => ({ at: e.start_at, hours: Number(e.service_hours) }));
 
+  // History imported from Scoutbook's activity log (migration 0051; ignored if not applied yet).
+  const { data: logRows } = await supabase.from("activity_log_entries").select("kind, amount, on_date").eq("person_id", id).eq("org_id", orgId);
+  for (const l of (logRows ?? []) as { kind: string; amount: number; on_date: string | null }[]) {
+    const n = Number(l.amount) || 0;
+    if (l.kind === "camping") credits.nights += n;
+    else if (l.kind === "hiking") credits.miles += n;
+    else if (l.kind === "service") { credits.service += n; serviceEvents.push({ at: l.on_date ?? "1900-01-01", hours: n }); }
+  }
+
   // Eagle project progress (read-only here; leaders edit it under Advancement > Eagle projects).
   const STEPS: [string, string][] = [["proposal_unit_leader_at", "Proposal: unit leader"], ["proposal_committee_at", "Proposal: committee"], ["proposal_beneficiary_at", "Proposal: beneficiary"], ["proposal_council_at", "Proposal: council"], ["work_started_at", "Work started"], ["work_finished_at", "Work finished"], ["final_report_at", "Final report signed"], ["application_at", "Eagle application submitted"], ["board_at", "Board of review"]];
   const { data: ep } = await supabase.from("eagle_projects").select("*").eq("person_id", id).maybeSingle();

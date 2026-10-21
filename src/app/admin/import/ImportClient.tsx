@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { parseCsv } from "@/lib/csv";
-import { mapAdvancement, mapRoster } from "@/lib/importMap";
+import { mapActivity, mapAdvancement, mapRoster } from "@/lib/importMap";
 import { Chip, ErrorBox } from "@/components/ui";
 
 type Batch = { id: string; kind: string; file_name: string | null; row_count: number; created_at: string; undone_at: string | null };
@@ -12,7 +12,7 @@ type Batch = { id: string; kind: string; file_name: string | null; row_count: nu
 export default function ImportClient({ orgId, isAdmin, batches }: { orgId: string; isAdmin: boolean; batches: Batch[] }) {
   const supabase = createClient();
   const router = useRouter();
-  const [kind, setKind] = useState<"roster" | "advancement">("roster");
+  const [kind, setKind] = useState<"roster" | "advancement" | "activity">("roster");
   const [file, setFile] = useState("");
   const [rows, setRows] = useState<Record<string, string>[]>([]);
   const [error, setError] = useState("");
@@ -25,7 +25,8 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
     if (f.size > 5_000_000) { setError("That file is too large (5 MB max)."); return; }
     if (!/\.(csv|txt)$/i.test(f.name)) { setError("Upload a .csv file. In Excel or Google Sheets, use File > Download > CSV."); return; }
     setFile(f.name);
-    const mapped = kind === "roster" ? mapRoster(parseCsv(await f.text())) : mapAdvancement(parseCsv(await f.text()));
+    const text = await f.text();
+    const mapped = kind === "roster" ? mapRoster(parseCsv(text)) : kind === "activity" ? mapActivity(parseCsv(text)) : mapAdvancement(parseCsv(text));
     if (!mapped.length) { setError("We couldn't find First name and Last name columns. Check the header row."); return; }
     setRows(mapped);
   }
@@ -37,6 +38,11 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
         const { error } = await supabase.rpc("import_roster", { p_org: orgId, p_file: file, p_rows: rows });
         if (error) throw error;
         setResult(`Imported. People already on your roster were skipped.`);
+      } else if (kind === "activity") {
+        const { data, error } = await supabase.rpc("import_activity", { p_org: orgId, p_file: file, p_rows: rows });
+        if (error) throw error;
+        const d = data as { matched: number; skipped: number };
+        setResult(`Imported ${d.matched} activity entries. ${d.skipped} couldn't be matched to a Scout and were skipped.`);
       } else {
         const { data, error } = await supabase.rpc("import_advancement", { p_org: orgId, p_file: file, p_rows: rows });
         if (error) throw error;
@@ -51,6 +57,8 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
 
   const template = kind === "roster"
     ? "First name,Last name,Type,Birthdate,Role,Patrol,Family,Email\nJake,Garcia,Youth,2012-05-14,Scout,Eagles,garcia,\nTom,Garcia,Adult,,Parent,,garcia,tom@example.com\n"
+    : kind === "activity"
+    ? "First Name,Last Name,Log Type,Amount,Date,Location\nJake,Garcia,Camping,2,2025-10-24,Caprock Canyons\nJake,Garcia,Hiking,5,2025-10-25,Caprock Canyons\nJake,Garcia,Service,3,2025-11-07,Food bank\n"
     : "First name,Last name,Advancement Type,Advancement,Date Completed\nJake,Garcia,Rank,Tenderfoot,2025-03-01\nJake,Garcia,Merit Badge,First Aid,2025-06-12\nJake,Garcia,Rank Requirement,Second Class #1a,2025-04-02\n";
 
   return (
@@ -62,21 +70,23 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
       {!isAdmin && <div className="card">Only unit admins can import. You can still export below.</div>}
 
       <div role="tablist" className="flex gap-6 border-b-2 border-[#DDD6C5]">
-        {(["roster", "advancement"] as const).map((k) => (
+        {(["roster", "advancement", "activity"] as const).map((k) => (
           <button key={k} role="tab" aria-selected={kind === k} onClick={() => { setKind(k); setRows([]); setResult(""); setError(""); }}
             className="min-h-[44px] -mb-[2px] px-0.5 bg-transparent border-0 border-b-[3px] cursor-pointer font-sans text-[15px] whitespace-nowrap"
             style={{ borderColor: kind === k ? "#F5B700" : "transparent", color: kind === k ? "#101B2D" : "#4B5568", fontWeight: kind === k ? 700 : 500 }}>
-            {k === "roster" ? "Roster" : "Advancement (Scoutbook)"}
+            {k === "roster" ? "Roster" : k === "activity" ? "Activity log (Scoutbook)" : "Advancement (Scoutbook)"}
           </button>
         ))}
       </div>
 
       {isAdmin && (
         <div className="card flex flex-col gap-3">
-          <div className="font-bold text-[16px]">{kind === "roster" ? "Upload a roster CSV" : "Upload Scoutbook advancement CSV"}</div>
+          <div className="font-bold text-[16px]">{kind === "roster" ? "Upload a roster CSV" : kind === "activity" ? "Upload Scoutbook activity log CSV" : "Upload Scoutbook advancement CSV"}</div>
           <p className="text-[13px] text-smoke m-0">
             {kind === "roster"
               ? "Works with Scoutbook roster exports and most spreadsheets. Rows with the same Family value (or last name) become one household."
+              : kind === "activity"
+              ? "Past camping nights, hiking miles and service hours, so each Scout keeps their totals. New activity is counted from event attendance."
               : "From Scoutbook Plus, export Scout advancement. Completed ranks, merit badges and requirements are recorded as signed off."}
           </p>
           <input type="file" accept=".csv,text/csv" onChange={(e) => onFile(e.target.files?.[0])} className="text-[14px]" />

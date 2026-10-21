@@ -84,3 +84,33 @@ export function mapAdvancement(parsed: Row[]): Row[] {
     return { ...r, date: toIsoDate(r.date), ...parseAdvancement(r.item, r.type) };
   }).filter((r) => r.first && r.last);
 }
+
+// Scoutbook activity log export (camping nights, hiking miles, service hours). Exports either have one
+// amount column with a type column, or separate Nights / Miles / Hours columns.
+export const ACTIVITY_FIELDS: Record<string, string[]> = {
+  first: ["first name", "first", "firstname"],
+  last: ["last name", "last", "lastname"],
+  kind: ["log type", "activity type", "type", "category"],
+  amount: ["amount", "quantity", "total"],
+  nights: ["nights", "nights camped", "camping nights", "days and nights"],
+  miles: ["miles", "hiking miles"],
+  hours: ["hours", "service hours"],
+  date: ["date", "activity date", "start date", "date completed"],
+  note: ["location", "notes", "description", "name", "activity name"],
+};
+
+export function mapActivity(parsed: Row[]): Row[] {
+  return parsed.map((raw): Row => {
+    const r: Row = mapRow(raw, ACTIVITY_FIELDS);
+    splitName(raw, r);
+    let kind = r.kind.toLowerCase();
+    let amount = r.amount;
+    if (!amount) {
+      if (r.nights) { amount = r.nights; kind = kind || "camping"; }
+      else if (r.miles) { amount = r.miles; kind = kind || "hiking"; }
+      else if (r.hours) { amount = r.hours; kind = kind || "service"; }
+    }
+    kind = /camp|night/.test(kind) ? "camping" : /hik|mile/.test(kind) ? "hiking" : /serv|hour/.test(kind) ? "service" : "";
+    return { first: r.first, last: r.last, kind, amount: (amount || "").replace(/[^0-9.]/g, ""), date: toIsoDate(r.date), note: r.note };
+  }).filter((r) => r.first && r.last && r.kind && r.amount);
+}
