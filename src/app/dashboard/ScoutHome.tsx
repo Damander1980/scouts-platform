@@ -53,6 +53,8 @@ export default function ScoutHome({ personId, firstName, events: initial, plc = 
     });
     if (error) setError({ id: e.id, msg: error.message });
     else {
+      // If the sign-up is waiting for a parent's OK, the server tells the parents (no-op otherwise).
+      if (status === "going" && e.cost_cents > 0) fetch("/api/notify/approval", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId: e.id }) }).catch(() => {});
       setEvents((all) => all.map((x) => x.id === e.id ? { ...x, mine: { ...(x.mine ?? { notes: null, dietary: null, answers: {} }), status: data as string } } : x));
       setAskParent(null); setChanging(null);
       router.refresh();
