@@ -127,11 +127,11 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
       </div>
       {!isAdmin && <div className="card">Only unit admins can import. You can still export below.</div>}
 
-      <div className="flex gap-2">
+      <div role="tablist" className="flex gap-6 border-b-2 border-[#DDD6C5]">
         {(["roster", "advancement"] as const).map((k) => (
-          <button key={k} onClick={() => { setKind(k); setRows([]); setResult(""); setError(""); }}
-            className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: kind === k ? "#12355F" : "white", color: kind === k ? "white" : "#4B5568", borderColor: kind === k ? "#12355F" : "#DDD6C5" }}>
+          <button key={k} role="tab" aria-selected={kind === k} onClick={() => { setKind(k); setRows([]); setResult(""); setError(""); }}
+            className="min-h-[44px] -mb-[2px] px-0.5 bg-transparent border-0 border-b-[3px] cursor-pointer font-sans text-[15px] whitespace-nowrap"
+            style={{ borderColor: kind === k ? "#F5B700" : "transparent", color: kind === k ? "#101B2D" : "#4B5568", fontWeight: kind === k ? 700 : 500 }}>
             {k === "roster" ? "Roster" : "Advancement (Scoutbook)"}
           </button>
         ))}
