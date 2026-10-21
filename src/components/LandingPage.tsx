@@ -175,6 +175,7 @@ export default function LandingPage() {
           ].map(([a, b]) => (
             <div key={a} className="flex flex-col gap-1"><span className="font-bold text-[17px]">{a}</span><span className="text-[15px] text-smoke">{b}</span></div>
           ))}
+          <Link href="/safety" className="font-bold text-forest text-[16px]">How we protect Scouts&apos; data →</Link>
         </div>
       </section>
 
@@ -194,6 +195,7 @@ export default function LandingPage() {
           <div className="flex gap-5 flex-wrap">
             <a href="#tools" className="no-underline" style={{ color: "#AEB9C9" }}>Features</a>
             <a href="#pricing" className="no-underline" style={{ color: "#AEB9C9" }}>Pricing</a>
+            <Link href="/safety" className="no-underline" style={{ color: "#AEB9C9" }}>Safety and privacy</Link>
             <Link href="/login" className="no-underline" style={{ color: "#AEB9C9" }}>Sign in</Link>
           </div>
           <span>Not affiliated with Scouting America.</span>
