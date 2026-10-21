@@ -16,6 +16,12 @@ export default async function NewMessagePage({ searchParams }: { searchParams: P
     isLeader ? supabase.from("memberships").select("person_id, persons(first_name, last_name, type)").eq("org_id", orgId).eq("status", "active") : Promise.resolve({ data: [] }),
   ]);
 
+  // SPEC: leaders see a warning before a broadcast that would pile on in one week.
+  const { count: weekBroadcasts } = isLeader
+    ? await supabase.from("message_log").select("*", { count: "exact", head: true }).eq("org_id", orgId).in("audience", ["troop", "nonresponders", "event"])
+        .gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString())
+    : { count: 0 };
+
   const leadsPatrols = (myPatrolRoles ?? []).filter((r) => ["patrol_leader", "assistant_patrol_leader"].includes(r.role)).map((r) => r.patrol_id);
   const allowedPatrols = (patrols ?? []).filter((p) => isLeader || leadsPatrols.includes(p.id));
 
@@ -25,6 +31,7 @@ export default async function NewMessagePage({ searchParams }: { searchParams: P
       <ComposeClient
         orgId={orgId}
         isLeader={isLeader}
+        weekBroadcasts={weekBroadcasts ?? 0}
         canMoney={ctx.can("money.manage", "money.view")}
         patrols={allowedPatrols}
         events={(events ?? []) as { id: string; title: string; start_at: string }[]}

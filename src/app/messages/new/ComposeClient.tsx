@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ErrorBox, Field } from "@/components/ui";
 
-export default function ComposeClient({ orgId, isLeader, canMoney = false, patrols, events, members, initialAudience, initialRef }: {
-  orgId: string; isLeader: boolean; canMoney?: boolean;
+export default function ComposeClient({ orgId, isLeader, weekBroadcasts = 0, canMoney = false, patrols, events, members, initialAudience, initialRef }: {
+  orgId: string; isLeader: boolean; weekBroadcasts?: number; canMoney?: boolean;
   patrols: { id: string; name: string }[];
   events: { id: string; title: string; start_at: string }[];
   members: { id: string; name: string; type: string }[];
@@ -83,6 +83,11 @@ export default function ComposeClient({ orgId, isLeader, canMoney = false, patro
           ))}
         </div>
         </div>
+      )}
+      {isLeader && ["troop", "nonresponders", "event"].includes(audience) && weekBroadcasts > 0 && (
+        <p className="text-[13px] m-0 rounded-xl px-3 py-2" style={weekBroadcasts >= 3 ? { background: "#FFF6D6", color: "#5E4400", fontWeight: 700 } : { background: "#F8F5EE", color: "#4B5568" }}>
+          {weekBroadcasts} group message{weekBroadcasts === 1 ? " has" : "s have"} gone out in the last 7 days.{weekBroadcasts >= 3 ? " Families tune out when there are too many; could this go in the weekly digest instead?" : ""}
+        </p>
       )}
       <Field label="Subject (optional)"><input className="input" value={subject} onChange={(e) => setSubject(e.target.value)} /></Field>
       <Field label="Message"><textarea className="input py-3 min-h-[160px]" value={body} onChange={(e) => setBody(e.target.value)} required /></Field>
