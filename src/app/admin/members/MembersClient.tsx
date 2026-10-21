@@ -61,6 +61,7 @@ export default function MembersClient({
   const [filter, setFilter] = useState(initialSearch ? "all" : "active");
   const [showAdd, setShowAdd] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
+  const [mergeFrom, setMergeFrom] = useState<{ keep: string; drop: string } | null>(null);
   const [add, setAdd] = useState({ first: "", last: "", type: "youth", role: "scout", birth: "" });
   const [claim, setClaim] = useState<{ pid: string; code: string } | null>(null);
   const badgeName = Object.fromEntries(badges.map((b) => [b.id, b.name]));
@@ -335,6 +336,28 @@ Or enter join code ${String(joinCode ?? "").toUpperCase()} after you sign up. Ad
                             </select>
                             <span className="text-[12px] text-smoke">A Scout can belong to two families (for example, two parents in separate homes).</span>
                           </div>
+                        </div>
+                      )}
+                      {isAdmin && !demo && (
+                        <div className="md:col-span-2 flex flex-col gap-2 rounded-xl p-3" style={{ background: "#F8F5EE" }}>
+                          <div className="font-bold text-[14px]">Duplicate record?</div>
+                          <div className="flex gap-2 flex-wrap items-center">
+                            <select className="input h-10 min-h-0 flex-1 min-w-[200px]" aria-label="Duplicate to merge in"
+                              value={mergeFrom?.keep === m.persons.id ? mergeFrom.drop : ""}
+                              onChange={(e) => setMergeFrom(e.target.value ? { keep: m.persons.id, drop: e.target.value } : null)}>
+                              <option value="">Merge a duplicate into {m.persons.first_name}…</option>
+                              {members.filter((x) => x.persons.id !== m.persons.id && x.persons.type === m.persons.type)
+                                .map((x) => <option key={x.persons.id} value={x.persons.id}>{x.persons.first_name} {x.persons.last_name}</option>)}
+                            </select>
+                            {mergeFrom?.keep === m.persons.id && (
+                              <button className="btn-primary" disabled={busy} onClick={() => run(async () => {
+                                const { error } = await supabase.rpc("merge_persons", { p_org: orgId, p_keep: mergeFrom.keep, p_drop: mergeFrom.drop });
+                                if (error) throw error;
+                                setMergeFrom(null); router.refresh();
+                              })}>Merge into {m.persons.first_name}</button>
+                            )}
+                          </div>
+                          <span className="text-[12px] text-smoke">Sign-ups, attendance, forms, payments and advancement move to this record. Messages stay as they were. This can&apos;t be undone.</span>
                         </div>
                       )}
                       <div className="md:col-span-2 flex gap-2 flex-wrap">

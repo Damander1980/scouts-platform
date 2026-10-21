@@ -25,10 +25,11 @@ const LABEL: Record<string, string> = {
   "deletion.confirmed": "confirmed a deletion request",
   "deletion.canceled": "canceled a deletion request",
   "scoutbook.exported": "downloaded a Scoutbook upload file",
+  "person.merged": "merged two duplicate records",
   "scoutbook.connected": "connected Scoutbook sync",
   "scoutbook.disconnected": "turned off Scoutbook sync",
 };
-const SENSITIVE = new Set(["private.viewed", "membership.changed", "position.assigned", "position.removed", "child_login.invited", "child_login.linked",
+const SENSITIVE = new Set(["person.merged", "private.viewed", "membership.changed", "position.assigned", "position.removed", "child_login.invited", "child_login.linked",
   "deletion.requested", "deletion.confirmed", "deletion.canceled", "scoutbook.connected", "scoutbook.disconnected"]);
 
 function detail(r: Row) {
