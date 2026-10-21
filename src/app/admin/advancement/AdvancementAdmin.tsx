@@ -53,7 +53,7 @@ export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitT
         <Stat label="Waiting for sign-off" value={queue.length} tone={queue.length ? "#5E4400" : undefined} />
         <Stat label="Badge requests" value={requests.length} />
         <Stat label="Awards to buy" value={awards.filter((a) => !a.purchased_at).length} />
-        <Stat label="On the Eagle trail" value={eagleTrack.length} />
+        <a href="/admin/advancement/eagle" className="no-underline text-ink"><Stat label="On the Eagle trail" value={<>{eagleTrack.length} <span className="text-[14px] font-sans font-bold text-forest">Eagle projects →</span></>} /></a>
       </div>
 
       <div role="tablist" className="flex gap-6 overflow-x-auto border-b-2 border-[#DDD6C5]">
