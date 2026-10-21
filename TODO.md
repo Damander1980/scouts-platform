@@ -13,9 +13,9 @@ Build order (Floyd, 2026-10-19): **PC web platform first, then the app, iOS last
 - [ ] **Sign in:** `node scripts/set-password.mjs fdkobler@gmail.com` (you type the password).
 - [ ] **Sample troop to click around in:** `node scripts/seed-demo.mjs fdkobler@gmail.com`
       (fake families, events, sign-ups, forms, balances; `--remove` deletes it).
-- [ ] **Push migrations 0042-0045** (`npx supabase db push`): 0042 admins need current YPT and
+- [ ] **Push migrations 0042-0046** (`npx supabase db push`): 0042 admins need current YPT and
       private kid data needs a two-step session; 0043 Scoutbook upload tracking; 0044 linked-unit
-      sign-ups; 0045 encrypted Scoutbook login storage (UI stays hidden until NEXT_PUBLIC_SCOUTBOOK_SYNC=on).
+      sign-ups; 0045 encrypted Scoutbook login storage (UI stays hidden until NEXT_PUBLIC_SCOUTBOOK_SYNC=on); 0046 Eagle project tracker.
       Until pushed, those features stay hidden or fall back to the old behavior.
 - [ ] First time in Leader tools you'll set up two-step sign-in with an authenticator app.
 
