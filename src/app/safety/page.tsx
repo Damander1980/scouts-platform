@@ -21,7 +21,7 @@ const SECTIONS: { title: string; points: string[] }[] = [
       "Birthdates, phone numbers, emails and health form status are limited to leaders the troop chooses.",
       "Those leaders also need current Youth Protection Training on file. When it lapses, access stops until it's renewed.",
       "Leader tools need two-step sign-in with an authenticator app.",
-      "Each time a leader views someone else's private details, it is recorded.",
+      "Each time a leader views someone else's private details, it is recorded, and unit admins can review that activity log.",
     ],
   },
   {
