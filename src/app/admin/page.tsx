@@ -81,7 +81,7 @@ export default async function AdminOverview() {
         {[
           ["/events/new", "Post an event", "M12 5v14M5 12h14"],
           ["/messages/new?audience=troop", "Message the troop", "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"],
-          ["/admin/money", "Record cash or check", "M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"],
+          ["/admin/money?tab=record", "Record cash or check", "M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"],
           ["/admin/advancement", "Sign off advancement", "M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"],
         ].map(([href, label, icon]) => (
           <Link key={href} href={href} className="card flex items-center gap-3 no-underline text-ink min-h-[64px]">
