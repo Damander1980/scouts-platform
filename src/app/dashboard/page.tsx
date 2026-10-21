@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireOrg, unitWord } from "@/lib/context";
 import Shell from "@/components/Shell";
-import { Chip, Empty, LinkButton, SectionLabel, fmtDate, fmtTime, money } from "@/components/ui";
+import { Chip, fmtDate, fmtTime, money } from "@/components/ui";
 import { householdBalance, loadFamily } from "@/lib/family";
 import ScoutHome, { type ScoutEvent } from "./ScoutHome";
 
@@ -74,117 +74,116 @@ export default async function DashboardPage() {
   const next = (events ?? [])[0];
   const word = unitWord(current.org.type);
 
+  const nextAnswered = next ? rsvpFor(next.id).length >= ids.length : true;
+  const scouts = inTroop.filter((p) => p.type === "youth");
+  const todoCount = (balance > 0 ? 1 : 0) + (formIssues.length ? 1 : 0) + needsAnswer.length;
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
   return (
     <Shell ctx={ctx}>
       <div>
-        <h1 className="font-display font-extrabold text-[28px] leading-tight m-0">Hi, {person.first_name}.</h1>
-        <p className="text-[15px] text-smoke m-0 mt-1">Here&apos;s what needs you in {word} {current.org.unit_number}.</p>
+        <h1 className="font-display font-extrabold text-[32px] leading-tight m-0">{greet}, {person.first_name}</h1>
+        <p className="text-[16px] text-smoke m-0 mt-1">
+          {todoCount === 0 ? "You're all caught up." : todoCount === 1 ? "One thing needs you." : `${todoCount} things need you.`}
+        </p>
       </div>
 
-      {(balance > 0 || formIssues.length > 0 || needsAnswer.length > 0 || leaderTodos.length > 0) ? (
-        <section className="flex flex-col gap-2">
-          <SectionLabel>Needs you</SectionLabel>
-          {balance > 0 && person.type === "adult" && (
-            <div className="card flex items-center justify-between gap-3" style={{ background: "#FFF6D6", borderColor: "#F0DA8C" }}>
-              <div>
-                <div className="font-bold text-[16px]">You owe {money(balance)}</div>
-                <div className="text-[13px] text-smoke">Family balance with the {word.toLowerCase()}</div>
-              </div>
-              <LinkButton href="/pay">Pay</LinkButton>
-            </div>
-          )}
-          {needsAnswer.slice(0, 3).map((e) => (
-            <Link key={e.id} href={`/events/${e.id}`} className="card flex items-center justify-between gap-3 no-underline text-ink">
-              <div>
-                <div className="font-bold text-[16px]">RSVP for {e.title}</div>
-                <div className="text-[13px] text-smoke">
-                  {fmtDate(e.start_at)}{e.rsvp_deadline ? ` · reply by ${fmtDate(e.rsvp_deadline)}` : ""}
-                </div>
-              </div>
-              <span className="btn-primary">RSVP</span>
-            </Link>
-          ))}
-          {formIssues.map((f) => (
-            <Link key={f} href="/forms" className="card flex items-center justify-between gap-3 no-underline text-ink">
-              <div className="font-bold text-[15px]">{f}</div>
-              <Chip tone="orange">Form</Chip>
-            </Link>
-          ))}
-          {leaderTodos.map((t) => (
-            <Link key={t.href} href={t.href} className="card flex items-center justify-between gap-3 no-underline text-ink">
-              <div className="font-bold text-[15px]">{t.label}</div>
-              <Chip tone="dark">{t.count}</Chip>
-            </Link>
-          ))}
-        </section>
-      ) : (
-        <div className="card" style={{ background: "#EEE8D9", borderColor: "#D7E0EE" }}>
-          <div className="font-bold text-[16px]">You&apos;re all caught up.</div>
-          <div className="text-[14px] text-smoke">No payments, forms or RSVPs waiting.</div>
-        </div>
-      )}
-
       {next && (
-        <section className="flex flex-col gap-2">
-          <SectionLabel>Next up</SectionLabel>
-          <Link href={`/events/${next.id}`} className="card no-underline text-ink flex flex-col gap-2" style={{ borderColor: "#12355F" }}>
-            <div className="text-[13px] font-bold text-smoke">{fmtDate(next.start_at, { weekday: "long", month: "long", day: "numeric" })} · {fmtTime(next.start_at)}</div>
-            <div className="font-display font-bold text-[22px]">{next.title}</div>
-            {next.location && <div className="text-[14px] text-smoke">{next.location}</div>}
-            <div className="flex gap-2 flex-wrap">
+        <Link href={`/events/${next.id}`} className="rounded-[20px] p-6 md:p-7 flex flex-wrap items-center gap-5 no-underline text-white"
+          style={{ background: "#12355F", boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
+          <div className="flex-1 min-w-[260px] flex flex-col gap-1.5">
+            <span className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>
+              Next up · {fmtDate(next.start_at, { weekday: "short", month: "short", day: "numeric" })} · {fmtTime(next.start_at)}
+            </span>
+            <span className="font-display font-extrabold text-[28px] leading-tight">{next.title}</span>
+            <span className="text-[15px]" style={{ color: "#D7E0EE" }}>
+              {[next.location, next.cost_cents > 0 ? `${money(next.cost_cents)} per person` : null, next.rsvp_deadline ? `reply by ${fmtDate(next.rsvp_deadline)}` : null].filter(Boolean).join(" · ")}
+            </span>
+            <div className="flex gap-2 flex-wrap mt-1">
               {inTroop.map((p) => {
                 const r = rsvpFor(next.id).find((x) => x.person_id === p.id);
-                return <Chip key={p.id} tone={r?.status === "going" ? "green" : r ? "gray" : "orange"}>
-                  {p.first_name}: {r?.status === "going" ? "Going" : r?.status === "not_going" ? "Not going" : r?.status === "waitlisted" ? "Waitlist" : "No reply"}
-                </Chip>;
+                const label = r?.status === "going" ? "Going" : r?.status === "not_going" ? "Not going" : r?.status === "waitlisted" ? "Waitlist" : "No reply";
+                return <span key={p.id} className="text-[13px] font-bold px-3 py-1 rounded-full"
+                  style={{ background: r?.status === "going" ? "#F5B700" : "rgba(255,255,255,.14)", color: r?.status === "going" ? "#101B2D" : "#FFFFFF" }}>{p.first_name}: {label}</span>;
               })}
-              {next.cost_cents > 0 && <Chip>{money(next.cost_cents)} each</Chip>}
             </div>
-          </Link>
-        </section>
-      )}
-
-      <section className="flex flex-col gap-2">
-        <SectionLabel action={<Link href="/events" className="text-[13px] font-bold text-forest no-underline">All events</Link>}>Coming up</SectionLabel>
-        {(events ?? []).length <= 1 ? (
-          <Empty>{(events ?? []).length === 0 ? (isLeader ? "No events yet. Add your first one from Events." : "No events on the calendar yet.") : "Nothing else scheduled yet."}</Empty>
-        ) : (
-          (events ?? []).slice(1).map((e) => (
-            <Link key={e.id} href={`/events/${e.id}`} className="card flex items-center gap-3 no-underline text-ink">
-              <div className="w-12 text-center flex-none">
-                <div className="text-[11px] font-bold uppercase text-smoke">{fmtDate(e.start_at, { month: "short" })}</div>
-                <div className="font-display font-extrabold text-[24px] leading-none">{new Date(e.start_at).getDate()}</div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-bold text-[16px] truncate">{e.title}</div>
-                <div className="text-[13px] text-smoke truncate">{fmtTime(e.start_at)}{e.location ? ` · ${e.location}` : ""}</div>
-              </div>
-              {e.cost_cents > 0 && <Chip>{money(e.cost_cents)}</Chip>}
-            </Link>
-          ))
-        )}
-      </section>
-
-      <Link href="/volunteer" className="card no-underline text-ink flex items-center justify-between">
-        <div><div className="font-bold text-[16px]">Help & vote</div><div className="text-[13px] text-smoke">Volunteer shifts and polls</div></div>
-        <Chip>Open</Chip>
-      </Link>
-
-      {current.role === "merit_badge_counselor" && (
-        <Link href="/counselor" className="card no-underline text-ink flex items-center justify-between">
-          <div><div className="font-bold text-[16px]">Merit badge counselor</div><div className="text-[13px] text-smoke">Your Scouts and sign-offs</div></div>
-          <Chip tone="dark">Open</Chip>
+          </div>
+          <span className="min-h-[52px] px-7 rounded-full font-bold text-[16px] flex items-center" style={{ background: "#F5B700", color: "#101B2D" }}>
+            {nextAnswered ? "See details" : next.cost_cents > 0 ? "Sign up and pay" : "RSVP"}
+          </span>
         </Link>
       )}
 
-      <section className="grid grid-cols-2 gap-2">
-        {inTroop.filter((p) => p.type === "youth").map((p) => (
-          <Link key={p.id} href={`/scout/${p.id}/advancement`} className="card no-underline text-ink">
-            <div className="text-[12px] font-bold uppercase tracking-widest text-smoke">Advancement</div>
-            <div className="font-bold text-[16px] mt-1">{p.first_name}&apos;s ranks and badges</div>
-          </Link>
-        ))}
-      </section>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="card flex flex-col gap-1.5">
+          <span className="text-[12px] font-bold uppercase tracking-widest text-forest">You owe</span>
+          <span className="font-display font-extrabold text-[34px] leading-tight" style={{ color: balance > 0 ? "#5E4400" : undefined }}>
+            {balance > 0 ? money(balance) : balance < 0 ? `${money(-balance)} credit` : "$0"}
+          </span>
+          <span className="text-[14px] text-smoke">{balance > 0 ? `Your family balance with the ${word.toLowerCase()}.` : "Nothing due right now."}</span>
+          {balance > 0 && <Link href="/pay" className="font-bold text-forest min-h-[44px] flex items-center">Pay now</Link>}
+        </div>
+        <div className="card flex flex-col gap-1.5">
+          <span className="text-[12px] font-bold uppercase tracking-widest text-forest">Forms</span>
+          <span className="font-display font-extrabold text-[34px] leading-tight">{formIssues.length ? `${formIssues.length} needed` : "All set"}</span>
+          <span className="text-[14px] text-smoke">{formIssues[0] ?? "Health forms are on file and current."}</span>
+          {formIssues.length > 0 && <Link href="/forms" className="font-bold text-forest min-h-[44px] flex items-center">Get the blank form</Link>}
+        </div>
+        <div className="card flex flex-col gap-1.5">
+          <span className="text-[12px] font-bold uppercase tracking-widest text-forest">{leaderTodos.length ? "Leader to-dos" : "Ways to help"}</span>
+          {leaderTodos.length ? (
+            <>
+              <span className="font-display font-extrabold text-[34px] leading-tight">{leaderTodos.reduce((t, x) => t + x.count, 0)}</span>
+              {leaderTodos.map((t) => <Link key={t.href} href={t.href} className="text-[14px] text-forest font-bold min-h-[32px] flex items-center">{t.count} · {t.label}</Link>)}
+            </>
+          ) : (
+            <>
+              <span className="font-display font-extrabold text-[34px] leading-tight">Pitch in</span>
+              <span className="text-[14px] text-smoke">Drive, staff a booth or vote in a troop poll.</span>
+              <Link href="/volunteer" className="font-bold text-forest min-h-[44px] flex items-center">See how to help</Link>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-5">
+        <section className="card flex-[1_1_420px] min-w-0 flex flex-col">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[12px] font-bold uppercase tracking-widest text-forest">Calendar</span>
+            <Link href="/events" className="text-[14px] font-bold text-forest min-h-[44px] flex items-center">All events</Link>
+          </div>
+          {(events ?? []).length === 0 && <span className="text-smoke text-[14px] py-3">{isLeader ? "No events yet. Add your first one from Events." : "No events on the calendar yet."}</span>}
+          {(events ?? []).slice(0, 6).map((e) => {
+            const open = rsvpFor(e.id).length < ids.length;
+            return (
+              <Link key={e.id} href={`/events/${e.id}`} className="flex items-center gap-4 min-h-[56px] border-t border-[#EAE4D6] no-underline text-ink">
+                <span className="w-16 font-bold text-forest text-[14px]">{fmtDate(e.start_at, { month: "short", day: "numeric" })}</span>
+                <span className="flex-1 font-bold text-[15px] truncate">{e.title}</span>
+                {open ? <Chip tone="orange">Not answered</Chip> : <span className="text-[14px] text-smoke">{fmtTime(e.start_at)}</span>}
+              </Link>
+            );
+          })}
+        </section>
+
+        {scouts.length > 0 && (
+          <section className="card flex-[1_1_300px] min-w-0 flex flex-col gap-3">
+            <span className="text-[12px] font-bold uppercase tracking-widest text-forest">My Scouts</span>
+            {scouts.map((p) => (
+              <Link key={p.id} href={`/scout/${p.id}/advancement`} className="flex items-center gap-3 no-underline text-ink min-h-[52px]">
+                <span className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-[14px] flex-none" style={{ background: "#D7E0EE", color: "#12355F" }}>
+                  {p.first_name[0]}{p.last_name?.[0] ?? ""}
+                </span>
+                <span className="flex-1 font-bold text-[15px]">{p.first_name}</span>
+                <span className="text-[14px] font-bold text-forest">Ranks and badges</span>
+              </Link>
+            ))}
+            {current.role === "merit_badge_counselor" && (
+              <Link href="/counselor" className="font-bold text-forest min-h-[44px] flex items-center border-t border-[#EAE4D6]">Merit badge counselor tools</Link>
+            )}
+          </section>
+        )}
+      </div>
     </Shell>
   );
 }
