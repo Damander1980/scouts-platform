@@ -136,6 +136,10 @@ export default function AdminLayoutClient({
             </div>
           ))}
         </nav>
+        <a href="/help" className="mx-3 mb-4 min-h-[44px] px-3.5 rounded-[10px] flex items-center gap-3 text-[14px] no-underline" style={{ color: "#D7E0EE", border: "1px solid rgba(255,255,255,.15)" }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 .5c0 1.5-2.5 2-2.5 3.5M12 17h.01"/></svg>
+          Help and how-tos
+        </a>
       </aside>
 
       <div className="md:hidden print:hidden bg-forest text-white sticky top-0 z-30">
