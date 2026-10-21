@@ -37,7 +37,9 @@ export default function RsvpPanel({ eventId, canApprove = false, costCents, ques
         p_driver_seats: row.type === "adult" ? row.driver_seats : 0, p_dietary: row.dietary || null, p_answers: row.answers,
       });
       if (error) throw error;
-      update(row.person_id, { status: data as string });
+      // A Scout signing up for a paid event may need a parent's OK; the server notifies parents if so.
+      if (!canApprove && status === "going" && costCents > 0) fetch("/api/notify/approval", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId }) }).catch(() => {});
+      update(row.person_id, { status: data as string, pending: !canApprove && status === "going" && costCents > 0 ? row.pending : false });
       setConfirm(null);
       setOpen(rows.find((r) => r.person_id !== row.person_id && !r.status)?.person_id ?? null);
       router.refresh();
