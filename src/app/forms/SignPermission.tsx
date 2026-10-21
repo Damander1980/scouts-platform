@@ -10,7 +10,7 @@ export default function SignPermission({ orgId, personId, name }: { orgId: strin
   const [agree, setAgree] = useState(false);
   const [error, setError] = useState("");
   return (
-    <div className="rounded-xl p-3 flex flex-col gap-2" style={{ background: "#F4F8F6" }}>
+    <div className="rounded-xl p-3 flex flex-col gap-2" style={{ background: "#F8F5EE" }}>
       <label className="flex items-start gap-3 text-[14px]">
         <input type="checkbox" className="w-5 h-5 mt-0.5 flex-none" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
         <span>

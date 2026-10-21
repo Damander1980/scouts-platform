@@ -138,7 +138,7 @@ export default function SiteEditor({ orgId, slug, isAdmin, site: initial, settin
 
       {tab === "photos" && (
         <div className="flex flex-col gap-4">
-          <div className="card text-[13px]" style={{ background: "#F4F8F6" }}>
+          <div className="card text-[13px]" style={{ background: "#F8F5EE" }}>
             Public photos show a Scout only if a parent gave photo consent (parents set it on their Family page). Tag Scouts in each photo; a photo tagged with any Scout who lacks consent stays members-only automatically. Captions should use first names only.
           </div>
           <form className="card flex gap-2 flex-wrap items-end" onSubmit={(e) => { e.preventDefault(); run(async () => {

@@ -51,7 +51,7 @@ export default async function MessagePage({ params }: { params: Promise<{ id: st
 
       <div className="flex flex-col gap-2">
         {visible.map((m) => (
-          <div key={m.id} className="card flex flex-col gap-2" style={m.sender_id === person.id ? { background: "#F4F8F6" } : undefined}>
+          <div key={m.id} className="card flex flex-col gap-2" style={m.sender_id === person.id ? { background: "#F8F5EE" } : undefined}>
             <div className="flex items-center gap-2">
               <span className="font-bold text-[15px]">{m.sender_id ? nameOf[m.sender_id] ?? "Member" : "System"}</span>
               {m.sender_id === person.id && <Chip>You</Chip>}

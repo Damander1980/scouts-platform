@@ -34,7 +34,7 @@ export default function GiveClient({ campaign: c, thanks, booth, source }: { cam
         <div className="font-display font-extrabold text-[36px] leading-tight">{c.title}</div>
         <img src={qr} alt="Scan to give" className="w-[min(80vw,420px)] rounded-3xl bg-white p-4" />
         <div className="text-[22px] font-bold">Scan with your phone camera to give</div>
-        <div style={{ color: "#CFE0D7" }}>{c.org_name}</div>
+        <div style={{ color: "#D7E0EE" }}>{c.org_name}</div>
       </div>
     );
   }
@@ -43,7 +43,7 @@ export default function GiveClient({ campaign: c, thanks, booth, source }: { cam
     <div className="min-h-screen bg-canvas">
       <div className="bg-forest text-white px-5 pt-12 pb-8">
         <div className="max-w-md mx-auto">
-          <div className="text-[13px] font-bold" style={{ color: "#CFE0D7" }}>{c.org_name}</div>
+          <div className="text-[13px] font-bold" style={{ color: "#D7E0EE" }}>{c.org_name}</div>
           <h1 className="font-display font-extrabold text-[30px] leading-tight m-0 mt-1">{c.title}</h1>
           {pct !== null && (
             <div className="mt-4">

@@ -45,7 +45,7 @@ export default function ChildLogin({ personId, name, age, email, linked }: { per
       {!open ? (
         <button className="btn-secondary self-start min-h-[36px] text-[13px]" onClick={() => setOpen(true)}>Give {name} their own login</button>
       ) : (
-        <div className="rounded-xl p-3 flex flex-col gap-2" style={{ background: "#F4F8F6" }}>
+        <div className="rounded-xl p-3 flex flex-col gap-2" style={{ background: "#F8F5EE" }}>
           <div className="text-[13px]">Scouts take responsibility for their own sign-ups, advancement and messages. {name} signs in with their own email, no password.</div>
           <input className="input" type="email" placeholder={`${name}'s email`} value={mail} onChange={(e) => setMail(e.target.value)} />
           <label className="flex items-start gap-3 text-[13px]">

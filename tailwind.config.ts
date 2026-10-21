@@ -24,6 +24,9 @@ const config: Config = {
         "orange-dark": "#5E4400",
         "forest-deep": "#0C2442",
       },
+      boxShadow: {
+        float: "0 1px 2px rgba(16, 27, 45, 0.06), 0 10px 28px rgba(16, 27, 45, 0.10)",
+      },
       fontFamily: {
         sans: ["DM Sans", "sans-serif"],
         display: ["Bricolage Grotesque", "sans-serif"],

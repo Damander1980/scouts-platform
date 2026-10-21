@@ -41,7 +41,7 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="card text-[13px]" style={{ background: "#F4F8F6" }}>
+      <div className="card text-[13px]" style={{ background: "#F8F5EE" }}>
         Yearly dues are charged to each enrolled Scout&apos;s family on their ledger, once per Scout. Families pay a leader in person (cash or check, no fee) or online (the card fee is added so the unit never loses money).
         Scouting America&apos;s national registration is separate; add it as its own plan if your unit collects it for families.
       </div>

@@ -80,7 +80,7 @@ function SegmentBar({ total, done, approved }: { total: number; done: number; ap
     <div className="flex gap-[3px] h-3 w-full">
       {Array.from({ length: segs }).map((_, i) => (
         <div key={i} className="flex-1 rounded-[3px]"
-          style={{ background: i < approved ? "#12355F" : i < done ? "#7FB59E" : "#E3EAE6" }} />
+          style={{ background: i < approved ? "#12355F" : i < done ? "#7FB59E" : "#EAE4D6" }} />
       ))}
     </div>
   );
@@ -243,7 +243,7 @@ export default function AdvancementClient({
         const canToggle = !signed || canSign(item);
         return (
           <div key={r.id} className="flex items-start gap-3 rounded-xl px-3 py-2.5"
-            style={{ background: signed ? "#EEE8D9" : done ? "#F4F8F6" : "#FFFFFF", border: "1px solid #E3EAE6" }}>
+            style={{ background: signed ? "#EEE8D9" : done ? "#F8F5EE" : "#FFFFFF", border: "1px solid #EAE4D6" }}>
             <button onClick={() => canToggle && toggleDone(r)} disabled={busy || !canToggle}
               aria-label={done ? "Mark not done" : "Mark done"}
               className="w-6 h-6 mt-0.5 rounded-md flex-none flex items-center justify-center border-2 cursor-pointer"
@@ -344,7 +344,7 @@ export default function AdvancementClient({
     };
 
     return (
-      <div className="min-h-screen" style={{ background: "#F8F5EE", color: "#101B2D", fontFamily: "'DM Sans', sans-serif" }}>
+      <div className="min-h-screen bg-canvas" style={{ color: "#101B2D", fontFamily: "'DM Sans', sans-serif" }}>
         <header className="bg-forest text-white px-4 sm:px-8 pt-6 pb-8">
           <div className="max-w-4xl mx-auto flex items-center gap-4">
             <div className="w-14 h-14 rounded-full flex items-center justify-center flex-none font-display font-extrabold text-[18px]"
@@ -354,7 +354,7 @@ export default function AdvancementClient({
             <div>
               <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#AEB9C9" }}>Cub Scout Adventures</div>
               <h1 className="font-display font-extrabold text-[28px] leading-tight m-0">{scout.first_name} {scout.last_name}</h1>
-              <div className="text-[14px]" style={{ color: "#CFE0D7" }}>
+              <div className="text-[14px]" style={{ color: "#D7E0EE" }}>
                 Working on {rank.name}{rank.grade ? ` (${rank.grade})` : ""}
               </div>
             </div>
@@ -362,7 +362,7 @@ export default function AdvancementClient({
         </header>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-8 -mt-5 pb-16 flex flex-col gap-6">
-          <div className="bg-white rounded-2xl border border-[#DDD6C5] p-3 overflow-x-auto">
+          <div className="bg-white rounded-[18px] shadow-float p-3 overflow-x-auto">
             <div className="flex gap-2 min-w-[520px]">
               {cubRanks.map((r) => {
                 const st = cubRankStats(r);
@@ -377,7 +377,7 @@ export default function AdvancementClient({
                       borderColor: active ? "#12355F" : "#DDD6C5",
                     }}>
                     <span className="font-bold text-[13px]">{r.name}</span>
-                    <span className="text-[11px]" style={{ color: active ? "#CFE0D7" : "#4B5568" }}>
+                    <span className="text-[11px]" style={{ color: active ? "#D7E0EE" : "#4B5568" }}>
                       {st.completed ? "Earned" : `${st.pct}%`}
                     </span>
                   </button>
@@ -425,7 +425,7 @@ export default function AdvancementClient({
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "#F8F5EE", color: "#101B2D", fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="min-h-screen bg-canvas" style={{ color: "#101B2D", fontFamily: "'DM Sans', sans-serif" }}>
       {/* Header */}
       <header className="bg-forest text-white px-4 sm:px-8 pt-6 pb-8">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
@@ -433,14 +433,17 @@ export default function AdvancementClient({
             style={{ background: "#F5B700", color: "#101B2D" }}>
             {scout.first_name[0]}{scout.last_name[0]}
           </div>
-          <div>
+          <div className="flex-1">
             <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#AEB9C9" }}>Advancement</div>
             <h1 className="font-display font-extrabold text-[28px] leading-tight m-0">{scout.first_name} {scout.last_name}</h1>
-            <div className="text-[14px]" style={{ color: "#CFE0D7" }}>
+            <div className="text-[14px]" style={{ color: "#D7E0EE" }}>
               {currentRank ? `${currentRank.name} rank` : "Working on Scout rank"}
               {nextRank ? ` · next up: ${nextRank.name}` : ""}
             </div>
           </div>
+          <a href={isLeader ? "/admin/members" : "/dashboard"} className="min-h-[44px] px-5 rounded-full font-bold text-[14px] flex items-center no-underline text-white" style={{ border: "1px solid rgba(255,255,255,.3)" }}>
+            {isLeader ? "Back to roster" : "Back home"}
+          </a>
         </div>
       </header>
 
@@ -460,10 +463,29 @@ export default function AdvancementClient({
           ))}
         </div>
 
+        {nextRank && (() => {
+          const left = nextRank.requirements.filter((q) => !progress[q.id]?.approved_by);
+          const waiting = left.filter((q) => progress[q.id]?.completed_at).length;
+          return (
+            <div className="rounded-[18px] p-5 flex flex-wrap items-center gap-4 text-white" style={{ background: "#12355F", boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
+              <div className="flex-1 min-w-[240px] flex flex-col gap-1">
+                <span className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>Next step to {nextRank.name}</span>
+                <span className="font-display font-extrabold text-[22px] leading-tight">
+                  {left.length === 0 ? "Every requirement is signed off" : `${left.length} requirement${left.length === 1 ? "" : "s"} left: ${left.slice(0, 6).map((q) => q.number).join(", ")}${left.length > 6 ? "…" : ""}`}
+                </span>
+                {waiting > 0 && <span className="text-[14px]" style={{ color: "#D7E0EE" }}>{waiting} marked done and waiting for a leader to sign off.</span>}
+              </div>
+              <button onClick={() => setOpen(nextRank.id)} className="min-h-[44px] px-5 rounded-full font-bold text-[15px] border-0 cursor-pointer" style={{ background: "#F5B700", color: "#101B2D", fontFamily: "inherit" }}>
+                {isLeader ? "Open and sign off" : "See requirements"}
+              </button>
+            </div>
+          );
+        })()}
+
         {error && <div className="rounded-xl px-4 py-3 text-[14px] font-bold" style={{ background: "#FFF6D6", color: "#5E4400" }}>{error}</div>}
 
         {extras && (
-          <div className="bg-white rounded-2xl border border-[#DDD6C5] p-4 flex flex-wrap gap-x-6 gap-y-2 items-center">
+          <div className="bg-white rounded-[18px] shadow-float p-4 flex flex-wrap gap-x-6 gap-y-2 items-center">
             <span className="text-[11px] font-bold tracking-widest uppercase" style={{ color: "#4B5568" }}>From attendance</span>
             <span className="text-[15px]"><b>{extras.credits.nights}</b> nights camped</span>
             <span className="text-[15px]"><b>{extras.credits.service}</b> service hours</span>
@@ -476,7 +498,7 @@ export default function AdvancementClient({
         {/* Rank trail */}
         <section className="flex flex-col gap-3">
           <h2 className="font-bold text-[13px] tracking-widest uppercase m-0" style={{ color: "#4B5568" }}>Rank trail</h2>
-          <div className="bg-white rounded-2xl border border-[#DDD6C5] p-4 overflow-x-auto">
+          <div className="bg-white rounded-[18px] shadow-float p-4 overflow-x-auto">
             <div className="flex items-start min-w-[560px]">
               {ranks.map((r, i) => {
                 const s = stats(r);
@@ -485,7 +507,7 @@ export default function AdvancementClient({
                   <div key={r.id} className="flex-1 flex flex-col items-center relative">
                     {i > 0 && (
                       <div className="absolute top-5 right-1/2 w-full h-1 -z-0"
-                        style={{ background: i <= currentRankIdx ? "#12355F" : "#E3EAE6" }} />
+                        style={{ background: i <= currentRankIdx ? "#12355F" : "#EAE4D6" }} />
                     )}
                     <button onClick={() => setOpen(open === r.id ? null : r.id)}
                       className="relative z-10 w-10 h-10 rounded-full flex items-center justify-center border-2 cursor-pointer font-bold text-[13px]"
@@ -521,7 +543,7 @@ export default function AdvancementClient({
                     serviceHoursSince: (since) => extras.serviceEvents.filter((e) => !since || e.at >= since).reduce((s, e) => s + e.hours, 0),
                   });
                   return checks.length > 0 && (
-                    <div className="mt-3 rounded-xl p-3 flex flex-col gap-1.5" style={{ background: "#F4F8F6" }}>
+                    <div className="mt-3 rounded-xl p-3 flex flex-col gap-1.5" style={{ background: "#F8F5EE" }}>
                       <div className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#4B5568" }}>Automatic checks</div>
                       {checks.map((c) => (
                         <div key={c.label} className="flex items-center gap-2 text-[14px]">
@@ -550,7 +572,7 @@ export default function AdvancementClient({
           </div>
 
           {picker && (
-            <div className="bg-white rounded-2xl border border-[#DDD6C5] p-4 flex flex-col gap-3">
+            <div className="bg-white rounded-[18px] shadow-float p-4 flex flex-col gap-3">
               <input autoFocus value={pickSearch} onChange={(e) => setPickSearch(e.target.value)}
                 placeholder={`Search ${badges.length} merit badges…`}
                 className="rounded-xl border border-[#DDD6C5] px-3 py-2 text-[14px] outline-none"
@@ -588,7 +610,7 @@ export default function AdvancementClient({
           </div>
 
           {myBadges.length === 0 && (
-            <div className="bg-white rounded-2xl border border-[#DDD6C5] p-6 text-center text-[15px]" style={{ color: "#4B5568" }}>
+            <div className="bg-white rounded-[18px] shadow-float p-6 text-center text-[15px]" style={{ color: "#4B5568" }}>
               No badges here yet. Tap <b>{isLeader ? "+ Assign badge" : "+ Start a badge"}</b> to pick one.
             </div>
           )}
@@ -636,7 +658,7 @@ export default function AdvancementClient({
                       </div>
                       {s.total > 0
                         ? <SegmentBar total={s.total} done={s.done} approved={s.approved} />
-                        : <div className="h-3 rounded-[3px]" style={{ background: s.completed ? "#12355F" : "#E3EAE6" }} />}
+                        : <div className="h-3 rounded-[3px]" style={{ background: s.completed ? "#12355F" : "#EAE4D6" }} />}
                     </div>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B5568" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                       className="flex-none transition-transform" style={{ transform: isOpen ? "rotate(180deg)" : "none" }} aria-hidden="true">

@@ -283,7 +283,7 @@ function Giving(p: Parameters<typeof MoneyClient>[0] & { busy: boolean; run: (fn
     p.sales.filter((s) => p.fundraisers.find((f) => f.id === s.fundraiser_id)?.goal_id === goalId).reduce((s, x) => s + x.amount_cents, 0);
   return (
     <div className="flex flex-col gap-4">
-      <div className="card text-[13px]" style={{ background: "#F4F8F6" }}>
+      <div className="card text-[13px]" style={{ background: "#F8F5EE" }}>
         <b>Scouting America rule:</b> units don&apos;t solicit donations on their own. Get approval from your chartered organization (or council) for each campaign and record it below; a campaign can&apos;t go live without it. Don&apos;t describe gifts as tax-deductible unless your chartered organization confirms it.
       </div>
       <div className="font-bold text-[16px]">Fundraising goals</div>
@@ -353,7 +353,7 @@ function Fundraisers(p: Parameters<typeof MoneyClient>[0] & { busy: boolean; run
   const [sale, setSale] = useState<{ fid: string; scout: string; amount: string; customer: string }>({ fid: "", scout: "", amount: "", customer: "" });
   return (
     <div className="flex flex-col gap-4">
-      <div className="card text-[13px]" style={{ background: "#F4F8F6" }}>
+      <div className="card text-[13px]" style={{ background: "#F8F5EE" }}>
         <b>Scouting America rules:</b> file a Unit Money-Earning Application with your council before each fundraiser and record its approval date here (sales are blocked until you do).
         No raffles or games of chance. Scouts sell products on their merit, not as charity. A Scout&apos;s share stays in the unit for that Scout&apos;s Scouting costs and is never paid out in cash.
       </div>
