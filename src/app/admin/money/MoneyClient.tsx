@@ -109,21 +109,28 @@ export default function MoneyClient(props: {
 
 function Balances({ balances }: { balances: Balance[] }) {
   const [q, setQ] = useState("");
-  const rows = balances.filter((b) => !q || b.household_name.toLowerCase().includes(q.toLowerCase()));
+  const [owingOnly, setOwingOnly] = useState(false);
+  // Families who owe the most come first; that's who the treasurer follows up with.
+  const rows = balances
+    .filter((b) => (!q || b.household_name.toLowerCase().includes(q.toLowerCase())) && (!owingOnly || b.balance_cents > 0))
+    .sort((a, b) => b.balance_cents - a.balance_cents || a.household_name.localeCompare(b.household_name));
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex gap-2"><input className="input flex-1" placeholder="Find a family" value={q} onChange={(e) => setQ(e.target.value)} />
-        <a className="btn-secondary no-underline" href="/api/export/ledger.csv">Ledger CSV</a>
-        <a className="btn-secondary no-underline" href="/admin/money/report">Treasurer report</a></div>
+    <div className="flex flex-col gap-3">
+      <div className="flex gap-3 flex-wrap items-center">
+        <input className="input flex-1 min-w-[200px] max-w-md" placeholder="Find a family" aria-label="Find a family" value={q} onChange={(e) => setQ(e.target.value)} />
+        <label className="flex items-center gap-2 text-[14px] font-bold min-h-[44px]"><input type="checkbox" className="w-5 h-5" checked={owingOnly} onChange={(e) => setOwingOnly(e.target.checked)} /> Only families who owe</label>
+        <a className="ml-auto text-[14px] font-bold text-forest min-h-[44px] flex items-center" href="/api/export/ledger.csv">Download ledger</a>
+      </div>
       <div className="card p-0 overflow-hidden">
-        {rows.length === 0 && <div className="p-4 text-smoke">No activity yet.</div>}
+        {rows.length === 0 && <div className="p-5 text-smoke">{owingOnly ? "Nobody owes anything right now." : "No activity yet."}</div>}
         {rows.map((b) => (
-          <div key={b.household_id} className="flex items-center gap-3 px-4 py-3 border-b border-[#EEE8D9] last:border-0">
+          <div key={b.household_id} className="flex items-center gap-3 px-5 py-3.5 border-b border-[#EAE4D6] last:border-0">
             <div className="flex-1"><div className="font-bold">{b.household_name}</div>
-              <div className="text-[12px] text-smoke">Charged {money(b.charges)} · paid/credited {money(b.paid)}</div></div>
-            <div className="font-bold" style={{ color: b.balance_cents > 0 ? "#5E4400" : "#12355F" }}>
-              {b.balance_cents > 0 ? `owes ${money(b.balance_cents)}` : b.balance_cents < 0 ? `${money(-b.balance_cents)} credit` : "paid up"}
-            </div>
+              <div className="text-[12px] text-smoke">Charged {money(b.charges)} · paid or credited {money(b.paid)}</div></div>
+            <span className="text-[14px] font-bold px-3 py-1 rounded-full"
+              style={b.balance_cents > 0 ? { background: "#FFF6D6", color: "#5E4400" } : { background: "#EEE8D9", color: "#12355F" }}>
+              {b.balance_cents > 0 ? `Owes ${money(b.balance_cents)}` : b.balance_cents < 0 ? `${money(-b.balance_cents)} credit` : "Paid up"}
+            </span>
           </div>
         ))}
       </div>
