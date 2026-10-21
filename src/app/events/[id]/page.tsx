@@ -102,36 +102,58 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
   return (
     <Shell ctx={ctx}>
-      <div className="flex flex-col gap-2">
-        <Link href="/events" className="text-[13px] font-bold text-forest no-underline">← Events</Link>
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className="font-display font-extrabold text-[28px] leading-tight m-0">{ev.title}</h1>
-            <div className="text-[15px] text-smoke mt-1">
-              {multi ? `${fmtDate(ev.start_at, { weekday: "short", month: "short", day: "numeric" })} – ${fmtDate(ev.end_at, { weekday: "short", month: "short", day: "numeric" })}`
-                : `${fmtDate(ev.start_at, { weekday: "long", month: "long", day: "numeric" })} · ${fmtTime(ev.start_at)}`}
-              {ev.location ? ` · ${ev.location}` : ""}
-            </div>
-          </div>
+      <Link href="/events" className="text-[14px] font-bold text-forest no-underline min-h-[32px] flex items-center">← Events</Link>
+      <div className="rounded-[20px] p-6 md:p-7 flex flex-col gap-3 text-white"
+        style={{ background: "#12355F", boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
+        <span className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>
+          {multi ? `${fmtDate(ev.start_at, { weekday: "short", month: "short", day: "numeric" })} – ${fmtDate(ev.end_at, { weekday: "short", month: "short", day: "numeric" })}`
+            : `${fmtDate(ev.start_at, { weekday: "long", month: "long", day: "numeric" })} · ${fmtTime(ev.start_at)}`}
+          {ev.location ? ` · ${ev.location}` : ""}
+        </span>
+        <div className="flex items-start gap-3 flex-wrap">
+          <h1 className="font-display font-extrabold text-[34px] leading-tight m-0 flex-1">{ev.title}</h1>
           {ev.canceled && <Chip tone="red">Canceled</Chip>}
         </div>
-        <div className="flex gap-2 flex-wrap">
-          {ev.cost_cents > 0 ? <Chip tone="orange">{money(ev.cost_cents)} per person</Chip> : <Chip tone="green">Free</Chip>}
-          {ev.cap && <Chip>{going.length} of {ev.cap} spots taken</Chip>}
-          {ev.rsvp_deadline && <Chip>Reply by {fmtDate(ev.rsvp_deadline)} {fmtTime(ev.rsvp_deadline)}</Chip>}
-          {ev.needs_permission && <Chip tone="orange">Permission slip</Chip>}
+        <div className="flex gap-2 flex-wrap text-[13px] font-bold">
+          <span className="px-3 py-1 rounded-full" style={{ background: "#F5B700", color: "#101B2D" }}>{ev.cost_cents > 0 ? `${money(ev.cost_cents)} per person` : "Free"}</span>
+          {ev.cap && <span className="px-3 py-1 rounded-full" style={{ background: "rgba(255,255,255,.14)" }}>{going.length} of {ev.cap} spots taken</span>}
+          {ev.rsvp_deadline && <span className="px-3 py-1 rounded-full" style={{ background: "rgba(255,255,255,.14)" }}>Reply by {fmtDate(ev.rsvp_deadline)} {fmtTime(ev.rsvp_deadline)}</span>}
+          {ev.needs_permission && <span className="px-3 py-1 rounded-full" style={{ background: "rgba(255,255,255,.14)" }}>Permission slip needed</span>}
         </div>
-        {ev.description && <p className="text-[15px] m-0 whitespace-pre-wrap">{ev.description}</p>}
-        <p className="text-[13px] text-smoke m-0">
-          {ev.cost_cents > 0 && (ev.refund_rule === "full" ? "Cancel any time for a full credit to your family balance."
-            : ev.refund_rule === "partial" ? "Cancel before the deadline for a full credit; after it, half."
-            : "Cancel before the deadline for a full credit; after it, no credit.")}
-        </p>
       </div>
 
-      {!ev.canceled && myFamily.length > 0 && (
-        <RsvpPanel eventId={ev.id} costCents={ev.cost_cents} questions={(ev.questions ?? []) as string[]} family={famRsvps} />
-      )}
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] items-start">
+        <div className="flex flex-col gap-5 min-w-0">
+          {ev.description && <div className="card text-[15px] whitespace-pre-wrap">{ev.description}</div>}
+          {!ev.canceled && myFamily.length > 0 && (
+            <RsvpPanel eventId={ev.id} costCents={ev.cost_cents} questions={(ev.questions ?? []) as string[]} family={famRsvps} />
+          )}
+        </div>
+        <aside className="card flex flex-col gap-3 lg:sticky lg:top-24">
+          <span className="font-display font-extrabold text-[22px]">{ev.cost_cents > 0 ? "Your total" : "Your family"}</span>
+          {famRsvps.length === 0 && <span className="text-[14px] text-smoke">Nobody in your family is in this unit yet.</span>}
+          {famRsvps.map((f) => (
+            <div key={f.person_id} className="flex justify-between text-[15px]">
+              <span>{f.first_name}</span>
+              <span className="text-smoke">{f.status === "going" ? (ev.cost_cents > 0 ? money(ev.cost_cents) : "Going") : f.status === "not_going" ? "Not going" : f.status === "waitlisted" ? "Waitlist" : "No reply"}</span>
+            </div>
+          ))}
+          {ev.cost_cents > 0 && (
+            <>
+              <div className="flex justify-between items-baseline border-t border-[#EAE4D6] pt-3">
+                <span className="font-bold">Added to your balance</span>
+                <span className="font-display font-extrabold text-[28px]">{money(famRsvps.filter((f) => f.status === "going").length * ev.cost_cents)}</span>
+              </div>
+              {famRsvps.some((f) => f.status === "going") && <Link href="/pay" className="btn-primary no-underline">Pay now</Link>}
+              <span className="text-[13px] text-smoke">
+                {ev.refund_rule === "full" ? "Cancel any time for a full credit to your family balance."
+                  : ev.refund_rule === "partial" ? "Cancel before the deadline for a full credit; after it, half."
+                  : "Cancel before the deadline for a full credit; after it, no credit."}
+              </span>
+            </>
+          )}
+        </aside>
+      </div>
 
       {(itinerary.length > 0 || packing.length > 0) && (
         <section className="grid md:grid-cols-2 gap-3">

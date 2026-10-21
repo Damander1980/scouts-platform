@@ -48,9 +48,9 @@ export default function RsvpPanel({ eventId, costCents, questions, family }: {
   const goingCount = rows.filter((r) => r.status === "going").length;
 
   return (
-    <section className="card flex flex-col gap-3" style={{ borderColor: "#12355F", borderWidth: 2 }}>
+    <section className="card flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <div className="font-display font-bold text-[20px]">Your family</div>
+        <div className="font-display font-extrabold text-[22px]">Who is going?</div>
         {costCents > 0 && goingCount > 0 && <span className="text-[14px] font-bold">{money(goingCount * costCents)} added to your balance</span>}
       </div>
       <ErrorBox>{error}</ErrorBox>
@@ -58,9 +58,9 @@ export default function RsvpPanel({ eventId, costCents, questions, family }: {
       {rows.map((r) => {
         const isOpen = open === r.person_id;
         return (
-          <div key={r.person_id} className="rounded-xl border border-border overflow-hidden">
-            <button onClick={() => setOpen(isOpen ? null : r.person_id)}
-              className="w-full flex items-center gap-3 p-3 bg-white border-0 cursor-pointer text-left font-sans text-ink">
+          <div key={r.person_id} className="rounded-[14px] overflow-hidden" style={{ background: "#F8F5EE", boxShadow: r.status === "going" ? "inset 0 0 0 2px #12355F" : "inset 0 0 0 1px #DDD6C5" }}>
+            <button onClick={() => setOpen(isOpen ? null : r.person_id)} aria-expanded={isOpen}
+              className="w-full flex items-center gap-3 px-4 min-h-[56px] bg-transparent border-0 cursor-pointer text-left font-sans text-ink">
               <span className="font-bold text-[16px] flex-1">{r.first_name}</span>
               <span className="text-[13px] font-bold px-2.5 py-1 rounded-full" style={{
                 background: r.status === "going" ? "#12355F" : r.status === "waitlisted" ? "#FFF6D6" : r.status === "not_going" ? "#F8F5EE" : "#FFF6D6",
@@ -70,7 +70,7 @@ export default function RsvpPanel({ eventId, costCents, questions, family }: {
               </span>
             </button>
             {isOpen && (
-              <div className="p-3 pt-0 flex flex-col gap-3 bg-white">
+              <div className="px-4 pb-4 flex flex-col gap-3">
                 <input className="input" placeholder="Food allergies or dietary needs" value={r.dietary}
                   onChange={(e) => update(r.person_id, { dietary: e.target.value })} />
                 {questions.map((q) => (
@@ -110,9 +110,6 @@ export default function RsvpPanel({ eventId, costCents, questions, family }: {
           </div>
         );
       })}
-      {costCents > 0 && goingCount > 0 && (
-        <a href="/pay" className="btn-primary no-underline">Pay now</a>
-      )}
     </section>
   );
 }
