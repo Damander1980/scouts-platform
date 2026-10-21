@@ -9,7 +9,7 @@ import { fmtDate } from "@/components/ui";
 const REPORTS: [string, string][] = [
   ["ypt", "YPT aging"], ["patrols", "Patrol rosters"], ["leaders", "Leaders by position"], ["swim", "Swim test results"],
   ["counselors", "Merit badge counselors by badge"], ["sizes", "Shirt sizes"], ["dietary", "Allergies and dietary needs"],
-  ["registrations", "Registration renewals"], ["families", "Scout and parent cross reference"],
+  ["registrations", "Registration renewals"], ["families", "Scout and parent cross reference"], ["participation", "Participation (last 12 months)"],
 ];
 const SWIM: Record<string, string> = { swimmer: "Swimmer", beginner: "Beginner", nonswimmer: "Non-swimmer" };
 
@@ -85,6 +85,24 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       (x.is_guardian ? h.parents : h.scouts).push(n); return acc;
     }, {});
     body = <Table head={["Family", "Scouts", "Parents and guardians"]} rows={Object.values(byHh).filter((h) => h.scouts.length).sort((a, b) => a.name.localeCompare(b.name)).map((h) => [h.name, h.scouts.join("; "), h.parents.join("; ")])} />;
+  }
+
+  if (r === "participation") {
+    const since = new Date(Date.now() - 365 * 86400000).toISOString();
+    const { data: att } = await supabase.from("attendance").select("person_id, present, events!inner(start_at, overnight_nights, service_hours, canceled)")
+      .eq("org_id", orgId).eq("present", true).gte("events.start_at", since);
+    type A = { person_id: string; events: { overnight_nights: number; service_hours: number; canceled: boolean } };
+    const tally = new Map<string, { n: number; nights: number; hours: number }>();
+    for (const a of (att ?? []) as unknown as A[]) {
+      if (a.events.canceled) continue;
+      const t = tally.get(a.person_id) ?? { n: 0, nights: 0, hours: 0 };
+      t.n++; t.nights += Number(a.events.overnight_nights) || 0; t.hours += Number(a.events.service_hours) || 0;
+      tally.set(a.person_id, t);
+    }
+    body = <Table head={["Name", "Events attended", "Nights camped", "Service hours"]} rows={members.map((m) => {
+      const t = tally.get(m.person_id) ?? { n: 0, nights: 0, hours: 0 };
+      return [name(m), String(t.n), String(t.nights), String(t.hours)];
+    }).sort((a, b) => Number(b[1]) - Number(a[1]) || a[0].localeCompare(b[0]))} />;
   }
 
   const title = REPORTS.find(([k]) => k === r)?.[1] ?? "Reports";
