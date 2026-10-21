@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireOrg } from "@/lib/context";
 import Shell from "@/components/Shell";
-import { Chip, Empty, LinkButton, PageTitle, fmtDate, fmtTime, money } from "@/components/ui";
+import { Empty, LinkButton, PageTitle, fmtDate, fmtTime, money } from "@/components/ui";
 
 const KIND_LABEL: Record<string, string> = {
   meeting: "Meeting", campout: "Campout", service: "Service", fundraiser: "Fundraiser", event: "Event", high_adventure: "High adventure",
@@ -51,14 +51,13 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
       <PageTitle title="Events" sub={past ? "Past events" : "What's coming up"}
         action={isLeader ? <LinkButton href="/events/new">+ New event</LinkButton> : undefined} />
 
-      <div className="flex gap-2">
-        <Link href="/events" className="px-3 py-1.5 rounded-full text-[13px] font-bold no-underline border"
-          style={{ background: !past ? "#12355F" : "white", color: !past ? "white" : "#4B5568", borderColor: !past ? "#12355F" : "#DDD6C5" }}>Upcoming</Link>
-        <Link href="/events?past=1" className="px-3 py-1.5 rounded-full text-[13px] font-bold no-underline border"
-          style={{ background: past ? "#12355F" : "white", color: past ? "white" : "#4B5568", borderColor: past ? "#12355F" : "#DDD6C5" }}>Past</Link>
-        <a href={`webcal://${process.env.NEXT_PUBLIC_SITE_HOST ?? "localhost:3000"}/api/calendar/${current.org.id}?t=${calToken ?? ""}`} className="ml-auto px-3 py-1.5 rounded-full text-[13px] font-bold no-underline border border-border bg-white text-smoke">
-          Add to my calendar
-        </a>
+      <div className="flex items-end gap-6 border-b-2 border-[#DDD6C5]">
+        {[["/events", "Upcoming", !past], ["/events?past=1", "Past", past]].map(([href, label, on]) => (
+          <Link key={String(href)} href={String(href)} className="min-h-[44px] -mb-[2px] px-0.5 flex items-center border-b-[3px] no-underline text-[15px]"
+            style={{ borderColor: on ? "#F5B700" : "transparent", color: on ? "#101B2D" : "#4B5568", fontWeight: on ? 700 : 500 }}>{String(label)}</Link>
+        ))}
+        <a href={`webcal://${process.env.NEXT_PUBLIC_SITE_HOST ?? "localhost:3000"}/api/calendar/${current.org.id}?t=${calToken ?? ""}`}
+          className="ml-auto min-h-[44px] flex items-center text-[14px] font-bold text-forest no-underline">Add to my calendar</a>
       </div>
 
       {!events.length && <Empty>{past ? "No past events yet." : isLeader ? "No events yet. Tap + New event to post your first one." : "Nothing on the calendar yet."}</Empty>}
@@ -66,32 +65,31 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
       {[...byMonth.entries()].map(([month, list]) => (
         <section key={month} className="flex flex-col gap-2">
           <h2 className="font-bold text-[13px] tracking-widest uppercase m-0 text-smoke">{month}</h2>
-          {list.map((e) => {
-            const multi = e.end_at && new Date(e.end_at).toDateString() !== new Date(e.start_at).toDateString();
-            const host = e.org_id !== current.org.id ? hostName[e.org_id] : null;
-            return (
-              <Link key={e.id} href={host ? "#" : `/events/${e.id}`} className="card flex items-center gap-3 no-underline text-ink"
-                style={{ opacity: e.canceled ? 0.55 : 1, pointerEvents: host ? "none" : undefined }}>
-                <div className="w-12 text-center flex-none">
-                  <div className="text-[11px] font-bold uppercase text-smoke">{fmtDate(e.start_at, { weekday: "short" })}</div>
-                  <div className="font-display font-extrabold text-[24px] leading-none">{new Date(e.start_at).getDate()}</div>
-                </div>
-                <div className="flex-1 min-w-0 flex flex-col gap-1">
-                  <div className="font-bold text-[16px] truncate">{e.title}</div>
-                  <div className="text-[13px] text-smoke truncate">
-                    {multi ? `${fmtDate(e.start_at)} – ${fmtDate(e.end_at!)}` : fmtTime(e.start_at)}{e.location ? ` · ${e.location}` : ""}
+          <div className="card p-0 overflow-hidden">
+            {list.map((e) => {
+              const multi = e.end_at && new Date(e.end_at).toDateString() !== new Date(e.start_at).toDateString();
+              const host = e.org_id !== current.org.id ? hostName[e.org_id] : null;
+              return (
+                <Link key={e.id} href={host ? "#" : `/events/${e.id}`} className="flex items-center gap-4 px-5 py-3.5 no-underline text-ink border-b border-[#EAE4D6] last:border-0"
+                  style={{ opacity: e.canceled ? 0.55 : 1, pointerEvents: host ? "none" : undefined }}>
+                  <div className="w-12 text-center flex-none">
+                    <div className="text-[11px] font-bold uppercase text-smoke">{fmtDate(e.start_at, { weekday: "short" })}</div>
+                    <div className="font-display font-extrabold text-[24px] leading-none text-forest">{new Date(e.start_at).getDate()}</div>
                   </div>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {multi && <Chip tone="orange">{Math.round((new Date(e.end_at!).getTime() - new Date(e.start_at).getTime()) / 86400000)} nights</Chip>}
-                    <Chip>{KIND_LABEL[e.kind] ?? "Event"}</Chip>
-                    {e.cost_cents > 0 && <Chip>{money(e.cost_cents)}</Chip>}
-                    {host ? <Chip tone="dark">Hosted by {host}: sign up with them</Chip> : <Chip tone="green">{goingCount(e.id)}{e.cap ? ` / ${e.cap}` : ""} going</Chip>}
-                    {e.canceled && <Chip tone="red">Canceled</Chip>}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-[16px] truncate">{e.title}{e.canceled ? " (canceled)" : ""}</div>
+                    <div className="text-[13px] text-smoke truncate">
+                      {multi ? `${fmtDate(e.start_at)} – ${fmtDate(e.end_at!)}` : fmtTime(e.start_at)}
+                      {e.location ? ` · ${e.location}` : ""} · {KIND_LABEL[e.kind] ?? "Event"}
+                      {host ? ` · hosted by ${host}, sign up with them` : ""}
+                    </div>
                   </div>
-                </div>
-              </Link>
-            );
-          })}
+                  {e.cost_cents > 0 && <span className="text-[14px] font-bold hidden sm:block">{money(e.cost_cents)}</span>}
+                  {!host && <span className="text-[13px] font-bold px-3 py-1 rounded-full flex-none" style={{ background: "#EEE8D9", color: "#12355F" }}>{goingCount(e.id)}{e.cap ? `/${e.cap}` : ""} going</span>}
+                </Link>
+              );
+            })}
+          </div>
         </section>
       ))}
     </Shell>
