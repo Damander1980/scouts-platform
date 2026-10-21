@@ -27,12 +27,16 @@ function Icon({ name, size = 18 }: { name: string; size?: number }) {
 }
 
 export default function AppShell({
-  children, orgName, orgs, currentOrgId, initials, isLeader, unread = 0,
+  children, orgName, orgs, currentOrgId, initials, isLeader, unread = 0, demo = false,
 }: {
   children: ReactNode; orgName: string; orgs: OrgOption[]; currentOrgId: string;
-  initials: string; isLeader: boolean; unread?: number;
+  initials: string; isLeader: boolean; unread?: number; demo?: boolean;
 }) {
-  const pathname = usePathname();
+  const rawPath = usePathname();
+  // Sample screens: links stay inside the demo, and the sidebar highlights what they stand in for.
+  const DEMO: Record<string, string> = { "/dashboard": "/demo", "/events": "/demo/calendar", "/admin": "/demo/leader" };
+  const to = (href: string) => (demo ? DEMO[href] ?? "/demo/tour" : href);
+  const pathname = demo ? (Object.entries(DEMO).find(([, v]) => v === rawPath)?.[0] ?? rawPath) : rawPath;
   const router = useRouter();
   const [menu, setMenu] = useState(false);
 
@@ -66,7 +70,7 @@ export default function AppShell({
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
       <header className="bg-forest text-white sticky top-0 z-30">
         <div className="px-4 md:px-6 h-16 flex items-center gap-3">
-          <Link href="/dashboard" aria-label="Home" className="flex items-center gap-2.5 no-underline text-white flex-none">
+          <Link href={to("/dashboard")} aria-label="Home" className="flex items-center gap-2.5 no-underline text-white flex-none">
             <span className="w-9 h-9 rounded-[10px] flex items-center justify-center font-display font-extrabold text-[16px]" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
             <span className="hidden md:inline font-display font-extrabold text-[19px]">ScoutPlatform</span>
           </Link>
@@ -78,7 +82,7 @@ export default function AppShell({
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
             )}
           </button>
-          <Link href="/settings" aria-label="Settings"
+          <Link href={to("/settings")} aria-label="Settings"
             className="ml-auto w-10 h-10 rounded-full flex items-center justify-center font-bold text-[13px] no-underline flex-none"
             style={{ background: "#0C2442", color: "#FFFFFF" }}>
             {initials}
@@ -103,7 +107,7 @@ export default function AppShell({
       <div className="flex flex-1">
         <aside className="hidden md:flex flex-col w-56 flex-none bg-forest-deep px-3 py-5 gap-1 sticky top-16 self-start h-[calc(100vh-4rem)] print:hidden">
           {sideNav.map((n) => (
-            <Link key={n.href} href={n.href}
+            <Link key={n.href} href={to(n.href)}
               className="flex items-center gap-3 min-h-[44px] px-3.5 rounded-[10px] text-[15px] no-underline"
               style={active(n.href)
                 ? { background: "#12355F", color: "#FFFFFF", fontWeight: 700, boxShadow: "inset 3px 0 0 #F5B700" }
@@ -116,7 +120,7 @@ export default function AppShell({
             </Link>
           ))}
           {isLeader && (
-            <Link href="/admin" className="mt-auto flex items-center gap-3 min-h-[44px] px-3.5 rounded-[10px] text-[15px] font-bold no-underline"
+            <Link href={to("/admin")} className="mt-auto flex items-center gap-3 min-h-[44px] px-3.5 rounded-[10px] text-[15px] font-bold no-underline"
               style={{ background: "#F5B700", color: "#101B2D" }}>
               <Icon name="leader" />Leader tools
             </Link>
@@ -131,7 +135,7 @@ export default function AppShell({
       <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white z-30 pb-[env(safe-area-inset-bottom)]" style={{ boxShadow: "0 -6px 20px rgba(16,27,45,.08)" }}>
         <div className="flex justify-around px-1 pt-1.5 pb-2">
           {mobileNav.map((n) => (
-            <Link key={n.href} href={n.href}
+            <Link key={n.href} href={to(n.href)}
               className="relative flex flex-col items-center gap-0.5 min-w-[56px] min-h-[48px] justify-center no-underline"
               style={{ color: active(n.href) ? "#12355F" : "#4B5568" }}>
               <Icon name={n.icon} size={22} />

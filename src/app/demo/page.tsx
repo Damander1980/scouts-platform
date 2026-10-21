@@ -14,7 +14,7 @@ const FLOAT = { boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27
 
 export default function DemoParentHome() {
   return (
-    <AppShell orgName="Troop 999" orgs={[{ id: "demo", label: "Troop 999" }]} currentOrgId="demo" initials="TG" isLeader={false}>
+    <AppShell orgName="Troop 999" orgs={[{ id: "demo", label: "Troop 999" }]} currentOrgId="demo" initials="TG" isLeader={false} demo>
       <div className="rounded-[14px] px-4 py-3 text-[14px] font-bold flex items-center gap-3 flex-wrap" style={{ background: "#FFF6D6", color: "#5E4400" }}>
         <span className="flex-1">Sample screen with made-up families. Nothing here saves.</span>
         <Link href="/demo/tour" className="text-forest">Back to the tour</Link>

@@ -17,7 +17,7 @@ export default function DemoCalendar() {
     ev("coh", "Court of Honor", "event", at(27, 0), at(27, 2)),
   ];
   return (
-    <AppShell orgName="Troop 999" orgs={[{ id: "demo", label: "Troop 999" }]} currentOrgId="demo" initials="TG" isLeader>
+    <AppShell orgName="Troop 999" orgs={[{ id: "demo", label: "Troop 999" }]} currentOrgId="demo" initials="TG" isLeader demo>
       <PageTitle title="Events" sub="Month view. Gold items come from a linked unit (here, the troop's Cub Scout pack)." />
       <MonthGrid month={month} events={events} ownOrg="demo" />
     </AppShell>
