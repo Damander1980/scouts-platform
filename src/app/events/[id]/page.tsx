@@ -127,6 +127,10 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
           {ev.cap && <span className="px-3 py-1 rounded-full" style={{ background: "rgba(255,255,255,.14)" }}>{going.length} of {ev.cap} spots taken</span>}
           {ev.rsvp_deadline && <span className="px-3 py-1 rounded-full" style={{ background: "rgba(255,255,255,.14)" }}>Reply by {fmtDate(ev.rsvp_deadline)} {fmtTime(ev.rsvp_deadline)}</span>}
           {ev.needs_permission && <span className="px-3 py-1 rounded-full" style={{ background: "rgba(255,255,255,.14)" }}>Permission slip needed</span>}
+          {ev.location && (
+            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.location)}`} target="_blank" rel="noopener noreferrer"
+              className="px-3 py-1 rounded-full no-underline text-white" style={{ background: "rgba(255,255,255,.14)" }}>Directions ↗</a>
+          )}
         </div>
       </div>
 
