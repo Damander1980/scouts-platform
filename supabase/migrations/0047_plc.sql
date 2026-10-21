@@ -25,8 +25,11 @@ create table if not exists public.plc_meetings (
   created_at   timestamptz not null default now()
 );
 alter table public.plc_meetings enable row level security;
-create policy "plc_meetings: members" on public.plc_meetings for all
-  using (public.is_plc_member(org_id)) with check (public.is_plc_member(org_id));
+create policy "plc_meetings: members view" on public.plc_meetings for select using (public.is_plc_member(org_id));
+create policy "plc_meetings: members add" on public.plc_meetings for insert with check (public.is_plc_member(org_id));
+create policy "plc_meetings: members edit" on public.plc_meetings for update using (public.is_plc_member(org_id)) with check (public.is_plc_member(org_id));
+-- Only adult leaders can delete, so the youth council's record can't quietly disappear.
+create policy "plc_meetings: leaders delete" on public.plc_meetings for delete using (public.is_org_leader(org_id));
 
 create table if not exists public.plc_actions (
   id          uuid primary key default gen_random_uuid(),
@@ -40,5 +43,8 @@ create table if not exists public.plc_actions (
   created_at  timestamptz not null default now()
 );
 alter table public.plc_actions enable row level security;
-create policy "plc_actions: members" on public.plc_actions for all
-  using (public.is_plc_member(org_id)) with check (public.is_plc_member(org_id));
+create policy "plc_actions: members view" on public.plc_actions for select using (public.is_plc_member(org_id));
+create policy "plc_actions: members add" on public.plc_actions for insert with check (public.is_plc_member(org_id));
+create policy "plc_actions: members edit" on public.plc_actions for update using (public.is_plc_member(org_id)) with check (public.is_plc_member(org_id));
+-- Only adult leaders can delete, so the youth council's record can't quietly disappear.
+create policy "plc_actions: leaders delete" on public.plc_actions for delete using (public.is_org_leader(org_id));
