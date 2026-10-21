@@ -18,7 +18,7 @@ type Donation = { campaign_id: string | null; amount_cents: number; source: stri
 type Fundraiser = { id: string; name: string; goal_id: string | null; target_cents: number | null; scout_share_pct: number; starts_on: string | null; ends_on: string | null; money_earning_approved_on?: string | null };
 type Sale = { fundraiser_id: string; scout_id: string | null; amount_cents: number };
 
-const TABS: [string, string][] = [["balances", "Family balances"], ["dues", "Yearly dues"], ["record", "Record cash/check"], ["expenses", "Reimbursements"], ["budget", "Budget"], ["giving", "Goals & giving"], ["fundraisers", "Fundraisers"]];
+const TABS: [string, string][] = [["balances", "Families"], ["dues", "Dues"], ["expenses", "Reimbursements"], ["budget", "Budget"], ["fundraising", "Fundraising"]];
 const CATEGORIES = ["Dues", "Camping", "Equipment", "Advancement & awards", "Training", "Fundraising", "Donations", "Program supplies", "Insurance & recharter", "Other"];
 const dollars = (s: string) => Math.round(parseFloat(s || "0") * 100);
 
@@ -30,7 +30,7 @@ export default function MoneyClient(props: {
   const { orgId, isTreasurer } = props;
   const supabase = createClient();
   const router = useRouter();
-  const [tab, setTab] = useState(props.initialTab);
+  const [tab, setTab] = useState(props.initialTab === "giving" || props.initialTab === "fundraisers" ? "fundraising" : props.initialTab);
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [busy, setBusy] = useState(false);
@@ -46,9 +46,12 @@ export default function MoneyClient(props: {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="font-display font-extrabold text-[28px] m-0">Money</h1>
-        <p className="text-[14px] text-smoke m-0 mt-1">Family charges and payments post automatically. Entries are never edited; corrections add a new line.</p>
+      <div className="flex items-end justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="font-display font-extrabold text-[32px] m-0">Money</h1>
+          <p className="text-[14px] text-smoke m-0 mt-1">Charges and payments post automatically. <a href="/admin/money/report" className="font-bold text-forest">Treasurer reports</a></p>
+        </div>
+        {isTreasurer && <button className="btn-primary" onClick={() => { setTab("record"); setError(""); setOk(""); }}>Record cash or check</button>}
       </div>
       {!isTreasurer && <div className="card">You can view summaries. Only the treasurer, committee chair or a unit admin can record money.</div>}
 
@@ -72,17 +75,17 @@ export default function MoneyClient(props: {
       )}
       {props.connectState === "done" && <div className="card font-bold" style={{ background: "#EEE8D9" }}>Stripe setup saved. Payments turn on once Stripe finishes verifying your unit.</div>}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Stat label="Families owe" value={money(owed)} tone={owed ? "#5E4400" : undefined} />
         <Stat label="Credits held" value={money(credit)} />
-        <Stat label="Pending reimbursements" value={props.expenses.filter((e) => ["submitted", "approved", "second_approval"].includes(e.status)).length} />
-        <Stat label="Donations (all time)" value={money(props.donations.reduce((s, d) => s + d.amount_cents, 0))} />
+        <Stat label="Reimbursements waiting" value={props.expenses.filter((e) => ["submitted", "approved", "second_approval"].includes(e.status)).length} />
       </div>
 
-      <div className="flex gap-2 flex-wrap">
+      <div role="tablist" aria-label="Money sections" className="flex gap-6 overflow-x-auto border-b-2 border-[#DDD6C5]">
         {TABS.map(([k, l]) => (
-          <button key={k} onClick={() => { setTab(k); setError(""); setOk(""); }} className="px-4 py-2 rounded-full text-[14px] font-bold border cursor-pointer font-sans"
-            style={{ background: tab === k ? "#12355F" : "white", color: tab === k ? "white" : "#4B5568", borderColor: tab === k ? "#12355F" : "#DDD6C5" }}>{l}</button>
+          <button key={k} role="tab" aria-selected={tab === k} onClick={() => { setTab(k); setError(""); setOk(""); }}
+            className="min-h-[44px] -mb-[2px] px-0.5 bg-transparent border-0 border-b-[3px] cursor-pointer font-sans text-[15px] whitespace-nowrap"
+            style={{ borderColor: tab === k ? "#F5B700" : "transparent", color: tab === k ? "#101B2D" : "#4B5568", fontWeight: tab === k ? 700 : 500 }}>{l}</button>
         ))}
       </div>
       <ErrorBox>{error}</ErrorBox>
@@ -96,8 +99,10 @@ export default function MoneyClient(props: {
       }, "Recorded.")} />}
       {tab === "expenses" && <Expenses expenses={props.expenses} canAct={isTreasurer} busy={busy} myId={props.myPersonId} orgId={orgId} run={run} />}
       {tab === "budget" && <BudgetTab budgets={props.budgets} tx={props.transactions} canEdit={isTreasurer} busy={busy} orgId={orgId} run={run} />}
-      {tab === "giving" && <Giving {...props} busy={busy} run={run} />}
-      {tab === "fundraisers" && <Fundraisers {...props} busy={busy} run={run} />}
+      {tab === "fundraising" && <>
+        <Fundraisers {...props} busy={busy} run={run} />
+        <Giving {...props} busy={busy} run={run} />
+      </>}
     </div>
   );
 }
