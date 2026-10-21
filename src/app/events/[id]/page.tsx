@@ -160,6 +160,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
               </span>
             </>
           )}
+          <a href={`/api/events/${ev.id}/ics`} className="text-[14px] font-bold text-forest min-h-[44px] flex items-center border-t border-[#EAE4D6]">Add to my calendar</a>
         </aside>
       </div>
 
