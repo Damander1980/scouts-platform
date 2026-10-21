@@ -3,6 +3,7 @@ import Shell from "@/components/Shell";
 import { PageTitle } from "@/components/ui";
 import SettingsClient from "./SettingsClient";
 import SkillsCard from "./SkillsCard";
+import TwoStepCard from "./TwoStepCard";
 
 export default async function SettingsPage() {
   const ctx = await requireOrg();
@@ -17,6 +18,7 @@ export default async function SettingsPage() {
     <Shell ctx={ctx}>
       <PageTitle title="Settings" sub="How and when we contact you." />
       <SettingsClient person={ctx.person} email={ctx.user.email ?? ""} prefs={prefs} weekCount={(counts ?? []).length} />
+      {ctx.isStaff && <TwoStepCard />}
       {me?.type === "adult" && <SkillsCard orgId={ctx.current.org.id} personId={ctx.person.id} unitName={ctx.current.org.name} initial={skills ?? null} />}
     </Shell>
   );
