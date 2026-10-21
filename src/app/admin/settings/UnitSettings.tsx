@@ -17,6 +17,8 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
     scout_rsvp: (st.scout_rsvp as string) ?? "parent_approves_paid",
     leaderboard: !!st.fundraising_leaderboard,
     contact_default: (st.contact_default as string) ?? "opt_in",
+    payment_methods: (st.payment_methods as string) ?? "both",
+    card_fee_payer: (st.card_fee_payer as string) ?? "family",
     second: String(org.second_approval_cents / 100),
   });
   const [ok, setOk] = useState("");
@@ -27,7 +29,7 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
     setOk(""); setError("");
     const { error } = await supabase.from("organizations").update({
       name: f.name, city: f.city, state: f.state || null, second_approval_cents: Math.round(parseFloat(f.second || "500") * 100),
-      settings: { ...st, email_mode: f.email_mode, scout_rsvp: f.scout_rsvp, fundraising_leaderboard: f.leaderboard, contact_default: f.contact_default },
+      settings: { ...st, email_mode: f.email_mode, scout_rsvp: f.scout_rsvp, fundraising_leaderboard: f.leaderboard, contact_default: f.contact_default, payment_methods: f.payment_methods, card_fee_payer: f.card_fee_payer },
     }).eq("id", org.id);
     if (error) setError(error.message); else { setOk("Saved."); router.refresh(); }
   }
@@ -66,7 +68,21 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
             <option value="parent_only">Only parents can RSVP</option>
           </select>
         </Field>
-        <div className="text-[13px] text-smoke rounded-xl p-3" style={{ background: "#F4F8F6" }}><b>Card fees:</b> families who pay online always cover the card fee, so your unit never loses money. Cash and checks handed to a leader have no fee.</div>
+        <Field label="How families can pay">
+          <select className="input" value={f.payment_methods} onChange={(e) => setF({ ...f, payment_methods: e.target.value })}>
+            <option value="both">Card online, or cash and check in person</option>
+            <option value="card">Card online only</option>
+            <option value="cash">Cash and check only</option>
+          </select>
+        </Field>
+        {f.payment_methods !== "cash" && (
+          <Field label="Who pays the card fee (about 2.9% + 30¢)">
+            <select className="input" value={f.card_fee_payer} onChange={(e) => setF({ ...f, card_fee_payer: e.target.value })}>
+              <option value="family">Families, added at checkout (the unit receives the full amount)</option>
+              <option value="unit">The unit absorbs it (families pay the exact amount)</option>
+            </select>
+          </Field>
+        )}
         <Field label="Reimbursements over this amount need a second approver ($)"><input className="input w-40" inputMode="decimal" value={f.second} onChange={(e) => setF({ ...f, second: e.target.value })} /></Field>
         <label className="flex items-center gap-3 text-[14px]"><input type="checkbox" className="w-5 h-5" checked={f.leaderboard} onChange={(e) => setF({ ...f, leaderboard: e.target.checked })} /> Show a fundraising leaderboard of individual Scouts</label>
         <Field label="Family contact info on the member roster">

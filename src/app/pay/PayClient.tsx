@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { coverFee } from "@/lib/fees";
+import { familyFee, type PaymentPrefs } from "@/lib/fees";
 import { ErrorBox, money } from "@/components/ui";
 
-export default function PayClient({ orgId, balance, online, scoutBalances }: {
-  orgId: string; balance: number; online: boolean; scoutBalances: { id: string; name: string; cents: number }[];
+export default function PayClient({ orgId, balance, online, prefs, scoutBalances }: {
+  orgId: string; balance: number; online: boolean; prefs: PaymentPrefs; scoutBalances: { id: string; name: string; cents: number }[];
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -15,7 +15,9 @@ export default function PayClient({ orgId, balance, online, scoutBalances }: {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const cents = Math.max(0, Math.round(parseFloat(amount || "0") * 100));
-  const fee = cents > 0 ? coverFee(cents) : 0;
+  const fee = familyFee(cents, prefs);
+  const showCash = prefs.methods !== "card";
+  const showCard = prefs.methods !== "cash";
 
   async function pay() {
     setBusy(true); setError("");
@@ -53,24 +55,26 @@ export default function PayClient({ orgId, balance, online, scoutBalances }: {
       ))}
 
       {balance > 0 && (
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div className="rounded-xl border border-border p-3 flex flex-col gap-2">
+        <div className={`grid gap-3 ${showCash && showCard ? "sm:grid-cols-2" : ""}`}>
+          {showCash && <div className="rounded-xl border border-border p-3 flex flex-col gap-2">
             <div className="font-bold text-[15px]">Pay a leader in person</div>
             <div className="text-[13px] text-smoke">Cash or check. <b>No fee.</b> Hand it to your treasurer or a leader and they&apos;ll record it here.</div>
-          </div>
-          <div className="rounded-xl border-2 p-3 flex flex-col gap-2" style={{ borderColor: online ? "#12355F" : "#DDD6C5" }}>
+          </div>}
+          {showCard && <div className="rounded-xl border-2 p-3 flex flex-col gap-2" style={{ borderColor: online ? "#12355F" : "#DDD6C5" }}>
             <div className="font-bold text-[15px]">Pay online</div>
             {online ? (
               <>
                 <div className="flex items-center gap-2"><span className="text-[18px] font-bold">$</span>
                   <input className="input w-32" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
                 <div className="text-[13px] text-smoke">
-                  {money(cents)} + {money(fee)} card fee = <b>{money(cents + fee)}</b>. The fee goes to the card processor so your unit gets the full amount.
+                  {fee > 0
+                    ? <>{money(cents)} + {money(fee)} card fee = <b>{money(cents + fee)}</b>. The fee goes to the card processor so your unit gets the full amount.</>
+                    : <>No card fee. Your unit covers it.</>}
                 </div>
                 <button className="btn-primary" disabled={busy || cents < 50} onClick={pay}>{busy ? "Opening checkout…" : `Pay ${money(cents + fee)} by card`}</button>
               </>
             ) : <div className="text-[13px] text-smoke">Online payment isn&apos;t set up for this unit yet.</div>}
-          </div>
+          </div>}
         </div>
       )}
     </section>

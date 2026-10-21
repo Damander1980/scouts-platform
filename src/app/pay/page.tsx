@@ -4,6 +4,7 @@ import { Chip, PageTitle, SectionLabel, fmtDate, money } from "@/components/ui";
 import { householdBalance, loadFamily } from "@/lib/family";
 import { paymentsEnabled } from "@/lib/stripe";
 import PayClient from "./PayClient";
+import { paymentPrefs } from "@/lib/fees";
 
 export default async function PayPage({ searchParams }: { searchParams: Promise<{ paid?: string }> }) {
   const { paid } = await searchParams;
@@ -27,7 +28,7 @@ export default async function PayPage({ searchParams }: { searchParams: Promise<
       <PageTitle title="Pay" sub="Your family's account with the unit." />
       {paid && <div className="card font-bold" style={{ background: "#EEE8D9" }}>Thanks! Your payment is processing and will show below in a moment.</div>}
 
-      <PayClient orgId={orgId} balance={balance} online={paymentsEnabled()} scoutBalances={scoutBal.filter((s) => s.cents > 0)} />
+      <PayClient orgId={orgId} balance={balance} online={paymentsEnabled()} prefs={paymentPrefs(current.org.settings)} scoutBalances={scoutBal.filter((s) => s.cents > 0)} />
 
       <section className="flex flex-col gap-2">
         <SectionLabel>History</SectionLabel>
