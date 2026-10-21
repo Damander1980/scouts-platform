@@ -28,33 +28,49 @@ export default async function FormsPage() {
 
       <section className="flex flex-col gap-2">
         <SectionLabel>Your family</SectionLabel>
-        {family.map((p) => (
-          <div key={p.id} className="card flex flex-col gap-2">
-            <div className="font-bold text-[16px]">{p.first_name} {p.last_name}</div>
-            <div className="flex gap-1.5 flex-wrap">
-              <Chip tone={st(p.id, "health_ab").tone}>Health A+B: {st(p.id, "health_ab").label}</Chip>
-              <Chip tone={st(p.id, "health_c").tone}>Health C: {st(p.id, "health_c").label}</Chip>
-              <Chip tone={st(p.id, "permission").tone}>Annual permission: {st(p.id, "permission").label}</Chip>
-            </div>
-            {p.type === "youth" && st(p.id, "permission").tone !== "green" && <SignPermission orgId={orgId} personId={p.id} name={p.first_name} />}
-          </div>
-        ))}
+        <div className="card p-0 overflow-x-auto">
+          <table className="w-full border-collapse min-w-[560px]">
+            <thead>
+              <tr className="text-left text-[12px] uppercase tracking-widest text-smoke" style={{ background: "#F8F5EE" }}>
+                <th scope="col" className="px-5 py-3 font-bold">Name</th>
+                <th scope="col" className="px-3 py-3 font-bold">Health A and B</th>
+                <th scope="col" className="px-3 py-3 font-bold">Health C</th>
+                <th scope="col" className="px-3 py-3 font-bold">Permission slip</th>
+              </tr>
+            </thead>
+            <tbody>
+              {family.map((p) => (
+                <tr key={p.id} className="border-t border-[#EAE4D6] align-top">
+                  <th scope="row" className="px-5 py-3.5 text-left text-[15px] font-bold">{p.first_name} {p.last_name}</th>
+                  <td className="px-3 py-3.5"><Chip tone={st(p.id, "health_ab").tone}>{st(p.id, "health_ab").label}</Chip></td>
+                  <td className="px-3 py-3.5"><Chip tone={st(p.id, "health_c").tone}>{st(p.id, "health_c").label}</Chip></td>
+                  <td className="px-3 py-3.5">
+                    {p.type === "youth"
+                      ? (st(p.id, "permission").tone !== "green" ? <SignPermission orgId={orgId} personId={p.id} name={p.first_name} /> : <Chip tone="green">{st(p.id, "permission").label}</Chip>)
+                      : <span className="text-[13px] text-smoke">Not needed</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <p className="text-[13px] text-smoke m-0">
-          Health forms: fill out the paper form and give it to your troop&apos;s designated leader. Part C needs a doctor&apos;s exam and is required for events over 72 hours.
-          A leader marks it received here; the form itself is never uploaded.
+          Health forms: fill out the paper form and hand it to your troop&apos;s designated leader, who marks it received here. The form itself is never uploaded. Part C needs a doctor&apos;s exam and is required for events over 72 hours.
         </p>
       </section>
 
       <section className="flex flex-col gap-2">
         <SectionLabel>Blank forms</SectionLabel>
-        <a className="card no-underline text-ink font-bold" href="https://www.scouting.org/health-and-safety/ahmr/" target="_blank" rel="noopener noreferrer">
-          Annual Health and Medical Record (Scouting America) ↗
-        </a>
-        {(docs ?? []).map((d) => (
-          <a key={d.id} className="card no-underline text-ink flex justify-between" href={d.url} target="_blank" rel="noopener noreferrer">
-            <span className="font-bold">{d.title}</span>{d.category && <Chip>{d.category}</Chip>}
+        <div className="card p-0 overflow-hidden">
+          <a className="flex items-center justify-between gap-3 px-5 min-h-[56px] no-underline text-ink border-b border-[#EAE4D6] last:border-0" href="https://www.scouting.org/health-and-safety/ahmr/" target="_blank" rel="noopener noreferrer">
+            <span className="font-bold text-[15px]">Annual Health and Medical Record</span><span className="text-[13px] font-bold text-forest">Scouting America ↗</span>
           </a>
-        ))}
+          {(docs ?? []).map((d) => (
+            <a key={d.id} className="flex items-center justify-between gap-3 px-5 min-h-[56px] no-underline text-ink border-b border-[#EAE4D6] last:border-0" href={d.url} target="_blank" rel="noopener noreferrer">
+              <span className="font-bold text-[15px]">{d.title}</span>{d.category && <Chip>{d.category}</Chip>}
+            </a>
+          ))}
+        </div>
       </section>
     </Shell>
   );
