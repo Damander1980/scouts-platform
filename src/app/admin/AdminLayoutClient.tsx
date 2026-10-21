@@ -47,6 +47,21 @@ const NEED: Record<string, string[]> = {
   "/admin/site": ["leader", "site.edit"],
 };
 
+const SHIELD = "M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6zM9 12l2 2 4-4";
+// Seven sections instead of sixteen links. A section's pages appear under it only while you're in it.
+const GROUPS: { label: string; icon?: string; paths: string[]; sub?: Record<string, string> }[] = [
+  { label: "Overview", paths: ["/admin"] },
+  { label: "People", paths: ["/admin/members", "/admin/patrols", "/admin/positions", "/admin/recharter"],
+    sub: { "/admin/patrols": "Patrols", "/admin/positions": "Positions & access" } },
+  { label: "Calendar", paths: ["/events", "/admin/attendance", "/admin/volunteer"],
+    sub: { "/events": "Events", "/admin/volunteer": "Volunteers & polls" } },
+  { label: "Advancement", paths: ["/admin/advancement"] },
+  { label: "Safety", icon: SHIELD, paths: ["/admin/forms", "/admin/messages"], sub: { "/admin/forms": "Health forms & YPT" } },
+  { label: "Money", paths: ["/admin/money"] },
+  { label: "Unit", paths: ["/admin/settings", "/admin/site", "/admin/gear", "/admin/import"],
+    sub: { "/admin/settings": "Settings" } },
+];
+
 const PERM_LABELS: Record<string, string> = {
   "members.private": "private member details", "medical.view": "health form status",
   "medical.record": "recording health forms", "messages.audit": "the full message log",
@@ -71,6 +86,11 @@ export default function AdminLayoutClient({
   const supabase = createClient();
   const unitWord = org.type === "cubs" ? "Pack" : org.type === "venturing" ? "Crew" : org.type === "sea" ? "Ship" : "Troop";
   const isActive = (path: string) => (path === "/admin" ? pathname === "/admin" : pathname.startsWith(path));
+  const byPath = Object.fromEntries(nav.map((n) => [n.path, n]));
+  const groups = GROUPS.map((g) => ({ ...g, items: g.paths.filter((p) => byPath[p]).map((p) => ({ ...byPath[p], label: g.sub?.[p] ?? byPath[p].label })) }))
+    .filter((g) => g.items.length > 0)
+    .map((g) => ({ ...g, href: g.items[0].path, icon: g.icon ?? g.items[0].icon, open: g.items.some((i) => isActive(i.path)) }));
+  const signOut = () => { navigator.serviceWorker?.controller?.postMessage("clear-private"); supabase.auth.signOut().then(() => (window.location.href = "/login")); };
 
   return (
     <div className="min-h-screen bg-canvas text-ink flex flex-col">
@@ -81,28 +101,35 @@ export default function AdminLayoutClient({
         </Link>
         <span className="ml-4 min-h-[40px] px-4 rounded-full font-bold text-[14px] flex items-center" style={{ background: "#F5B700", color: "#101B2D" }}>{unitWord} {org.unit_number}</span>
         <span className="text-[14px]" style={{ color: "#D7E0EE" }}>Leader tools</span>
-        <span className="ml-auto text-[14px] font-bold">{person.first_name} {person.last_name}</span>
+        <Link href="/dashboard" className="ml-auto text-[14px] font-bold no-underline min-h-[40px] px-4 rounded-full flex items-center" style={{ color: "#FFFFFF", border: "1px solid rgba(255,255,255,.3)" }}>Family view</Link>
+        <div className="flex flex-col items-end leading-tight">
+          <span className="text-[14px] font-bold">{person.first_name} {person.last_name}</span>
+          <span className="text-[12px]" style={{ color: "#D7E0EE" }}>{ROLE_LABELS[role] ?? role} · <button onClick={signOut} className="bg-transparent border-0 p-0 cursor-pointer font-sans text-[12px] font-bold underline" style={{ color: "#D7E0EE" }}>Sign out</button></span>
+        </div>
       </header>
       <div className="md:flex flex-1">
       <aside className="hidden md:flex print:hidden w-60 flex-none flex-col bg-forest-deep text-white sticky top-16 h-[calc(100vh-4rem)]">
-        <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-0.5">
-          {nav.map((n) => (
-            <Link key={n.path} href={n.path}
-              className="flex items-center gap-3 px-3.5 min-h-[44px] rounded-[10px] text-[14px] no-underline"
-              style={isActive(n.path)
-                ? { background: "#12355F", color: "#FFFFFF", fontWeight: 700, boxShadow: "inset 3px 0 0 #F5B700" }
-                : { color: "#D7E0EE" }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={n.icon}/></svg>
-              {n.label}
-            </Link>
+        <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-1">
+          {groups.map((g) => (
+            <div key={g.label} className="flex flex-col gap-0.5">
+              <Link href={g.href}
+                className="flex items-center gap-3 px-3.5 min-h-[44px] rounded-[10px] text-[15px] no-underline"
+                style={g.open
+                  ? { background: "#12355F", color: "#FFFFFF", fontWeight: 700, boxShadow: "inset 3px 0 0 #F5B700" }
+                  : { color: "#D7E0EE" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={g.icon}/></svg>
+                {g.label}
+              </Link>
+              {g.open && g.items.length > 1 && g.items.map((i) => (
+                <Link key={i.path} href={i.path}
+                  className="ml-9 pl-3 min-h-[38px] flex items-center rounded-lg text-[14px] no-underline"
+                  style={isActive(i.path) ? { color: "#F5B700", fontWeight: 700 } : { color: "#AEB9C9" }}>
+                  {i.label}
+                </Link>
+              ))}
+            </div>
           ))}
         </nav>
-        <div className="px-5 py-4 border-t border-white/10 flex flex-col gap-1">
-          <Link href="/dashboard" className="text-[13px] font-bold text-white no-underline min-h-[32px] flex items-center">← Back to family view</Link>
-          <div className="text-[12px]" style={{ color: "#AEB9C9" }}>{ROLE_LABELS[role] ?? role}</div>
-          <button onClick={() => { navigator.serviceWorker?.controller?.postMessage("clear-private"); supabase.auth.signOut().then(() => (window.location.href = "/login")); }}
-            className="mt-1 text-[12px] font-bold text-white/60 hover:text-white text-left bg-transparent border-0 p-0 cursor-pointer font-sans">Sign out</button>
-        </div>
       </aside>
 
       <div className="md:hidden print:hidden bg-forest text-white sticky top-0 z-30">
@@ -111,14 +138,22 @@ export default function AdminLayoutClient({
           <span className="font-bold text-[15px]">{unitWord} {org.unit_number} · Leaders</span>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-2">
-          {nav.map((n) => (
-            <Link key={n.path} href={n.path}
-              className="px-3 py-1.5 rounded-full text-[13px] font-bold no-underline whitespace-nowrap"
-              style={{ background: isActive(n.path) ? "rgba(255,255,255,0.2)" : "transparent", color: isActive(n.path) ? "white" : "#CFE0D7" }}>
-              {n.label}
+          {groups.map((g) => (
+            <Link key={g.label} href={g.href}
+              className="px-3 min-h-[36px] flex items-center rounded-full text-[13px] font-bold no-underline whitespace-nowrap"
+              style={{ background: g.open ? "rgba(255,255,255,0.2)" : "transparent", color: g.open ? "white" : "#D7E0EE" }}>
+              {g.label}
             </Link>
           ))}
         </nav>
+        {groups.filter((g) => g.open && g.items.length > 1).map((g) => (
+          <nav key={g.label} aria-label={`${g.label} pages`} className="flex gap-1 overflow-x-auto px-3 pb-2">
+            {g.items.map((i) => (
+              <Link key={i.path} href={i.path} className="px-3 min-h-[32px] flex items-center text-[12px] font-bold no-underline whitespace-nowrap"
+                style={{ color: isActive(i.path) ? "#F5B700" : "#AEB9C9" }}>{i.label}</Link>
+            ))}
+          </nav>
+        ))}
       </div>
 
       <main className="flex-1 min-w-0 px-4 md:px-8 py-6 md:py-8 max-w-6xl w-full mx-auto flex flex-col gap-5">
