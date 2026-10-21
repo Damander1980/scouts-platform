@@ -16,8 +16,13 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const seesForms = can("medical.view", "medical.record");
   const orgId = current.org.id;
 
-  const { data: ev } = await supabase.from("events").select("*").eq("id", id).eq("org_id", orgId).maybeSingle();
+  // Our own event, or one a linked unit shared with us (then we're guests: sign up, no roster).
+  const { data: ev } = await supabase.from("events").select("*").eq("id", id).maybeSingle();
   if (!ev) notFound();
+  const guest = ev.org_id !== orgId;
+  const { data: hostRow } = guest
+    ? await supabase.rpc("linked_units", { p_org: orgId }).then((r) => ({ data: ((r.data ?? []) as { org_id: string; name: string }[]).find((l) => l.org_id === ev.org_id) }))
+    : { data: undefined };
 
   const { data: tripPlan } = await supabase.from("trip_plans").select("itinerary, packing").eq("event_id", id).maybeSingle();
   const packing = ((tripPlan?.packing ?? []) as { id: string; text: string }[]);
@@ -31,6 +36,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
     seesForms ? supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId) : Promise.resolve({ data: [] as { person_id: string; type: string; expires_at: string | null }[] }),
     supabase.rpc("member_age_flags", { p_org: orgId, p_on: ev.start_at.slice(0, 10) }),
   ]);
+  const { data: guestRows } = !guest && isLeader ? await supabase.rpc("event_guests", { p_event: id }) : { data: [] };
+  const guests = (guestRows ?? []) as { person_id: string; first_name: string; last_name: string; type: string; unit_name: string; status: string; driver_seats: number; dietary: string | null }[];
   const over21 = new Set(((ageFlags ?? []) as { person_id: string; adult_21: boolean }[]).filter((a) => a.adult_21).map((a) => a.person_id));
 
   const people = (roster ?? []) as unknown as Roster[];
@@ -113,6 +120,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         <div className="flex items-start gap-3 flex-wrap">
           <h1 className="font-display font-extrabold text-[34px] leading-tight m-0 flex-1">{ev.title}</h1>
           {ev.canceled && <Chip tone="red">Canceled</Chip>}
+          {guest && <span className="text-[13px] font-bold px-3 py-1 rounded-full" style={{ background: "rgba(255,255,255,.14)" }}>Hosted by {hostRow?.name ?? "a linked unit"}</span>}
         </div>
         <div className="flex gap-2 flex-wrap text-[13px] font-bold">
           <span className="px-3 py-1 rounded-full" style={{ background: "#F5B700", color: "#101B2D" }}>{ev.cost_cents > 0 ? `${money(ev.cost_cents)} per person` : "Free"}</span>
@@ -172,7 +180,13 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         </section>
       )}
 
-      {seesForms && going.length > 0 && (
+      {guest && (
+        <p className="text-[13px] text-smoke m-0">
+          You&apos;re signing up as a guest from your own unit. Any cost goes on your family&apos;s account with {current.org.name}, which settles with {hostRow?.name ?? "the host unit"}.
+        </p>
+      )}
+
+      {!guest && seesForms && going.length > 0 && (
         <section className="card flex flex-col gap-2" style={{ borderColor: readiness.length ? "#F0DA8C" : "#D7E0EE" }}>
           <div className="flex items-center justify-between gap-2">
             <span className="font-bold text-[15px]">Ready to go?</span>
@@ -188,13 +202,13 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         </section>
       )}
 
-      {isLeader && (
+      {!guest && isLeader && (
         <LeaderEventTools eventId={ev.id} canceled={ev.canceled} ratioOk={ratioOk}
           adults={adultsGoing.length} trained={trainedLeaders.length} youth={youthGoing.length} seats={seats}
           noReply={noReply.length} />
       )}
 
-      <section className="flex flex-col gap-2">
+      {!guest && <section className="flex flex-col gap-2">
         <SectionLabel>Who&apos;s going</SectionLabel>
         <div className="grid md:grid-cols-3 gap-3">
           <List title="Going" list={going} tone="green" />
@@ -210,7 +224,25 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             ))}
           </div>
         )}
-      </section>
+        {guests.length > 0 && (
+          <div className="card flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-[15px]">From linked units</span>
+              <Chip tone="green">{guests.filter((g) => g.status === "going").length} going</Chip>
+            </div>
+            {guests.map((g) => (
+              <div key={g.person_id} className="flex items-center gap-2 py-1.5 border-b border-[#EEE8D9] last:border-0 text-[14px] flex-wrap">
+                <span className="font-bold">{g.first_name} {g.last_name}</span>
+                <span className="text-smoke">{g.unit_name}</span>
+                {g.type === "adult" && <Chip>Adult</Chip>}
+                <Chip tone={g.status === "going" ? "green" : g.status === "waitlisted" ? "orange" : "gray"}>{g.status === "going" ? "Going" : g.status === "waitlisted" ? "Waitlist" : "Not going"}</Chip>
+                {g.driver_seats ? <Chip tone="green">Driving · {g.driver_seats} seats</Chip> : null}
+                {g.dietary ? <Chip tone="orange">{g.dietary}</Chip> : null}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>}
     </Shell>
   );
 }

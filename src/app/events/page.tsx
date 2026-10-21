@@ -70,8 +70,8 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
               const multi = e.end_at && new Date(e.end_at).toDateString() !== new Date(e.start_at).toDateString();
               const host = e.org_id !== current.org.id ? hostName[e.org_id] : null;
               return (
-                <Link key={e.id} href={host ? "#" : `/events/${e.id}`} className="flex items-center gap-4 px-5 py-3.5 no-underline text-ink border-b border-[#EAE4D6] last:border-0"
-                  style={{ opacity: e.canceled ? 0.55 : 1, pointerEvents: host ? "none" : undefined }}>
+                <Link key={e.id} href={`/events/${e.id}`} className="flex items-center gap-4 px-5 py-3.5 no-underline text-ink border-b border-[#EAE4D6] last:border-0"
+                  style={{ opacity: e.canceled ? 0.55 : 1 }}>
                   <div className="w-12 text-center flex-none">
                     <div className="text-[11px] font-bold uppercase text-smoke">{fmtDate(e.start_at, { weekday: "short" })}</div>
                     <div className="font-display font-extrabold text-[24px] leading-none text-forest">{new Date(e.start_at).getDate()}</div>
@@ -81,11 +81,13 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
                     <div className="text-[13px] text-smoke truncate">
                       {multi ? `${fmtDate(e.start_at)} – ${fmtDate(e.end_at!)}` : fmtTime(e.start_at)}
                       {e.location ? ` · ${e.location}` : ""} · {KIND_LABEL[e.kind] ?? "Event"}
-                      {host ? ` · hosted by ${host}, sign up with them` : ""}
+                      {host ? ` · hosted by ${host}` : ""}
                     </div>
                   </div>
                   {e.cost_cents > 0 && <span className="text-[14px] font-bold hidden sm:block">{money(e.cost_cents)}</span>}
-                  {!host && <span className="text-[13px] font-bold px-3 py-1 rounded-full flex-none" style={{ background: "#EEE8D9", color: "#12355F" }}>{goingCount(e.id)}{e.cap ? `/${e.cap}` : ""} going</span>}
+                  {host
+                    ? <span className="text-[13px] font-bold px-3 py-1 rounded-full flex-none" style={{ background: "#FFF6D6", color: "#5E4400" }}>Linked unit</span>
+                    : <span className="text-[13px] font-bold px-3 py-1 rounded-full flex-none" style={{ background: "#EEE8D9", color: "#12355F" }}>{goingCount(e.id)}{e.cap ? `/${e.cap}` : ""} going</span>}
                 </Link>
               );
             })}
