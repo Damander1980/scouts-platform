@@ -30,6 +30,7 @@ const NAV: { path: string; label: string; icon: string; need?: string[] }[] = [
   { path: "/admin/import", label: "Import & export", icon: "M12 3v12M7 10l5 5 5-5M4 21h16" },
   { path: "/admin/site", label: "Website", icon: "M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" },
   { path: "/admin/settings", label: "Unit settings", icon: "M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z" },
+  { path: "/admin/reports", label: "Reports", need: ["leader"], icon: "M4 4h16v16H4zM8 9h8M8 13h8M8 17h5" },
   { path: "/admin/activity", label: "Activity log", need: ["__admin_only__"], icon: "M12 8v4l3 3M12 21a9 9 0 100-18 9 9 0 000 18z" },
   { path: "/admin/positions", label: "Positions & access", icon: "M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6zM9 12l2 2 4-4" },
 ];
@@ -52,7 +53,7 @@ const SHIELD = "M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6zM9 12l2 2 4-4";
 // Seven sections instead of sixteen links. A section's pages appear under it only while you're in it.
 const GROUPS: { label: string; icon?: string; paths: string[]; sub?: Record<string, string> }[] = [
   { label: "Overview", paths: ["/admin"] },
-  { label: "People", paths: ["/admin/members", "/admin/patrols", "/admin/positions", "/admin/recharter"],
+  { label: "People", paths: ["/admin/members", "/admin/patrols", "/admin/positions", "/admin/reports", "/admin/recharter"],
     sub: { "/admin/patrols": "Patrols", "/admin/positions": "Positions & access" } },
   { label: "Calendar", paths: ["/events", "/admin/attendance", "/admin/volunteer"],
     sub: { "/events": "Events", "/admin/volunteer": "Volunteers & polls" } },
