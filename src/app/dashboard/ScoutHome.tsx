@@ -122,7 +122,7 @@ export default function ScoutHome({ personId, firstName, events: initial, plc = 
 
             {showButtons && !late && (askParent === e.id ? (
               <div className="flex flex-col gap-2 rounded-xl p-3" style={{ background: "#FFF6D6" }}>
-                <div className="font-bold text-[17px]">Did a parent say yes? This adds {money(e.cost_cents)} to your family&apos;s bill.</div>
+                <div className="font-bold text-[17px]">This trip costs {money(e.cost_cents)}. Your parent may get a note to OK it before it goes on the family bill.</div>
                 <button className="w-full rounded-2xl font-bold text-[19px] text-white border-0 cursor-pointer font-sans" style={{ background: "#12355F", minHeight: 60 }}
                   disabled={busy === e.id} onClick={() => answer(e, "going")}>{busy === e.id ? "Saving..." : "Yes, sign me up"}</button>
                 <button className="btn-secondary" style={{ minHeight: 48 }} onClick={() => setAskParent(null)}>I'll ask first</button>
