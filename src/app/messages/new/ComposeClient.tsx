@@ -15,6 +15,7 @@ export default function ComposeClient({ orgId, isLeader, patrols, events, member
   const supabase = createClient();
   const router = useRouter();
   const [audience, setAudience] = useState(initialAudience);
+  const [who, setWho] = useState("");
   const [ref, setRef] = useState(initialRef || patrols[0]?.id || events[0]?.id || "");
   const [people, setPeople] = useState<string[]>([]);
   const [subject, setSubject] = useState("");
@@ -43,7 +44,7 @@ export default function ComposeClient({ orgId, isLeader, patrols, events, member
   }
 
   return (
-    <form onSubmit={send} className="flex flex-col gap-4 max-w-xl">
+    <form onSubmit={send} className="card flex flex-col gap-4 max-w-2xl">
       <ErrorBox>{error}</ErrorBox>
       <Field label="To">
         <select className="input" value={audience} onChange={(e) => {
@@ -69,14 +70,17 @@ export default function ComposeClient({ orgId, isLeader, patrols, events, member
         </Field>
       )}
       {audience === "people" && (
-        <div className="card max-h-64 overflow-y-auto flex flex-col">
-          {members.map((m) => (
+        <div className="flex flex-col gap-2">
+          <input className="input" aria-label="Find people" placeholder={`Find people (${people.length} chosen)`} value={who} onChange={(e) => setWho(e.target.value)} />
+        <div className="rounded-xl max-h-64 overflow-y-auto flex flex-col px-3" style={{ background: "#F8F5EE" }}>
+          {members.filter((m) => !who || m.name.toLowerCase().includes(who.toLowerCase()) || people.includes(m.id)).map((m) => (
             <label key={m.id} className="flex items-center gap-3 py-1.5 text-[15px]">
               <input type="checkbox" className="w-5 h-5" checked={people.includes(m.id)}
                 onChange={(e) => setPeople(e.target.checked ? [...people, m.id] : people.filter((x) => x !== m.id))} />
               {m.name} {m.type === "youth" && <span className="text-[12px] text-smoke">(parents and leaders will be copied)</span>}
             </label>
           ))}
+        </div>
         </div>
       )}
       <Field label="Subject (optional)"><input className="input" value={subject} onChange={(e) => setSubject(e.target.value)} /></Field>
@@ -86,7 +90,7 @@ export default function ComposeClient({ orgId, isLeader, patrols, events, member
           ? "Sent by email to every adult with an email on file (Scouts are reached through their parents), and saved in the app. Families can reply-all from the email."
           : "Delivered inside the app and saved. Your leaders get an email that a message is waiting."}
       </p>
-      <button className="btn-primary" disabled={busy || !body.trim() || (audience === "people" && !people.length)}>{busy ? "Sending…" : "Send"}</button>
+      <button className="btn-primary self-start px-10" disabled={busy || !body.trim() || (audience === "people" && !people.length)}>{busy ? "Sending…" : "Send"}</button>
     </form>
   );
 }
