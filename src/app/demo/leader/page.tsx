@@ -15,7 +15,7 @@ export default function DemoLeaderOverview() {
     ["Sign off advancement", "M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11", "/demo/advancement"],
   ];
   return (
-    <AdminLayoutClient person={me} org={org} role="scoutmaster" perms={[]} isAdmin yptBlocked={[]}>
+    <AdminLayoutClient person={me} org={org} role="scoutmaster" perms={[]} isAdmin yptBlocked={[]} demo>
       <div>
         <h1 className="font-display font-extrabold text-[32px] leading-tight m-0">Overview</h1>
         <p className="text-[14px] m-0 mt-1 text-smoke">Troop 999 at a glance</p>

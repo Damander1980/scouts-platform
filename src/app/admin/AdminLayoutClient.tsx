@@ -70,7 +70,7 @@ const PERM_LABELS: Record<string, string> = {
 };
 
 export default function AdminLayoutClient({
-  children, person, org, role, perms, isAdmin, yptBlocked,
+  children, person, org, role, perms, isAdmin, yptBlocked, demo = false,
 }: {
   children: React.ReactNode;
   person: { id: string; first_name: string; last_name: string };
@@ -79,12 +79,16 @@ export default function AdminLayoutClient({
   perms: string[];
   isAdmin: boolean;
   yptBlocked: string[];
+  demo?: boolean;
 }) {
   const nav = NAV.filter((n) => {
     const need = n.need ?? NEED[n.path];
     return isAdmin || !need || need.some((p) => perms.includes(p));
   });
-  const pathname = usePathname();
+  const rawPath = usePathname();
+  // Sample screens pretend to be the real page they stand in for, so the sidebar highlights it.
+  const DEMO_ACTIVE: Record<string, string> = { "/demo/leader": "/admin", "/demo/admin": "/admin/members", "/demo/calendar": "/events", "/demo/advancement": "/admin/advancement" };
+  const pathname = demo ? DEMO_ACTIVE[rawPath] ?? rawPath : rawPath;
   const supabase = createClient();
   const unitWord = org.type === "cubs" ? "Pack" : org.type === "venturing" ? "Crew" : org.type === "sea" ? "Ship" : "Troop";
   const isActive = (path: string) => (path === "/admin" ? pathname === "/admin" : pathname.startsWith(path));
@@ -92,22 +96,25 @@ export default function AdminLayoutClient({
   const groups = GROUPS.map((g) => ({ ...g, items: g.paths.filter((p) => byPath[p]).map((p) => ({ ...byPath[p], label: g.sub?.[p] ?? byPath[p].label })) }))
     .filter((g) => g.items.length > 0)
     .map((g) => ({ ...g, href: g.items[0].path, icon: g.icon ?? g.items[0].icon, open: g.items.some((i) => isActive(i.path)) }));
+  // On sample screens, links stay inside the demo instead of bouncing visitors to sign-in.
+  const DEMO: Record<string, string> = { "/admin": "/demo/leader", "/admin/members": "/demo/admin", "/events": "/demo/calendar", "/admin/advancement": "/demo/advancement", "/dashboard": "/demo" };
+  const to = (href: string) => (demo ? DEMO[href] ?? "/demo/tour" : href);
   const signOut = () => { navigator.serviceWorker?.controller?.postMessage("clear-private"); supabase.auth.signOut().then(() => (window.location.href = "/login")); };
 
   return (
     <div className="min-h-screen bg-canvas text-ink flex flex-col">
       <header className="hidden md:flex print:hidden bg-forest text-white sticky top-0 z-30 h-16 items-center gap-3 px-6">
-        <Link href="/dashboard" aria-label="Home" className="flex items-center gap-2.5 no-underline text-white">
+        <Link href={to("/dashboard")} aria-label="Home" className="flex items-center gap-2.5 no-underline text-white">
           <span className="w-9 h-9 rounded-[10px] flex items-center justify-center font-display font-extrabold text-[16px]" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
           <span className="font-display font-extrabold text-[19px]">ScoutPlatform</span>
         </Link>
         <span className="ml-4 min-h-[40px] px-4 rounded-full font-bold text-[14px] flex items-center" style={{ background: "#F5B700", color: "#101B2D" }}>{unitWord} {org.unit_number}</span>
         <span className="text-[14px]" style={{ color: "#D7E0EE" }}>Leader tools</span>
-        <form action="/admin/members" className="ml-6 flex items-center rounded-full px-4 min-h-[40px] gap-2 min-w-[240px]" style={{ background: "#0C2442" }}>
+        <form action={to("/admin/members")} className="ml-6 flex items-center rounded-full px-4 min-h-[40px] gap-2 min-w-[240px]" style={{ background: "#0C2442" }}>
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D7E0EE" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
           <input name="q" aria-label="Find a member" placeholder="Find a member" className="bg-transparent border-0 text-white text-[14px] outline-none flex-1 font-sans placeholder:text-[#AEB9C9]" />
         </form>
-        <Link href="/dashboard" className="ml-auto text-[14px] font-bold no-underline min-h-[40px] px-4 rounded-full flex items-center" style={{ color: "#FFFFFF", border: "1px solid rgba(255,255,255,.3)" }}>Family view</Link>
+        <Link href={to("/dashboard")} className="ml-auto text-[14px] font-bold no-underline min-h-[40px] px-4 rounded-full flex items-center" style={{ color: "#FFFFFF", border: "1px solid rgba(255,255,255,.3)" }}>Family view</Link>
         <div className="flex flex-col items-end leading-tight">
           <span className="text-[14px] font-bold">{person.first_name} {person.last_name}</span>
           <span className="text-[12px]" style={{ color: "#D7E0EE" }}>{ROLE_LABELS[role] ?? role} · <button onClick={signOut} className="bg-transparent border-0 p-0 cursor-pointer font-sans text-[12px] font-bold underline" style={{ color: "#D7E0EE" }}>Sign out</button></span>
@@ -118,7 +125,7 @@ export default function AdminLayoutClient({
         <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-1">
           {groups.map((g) => (
             <div key={g.label} className="flex flex-col gap-0.5">
-              <Link href={g.href}
+              <Link href={to(g.href)}
                 className="flex items-center gap-3 px-3.5 min-h-[44px] rounded-[10px] text-[15px] no-underline"
                 style={g.open
                   ? { background: "#12355F", color: "#FFFFFF", fontWeight: 700, boxShadow: "inset 3px 0 0 #F5B700" }
@@ -127,7 +134,7 @@ export default function AdminLayoutClient({
                 {g.label}
               </Link>
               {g.open && g.items.length > 1 && g.items.map((i) => (
-                <Link key={i.path} href={i.path}
+                <Link key={i.path} href={to(i.path)}
                   className="ml-9 pl-3 min-h-[38px] flex items-center rounded-lg text-[14px] no-underline"
                   style={isActive(i.path) ? { color: "#F5B700", fontWeight: 700 } : { color: "#AEB9C9" }}>
                   {i.label}
@@ -144,12 +151,12 @@ export default function AdminLayoutClient({
 
       <div className="md:hidden print:hidden bg-forest text-white sticky top-0 z-30">
         <div className="flex items-center gap-3 px-4 h-12">
-          <Link href="/dashboard" className="text-white no-underline font-bold text-[14px]">←</Link>
+          <Link href={to("/dashboard")} className="text-white no-underline font-bold text-[14px]">←</Link>
           <span className="font-bold text-[15px]">{unitWord} {org.unit_number} · Leaders</span>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-2">
           {groups.map((g) => (
-            <Link key={g.label} href={g.href}
+            <Link key={g.label} href={to(g.href)}
               className="px-3 min-h-[36px] flex items-center rounded-full text-[13px] font-bold no-underline whitespace-nowrap"
               style={{ background: g.open ? "rgba(255,255,255,0.2)" : "transparent", color: g.open ? "white" : "#D7E0EE" }}>
               {g.label}
@@ -159,7 +166,7 @@ export default function AdminLayoutClient({
         {groups.filter((g) => g.open && g.items.length > 1).map((g) => (
           <nav key={g.label} aria-label={`${g.label} pages`} className="flex gap-1 overflow-x-auto px-3 pb-2">
             {g.items.map((i) => (
-              <Link key={i.path} href={i.path} className="px-3 min-h-[32px] flex items-center text-[12px] font-bold no-underline whitespace-nowrap"
+              <Link key={i.path} href={to(i.path)} className="px-3 min-h-[32px] flex items-center text-[12px] font-bold no-underline whitespace-nowrap"
                 style={{ color: isActive(i.path) ? "#F5B700" : "#AEB9C9" }}>{i.label}</Link>
             ))}
           </nav>

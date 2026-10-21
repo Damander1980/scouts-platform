@@ -30,7 +30,7 @@ export default async function DemoAdminPage() {
     .map((id) => ({ person_id: "p7", item_id: id as string }));
 
   return (
-    <AdminLayoutClient person={fakePerson} org={fakeOrg} role="scoutmaster" perms={[]} isAdmin yptBlocked={[]}>
+    <AdminLayoutClient person={fakePerson} org={fakeOrg} role="scoutmaster" perms={[]} isAdmin yptBlocked={[]} demo>
       <MembersClient members={fakeMembers as any} orgId="1" myRole="scoutmaster"
         badges={badges ?? []} counselorAssignments={assignments} demo />
     </AdminLayoutClient>
