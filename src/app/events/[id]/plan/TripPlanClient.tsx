@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, money } from "@/components/ui";
 
 type Item = { id: string; text: string; done?: boolean; who?: string; due?: string; day?: string; time?: string; amount?: number; kind?: "per_person" | "flat"; patrol?: string; meal?: string; qty?: string; per?: number };
-export type Plan = { itinerary: Item[]; costs: Item[]; meals: Item[]; packing: Item[]; tasks: Item[]; permits: Item[] };
+export type Plan = { itinerary: Item[]; costs: Item[]; meals: Item[]; packing: Item[]; tasks: Item[]; permits: Item[]; duties?: Item[] };
+const JOBS = ["Cook", "Assistant cook", "Cleanup", "Water and fire"];
 
 const PACKING: Record<string, string[]> = {
   "Weekend campout": ["Scout Basic Essentials (first aid kit, water bottle, flashlight, trail food, sun protection, map and compass, rain gear, pocketknife, extra clothing, matches)", "Sleeping bag rated for the weather", "Sleeping pad", "Mess kit and utensils", "Uniform (Class A for travel)", "Toiletries", "Health form A+B on file"],
@@ -16,13 +17,14 @@ const PACKING: Record<string, string[]> = {
 const SAFE = ["Supervision: qualified, trained adults (two registered adults 21+ with current YPT)", "Assessment: activity and site hazards reviewed", "Fitness and skill: Scouts' health forms and skills checked", "Equipment: correct gear and safety equipment", "Environment: weather forecast and emergency plan reviewed", "Discipline: rules explained to Scouts"];
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-export default function TripPlanClient({ eventId, orgId, canEdit, title, costCents, plan: initial, youthGoing, adultsGoing, seats, patrols, adults }: {
+export default function TripPlanClient({ eventId, orgId, canEdit, title, costCents, plan: initial, youthGoing, adultsGoing, seats, patrols, adults, dutiesEnabled = false }: {
   eventId: string; orgId: string; canEdit: boolean; title: string; costCents: number; plan: Plan;
-  youthGoing: number; adultsGoing: number; seats: number; patrols: { id: string; name: string; going: number }[]; adults: { id: string; name: string }[];
+  youthGoing: number; adultsGoing: number; seats: number; patrols: { id: string; name: string; going: number; scouts?: string[] }[]; adults: { id: string; name: string }[];
+  dutiesEnabled?: boolean;
 }) {
   const supabase = createClient();
   const router = useRouter();
-  const [plan, setPlan] = useState<Plan>({ ...initial, permits: initial.permits?.length ? initial.permits : SAFE.map((t) => ({ id: uid(), text: t })) });
+  const [plan, setPlan] = useState<Plan>({ ...initial, duties: initial.duties ?? [], permits: initial.permits?.length ? initial.permits : SAFE.map((t) => ({ id: uid(), text: t })) });
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [draft, setDraft] = useState<Record<string, string>>({});
@@ -31,12 +33,24 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
   const save = async (next: Plan) => {
     setPlan(next); setSaved(false); setError("");
     if (!canEdit) return;
-    const { error } = await supabase.from("trip_plans").upsert({ event_id: eventId, org_id: orgId, ...next, updated_at: new Date().toISOString() });
+    const row: Partial<Plan> = { ...next };
+    if (!dutiesEnabled) delete row.duties;
+    const { error } = await supabase.from("trip_plans").upsert({ event_id: eventId, org_id: orgId, ...row, updated_at: new Date().toISOString() });
     if (error) setError(error.message); else setSaved(true);
   };
-  const add = (k: keyof Plan, item: Partial<Item>) => save({ ...plan, [k]: [...plan[k], { id: uid(), text: "", ...item }] });
-  const update = (k: keyof Plan, id: string, patch: Partial<Item>) => save({ ...plan, [k]: plan[k].map((x) => (x.id === id ? { ...x, ...patch } : x)) });
-  const remove = (k: keyof Plan, id: string) => save({ ...plan, [k]: plan[k].filter((x) => x.id !== id) });
+  const list = (k: keyof Plan) => plan[k] ?? [];
+  const add = (k: keyof Plan, item: Partial<Item>) => save({ ...plan, [k]: [...list(k), { id: uid(), text: "", ...item }] });
+  const update = (k: keyof Plan, id: string, patch: Partial<Item>) => save({ ...plan, [k]: list(k).map((x) => (x.id === id ? { ...x, ...patch } : x)) });
+  const remove = (k: keyof Plan, id: string) => save({ ...plan, [k]: list(k).filter((x) => x.id !== id) });
+
+  // One-tap rotation: every meal this patrol planned gets each job, rotating through the patrol's Scouts.
+  const fillRotation = (patrolId: string, scouts: string[]) => {
+    const meals = [...new Set(plan.meals.filter((m) => m.patrol === patrolId).map((m) => m.meal).filter(Boolean))] as string[];
+    const slots = (meals.length ? meals : ["Fri dinner", "Sat breakfast", "Sat lunch", "Sat dinner", "Sun breakfast"]);
+    let i = 0;
+    const rows = slots.flatMap((meal) => JOBS.map((job) => ({ id: uid(), patrol: patrolId, meal, text: job, who: scouts.length ? scouts[i++ % scouts.length] : "" })));
+    save({ ...plan, duties: [...list("duties").filter((d) => d.patrol !== patrolId), ...rows] });
+  };
 
   const totalCost = plan.costs.reduce((s, c) => s + (c.kind === "per_person" ? (c.amount ?? 0) * Math.max(youthGoing, 1) : (c.amount ?? 0)), 0);
   const perScout = youthGoing ? Math.ceil(totalCost / youthGoing) : totalCost;
@@ -114,6 +128,39 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
         })}
         {patrols.length === 0 && <span className="text-smoke text-[14px]">Create patrols first (Leaders → Patrols).</span>}
       </section>
+
+      {dutiesEnabled && patrols.length > 0 && (
+        <section className="card flex flex-col gap-3">
+          <div className="font-bold text-[16px]">Patrol duty rosters</div>
+          <p className="text-[13px] text-smoke m-0">Who cooks, cleans up and handles water and fire for each meal. Fill a fair rotation in one tap, then adjust.</p>
+          {patrols.map((p) => {
+            const rows = list("duties").filter((d) => d.patrol === p.id);
+            return (
+              <div key={p.id} className="rounded-xl p-3 flex flex-col gap-2" style={{ background: "#F8F5EE" }}>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="font-bold text-[15px] flex-1">{p.name}</span>
+                  {canEdit && <button className="btn-ghost text-[13px]" onClick={() => fillRotation(p.id, p.scouts ?? [])}>{rows.length ? "Redo rotation" : "Fill a rotation"}</button>}
+                </div>
+                {rows.length === 0 && <span className="text-[13px] text-smoke">No duties yet.</span>}
+                {rows.map((d) => (
+                  <div key={d.id} className="flex gap-2 items-center flex-wrap text-[14px]">
+                    <input className="input w-36 h-9 min-h-0" disabled={!canEdit} value={d.meal ?? ""} onChange={(e) => update("duties", d.id, { meal: e.target.value })} placeholder="Sat breakfast" aria-label="Meal" />
+                    <select className="input w-40 h-9 min-h-0" disabled={!canEdit} value={d.text} onChange={(e) => update("duties", d.id, { text: e.target.value })} aria-label="Job">
+                      {[...new Set([...JOBS, d.text].filter(Boolean))].map((j) => <option key={j} value={j}>{j}</option>)}
+                    </select>
+                    <select className="input flex-1 min-w-[140px] h-9 min-h-0" disabled={!canEdit} value={d.who ?? ""} onChange={(e) => update("duties", d.id, { who: e.target.value })} aria-label="Who">
+                      <option value="">Who?</option>
+                      {[...new Set([...(p.scouts ?? []), d.who].filter(Boolean))].map((n) => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                    {canEdit && <button className="btn-ghost" aria-label="Remove duty" onClick={() => remove("duties", d.id)}>×</button>}
+                  </div>
+                ))}
+                {canEdit && <button className="btn-ghost self-start text-[13px]" onClick={() => add("duties", { patrol: p.id, text: JOBS[0] })}>+ Add a duty</button>}
+              </div>
+            );
+          })}
+        </section>
+      )}
 
       <section className="card flex flex-col gap-2">
         <div className="font-bold text-[16px]">Packing list <span className="text-smoke text-[13px] font-normal">(families see this on the event page)</span></div>

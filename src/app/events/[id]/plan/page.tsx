@@ -13,12 +13,14 @@ export default async function TripPlanPage({ params }: { params: Promise<{ id: s
 
   const [{ data: plan }, { data: going }, { data: patrols }, { data: pm }, { data: adults }] = await Promise.all([
     supabase.from("trip_plans").select("*").eq("event_id", id).maybeSingle(),
-    supabase.from("rsvps").select("person_id, driver_seats, persons(type)").eq("event_id", id).eq("status", "going"),
+    supabase.from("rsvps").select("person_id, driver_seats, persons(type, first_name)").eq("event_id", id).eq("status", "going"),
     supabase.from("patrols").select("id, name").eq("org_id", current.org.id).eq("active", true).order("name"),
     supabase.from("patrol_members").select("person_id, patrol_id").eq("org_id", current.org.id).is("end_date", null),
     supabase.from("memberships").select("person_id, persons(first_name, last_name, type)").eq("org_id", current.org.id).eq("status", "active"),
   ]);
-  const goingRows = (going ?? []) as unknown as { person_id: string; driver_seats: number; persons: { type: string } }[];
+  const goingRows = (going ?? []) as unknown as { person_id: string; driver_seats: number; persons: { type: string; first_name: string } }[];
+  // Duty rosters need migration 0048; until then the section stays hidden and saves skip it.
+  const { error: dutiesMissing } = await supabase.from("trip_plans").select("duties").limit(0);
   const patrolOf = Object.fromEntries((pm ?? []).map((p) => [p.person_id, p.patrol_id]));
   const patrolCounts = Object.fromEntries((patrols ?? []).map((p) => [p.id, goingRows.filter((g) => patrolOf[g.person_id] === p.id).length]));
   const people = ((adults ?? []) as unknown as { person_id: string; persons: { first_name: string; last_name: string; type: string } }[])
@@ -33,7 +35,9 @@ export default async function TripPlanPage({ params }: { params: Promise<{ id: s
         youthGoing={goingRows.filter((g) => g.persons.type === "youth").length}
         adultsGoing={goingRows.filter((g) => g.persons.type === "adult").length}
         seats={goingRows.reduce((s, g) => s + (g.driver_seats || 0), 0)}
-        patrols={(patrols ?? []).map((p) => ({ ...p, going: patrolCounts[p.id] ?? 0 }))}
+        patrols={(patrols ?? []).map((p) => ({ ...p, going: patrolCounts[p.id] ?? 0,
+          scouts: goingRows.filter((g) => g.persons.type === "youth" && patrolOf[g.person_id] === p.id).map((g) => g.persons.first_name) }))}
+        dutiesEnabled={!dutiesMissing}
         adults={people}
       />
     </Shell>
