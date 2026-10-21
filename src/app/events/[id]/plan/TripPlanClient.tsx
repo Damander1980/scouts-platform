@@ -110,7 +110,7 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
         {patrols.map((p) => {
           const meals = plan.meals.filter((m) => m.patrol === p.id);
           return (
-            <div key={p.id} className="rounded-xl border border-border p-3 flex flex-col gap-2">
+            <div key={p.id} className="rounded-xl bg-paper p-3 flex flex-col gap-2">
               <div className="font-bold">{p.name} <span className="text-smoke font-normal">· {p.going} going</span></div>
               {meals.map((m) => (
                 <div key={m.id} className="flex gap-2 flex-wrap items-center text-[14px]">
