@@ -38,7 +38,7 @@ export default async function MessagesPage() {
             <Link key={m.id} href={`/messages/${m.id}`} className="flex flex-col gap-1 px-5 py-3.5 no-underline text-ink border-b border-[#EAE4D6] last:border-0"
               style={{ background: unread ? "#FFFFFF" : "#FBF9F4" }}>
               <div className="flex items-center gap-2">
-                {unread && <span className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: "#F5B700" }} aria-label="Unread" />}
+                {unread && <><span className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: "#F5B700" }} aria-hidden="true" /><span className="sr-only">Unread:</span></>}
                 <span className={`text-[15px] ${unread ? "font-bold" : ""}`}>{m.sender_id ? nameOf[m.sender_id] ?? "Member" : "System"}</span>
                 {r.copy_reason && REASON[r.copy_reason] && <Chip>{REASON[r.copy_reason]}</Chip>}
                 <span className="ml-auto text-[12px] text-smoke">{fmtDate(m.created_at, { month: "short", day: "numeric" })} {fmtTime(m.created_at)}</span>
