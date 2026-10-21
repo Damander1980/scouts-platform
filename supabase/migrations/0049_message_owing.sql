@@ -16,7 +16,7 @@ begin
   if p_audience in ('troop','nonresponders','event','people') and not leader then
     raise exception 'Only leaders can send to that group. You can message your leaders or reply to a message.';
   end if;
-  if p_audience = 'owing' and not (leader or public.has_perm(p_org, 'money.manage') or public.has_perm(p_org, 'money.view')) then
+  if p_audience = 'owing' and not (leader or public.has_perm(p_org, 'money.manage')) then
     raise exception 'Only leaders or the treasurer can message families who owe';
   end if;
   if p_audience = 'patrol' and not (leader or (pl and exists (select 1 from public.patrol_members

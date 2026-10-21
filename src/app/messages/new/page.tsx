@@ -32,7 +32,7 @@ export default async function NewMessagePage({ searchParams }: { searchParams: P
         orgId={orgId}
         isLeader={isLeader}
         weekBroadcasts={weekBroadcasts ?? 0}
-        canMoney={ctx.can("money.manage", "money.view")}
+        canMoney={ctx.can("money.manage")}
         patrols={allowedPatrols}
         events={(events ?? []) as { id: string; title: string; start_at: string }[]}
         members={((members ?? []) as unknown as { person_id: string; persons: { first_name: string; last_name: string; type: string } }[])
