@@ -98,6 +98,14 @@ export default function EventForm({ orgId, initial, copyFrom }: { orgId: string;
         ? await supabase.from("events").update(row).eq("id", initial.id).select("id").single()
         : await supabase.from("events").insert(row).select("id").single();
       if (error) throw error;
+      // Editing the time or place of an event people signed up for: tell them.
+      if (initial?.id) {
+        const changed = [
+          ...(row.start_at !== (initial.start_at ? new Date(initial.start_at).toISOString() : null) ? ["start"] : []),
+          ...((row.location ?? "") !== (initial.location ?? "") ? ["location"] : []),
+        ];
+        if (changed.length) await fetch("/api/notify/change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId: initial.id, changed }) }).catch(() => {});
+      }
       // Copying an event brings its trip plan along, with every checkbox cleared for the new trip.
       if (!initial?.id && copyFrom) {
         const { data: plan } = await supabase.from("trip_plans").select("*").eq("event_id", copyFrom).maybeSingle();

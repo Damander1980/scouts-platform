@@ -1,0 +1,38 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/admin";
+import { notifyPeople } from "@/lib/notify";
+import { fmtDate, fmtTime } from "@/components/ui";
+
+// A leader changed an event's time or place: tell everyone signed up (parents for Scouts).
+// Urgent when the event is within two days, so it can reach people during quiet hours.
+export async function POST(request: Request) {
+  const { eventId, changed } = await request.json().catch(() => ({}));
+  if (typeof eventId !== "string" || !Array.isArray(changed) || !changed.length) return NextResponse.json({ error: "bad request" }, { status: 400 });
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const db = adminClient();
+  if (!db) return NextResponse.json({ notified: 0 });
+  const { data: ev } = await db.from("events").select("id, org_id, title, start_at, location, canceled").eq("id", eventId).maybeSingle();
+  if (!ev || ev.canceled) return NextResponse.json({ notified: 0 });
+  const { data: isLeader } = await supabase.rpc("has_perm", { org: ev.org_id, perm: "leader" });
+  const { data: canEvents } = await supabase.rpc("has_perm", { org: ev.org_id, perm: "events.manage" });
+  if (!isLeader && !canEvents) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+
+  const { data: rs } = await db.from("rsvps").select("person_id, persons(type)").eq("event_id", ev.id).in("status", ["going", "waitlisted"]);
+  const ids = new Set<string>();
+  for (const r of rs ?? []) {
+    if ((r.persons as unknown as { type: string } | null)?.type === "adult") { ids.add(r.person_id); continue; }
+    const { data: hh } = await db.from("household_members").select("household_id").eq("person_id", r.person_id);
+    for (const h of hh ?? []) {
+      const { data: gs } = await db.from("household_members").select("person_id").eq("household_id", h.household_id).eq("is_guardian", true);
+      (gs ?? []).forEach((g) => ids.add(g.person_id));
+    }
+  }
+  const soon = new Date(ev.start_at).getTime() - Date.now() < 48 * 3600000;
+  const parts = [`now starts ${fmtDate(ev.start_at, { weekday: "short", month: "short", day: "numeric" })} at ${fmtTime(ev.start_at)}`];
+  if (changed.includes("location") && ev.location) parts.push(`at ${ev.location}`);
+  if (ids.size) await notifyPeople([...ids], soon ? "urgent" : "reminders", `Updated: ${ev.title} ${parts.join(" ")}.`, `/events/${ev.id}`);
+  return NextResponse.json({ notified: ids.size });
+}
