@@ -148,6 +148,7 @@ export default function AppShell({
             <Link key={n.href} href={to(n.href)}
               className="relative flex flex-col items-center gap-0.5 min-w-[56px] min-h-[48px] justify-center no-underline"
               style={{ color: active(n.href) ? "#12355F" : "#4B5568" }}>
+              {active(n.href) && <span aria-hidden="true" className="absolute -top-1.5 w-7 h-[4px] rounded-full" style={{ background: "#F5B700" }} />}
               <Icon name={n.icon} size={22} />
               <span className="text-[11px] font-bold">{n.label}</span>
               {!!n.badge && (

@@ -31,7 +31,7 @@ export default function MonthGrid({ month, events, ownOrg }: { month: string; ev
         <span className="font-display font-extrabold text-[20px] flex-1 text-center">{label}</span>
         <Link href={`/events?view=month&month=${next}`} aria-label="Next month" className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full no-underline text-ink font-bold text-[18px]">›</Link>
       </div>
-      <div className="overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
         <div className="grid grid-cols-7 min-w-[700px]">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
             <div key={d} className="px-2 py-2 eyebrow text-smoke" style={{ background: "#F8F5EE" }}>{d}</div>
@@ -60,6 +60,45 @@ export default function MonthGrid({ month, events, ownOrg }: { month: string; ev
             );
           })}
         </div>
+      </div>
+
+      {/* Phones: a 7-day grid that fits (a dot marks days with something on), then the month as a list. */}
+      <div className="md:hidden" data-view="phone">
+        <div className="grid grid-cols-7 px-2 pt-2">
+          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <div key={i} className="eyebrow text-smoke text-center py-1">{d}</div>)}
+          {cells.map((d, i) => {
+            const inMonth = d >= 1 && d <= daysIn;
+            const evs = inMonth ? onDay(d) : [];
+            return (
+              <div key={i} className="h-11 flex flex-col items-center justify-center gap-0.5">
+                {inMonth && (
+                  <span className="text-[14px] font-bold w-7 h-7 flex items-center justify-center rounded-full"
+                    style={key(d) === today ? { background: "#12355F", color: "#FFFFFF" } : { color: evs.length ? "#101B2D" : "#AEB9C9" }}>{d}</span>
+                )}
+                {evs.length > 0 && <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full" style={{ background: evs.some((e) => e.org_id !== ownOrg) ? "#F5B700" : "#12355F" }} />}
+              </div>
+            );
+          })}
+        </div>
+        <ul className="m-0 p-0 list-none border-t border-[#EAE4D6]">
+          {events.filter((e) => ymd(e.start_at).startsWith(month) || (e.end_at && ymd(e.end_at).startsWith(month))).length === 0 && (
+            <li className="px-5 py-6 text-center text-smoke text-[15px]">Nothing on the calendar this month.</li>
+          )}
+          {events.filter((e) => ymd(e.start_at).startsWith(month) || (e.end_at && ymd(e.end_at).startsWith(month)))
+            .sort((a, b) => a.start_at.localeCompare(b.start_at)).map((e) => (
+            <li key={e.id} className="border-b border-[#EAE4D6] last:border-0">
+              <Link href={`/events/${e.id}`} className="flex items-center gap-3 px-4 min-h-[56px] no-underline text-ink">
+                <span className="w-11 flex-none text-center leading-tight">
+                  <span className="block eyebrow text-smoke">{new Date(e.start_at).toLocaleDateString("en-US", { weekday: "short", timeZone: TIME_ZONE })}</span>
+                  <span className="block font-display font-extrabold text-[20px]">{Number(ymd(e.start_at).slice(8))}</span>
+                </span>
+                <span aria-hidden="true" className="w-1 self-stretch my-2 rounded-full" style={{ background: e.org_id !== ownOrg ? "#F5B700" : e.kind === "meeting" ? "#AEB9C9" : "#12355F" }} />
+                <span className="flex-1 min-w-0 font-bold text-[15px] truncate" style={{ textDecoration: e.canceled ? "line-through" : undefined }}>{e.title}</span>
+                <span className="text-[13px] text-smoke flex-none">{new Date(e.start_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TIME_ZONE })}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
