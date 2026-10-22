@@ -171,6 +171,12 @@ function Expenses({ expenses, canAct, busy, myId, orgId, run }: { expenses: Expe
   const [f, setF] = useState({ amount: "", description: "", category: "Camping" });
   const [file, setFile] = useState<File | null>(null);
   const act = (e: Expense, status: string) => run(async () => {
+    // Paying books the expense in the same database step, once (migration 0058); older databases fall through.
+    if (status === "paid") {
+      const { error: rpcErr } = await supabase.rpc("pay_expense_request", { p_id: e.id });
+      if (!rpcErr) return;
+      if (rpcErr.code !== "PGRST202") throw rpcErr;
+    }
     const patch: Record<string, unknown> = { status };
     if (status === "approved") patch.approved_by = myId;
     if (status === "second_approval") patch.second_approved_by = myId;

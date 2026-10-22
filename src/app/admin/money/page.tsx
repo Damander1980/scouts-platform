@@ -21,7 +21,7 @@ export default async function MoneyPage({ searchParams }: { searchParams: Promis
     supabase.from("unit_transactions").select("kind, category, amount_cents, occurred_on").eq("org_id", orgId).gte("occurred_on", `${year - 1}-01-01`),
     supabase.from("donation_campaigns").select("id, slug, title, description, target_cents, active, goal_id").eq("org_id", orgId).order("created_at", { ascending: false }),
     supabase.from("fundraising_goals").select("id, title, description, target_cents, deadline, is_public").eq("org_id", orgId).order("created_at", { ascending: false }),
-    supabase.from("donations").select("campaign_id, amount_cents, source, created_at").eq("org_id", orgId),
+    supabase.from("donations").select("*").eq("org_id", orgId),
     supabase.from("fundraisers").select("id, name, goal_id, target_cents, scout_share_pct, starts_on, ends_on, money_earning_approved_on").eq("org_id", orgId).order("created_at", { ascending: false }),
     supabase.from("fundraiser_sales").select("fundraiser_id, scout_id, amount_cents").eq("org_id", orgId),
     supabase.rpc("public_unit", { p_slug: current.org.slug }),
@@ -50,7 +50,8 @@ export default async function MoneyPage({ searchParams }: { searchParams: Promis
       duesPlans={duesPlans ?? []}
       campaigns={campaigns ?? []}
       goals={goals ?? []}
-      donations={donations ?? []}
+      // select("*") so this works before migration 0057 adds refunded_cents.
+      donations={(donations ?? []).map((d) => ({ campaign_id: d.campaign_id, source: d.source, created_at: d.created_at, amount_cents: d.amount_cents - (d.refunded_cents ?? 0) }))}
       fundraisers={fundraisers ?? []}
       sales={sales ?? []}
       scouts={people.filter((p) => p.persons.type === "youth").map((p) => ({ id: p.person_id, name: nameOf[p.person_id] }))}

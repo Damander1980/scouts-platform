@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requirePerm } from "@/lib/context";
-import { money, fmtDate } from "@/components/ui";
+import { money, fmtDate, isoDay, fromZonedInput } from "@/components/ui";
 import PrintButton from "@/components/PrintButton";
 
 // Monthly or year-end treasurer report. ?period=2026-10 for a month, ?period=2026 for a year.
@@ -48,12 +48,13 @@ export default async function TreasurerReport({ searchParams }: { searchParams: 
   const { period: raw } = await searchParams;
   const { supabase, current } = await requirePerm("money.view");
   const orgId = current.org.id;
-  const now = new Date();
-  const period = raw && /^\d{4}(-\d{2})?$/.test(raw) ? raw : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  // Periods follow the troop's calendar: a payment at 8pm on the 31st belongs to that month, not the next.
+  const period = raw && /^\d{4}(-\d{2})?$/.test(raw) ? raw : isoDay().slice(0, 7);
   const r = range(period);
+  const startAt = fromZonedInput(`${r.start}T00:00`)!, endAt = fromZonedInput(`${r.end}T00:00`)!;
 
   const [{ data: ledger }, { data: tx }, { data: balances }, { data: budgets }] = await Promise.all([
-    supabase.from("ledger_entries").select("amount_cents, type, method, created_at, events(title)").eq("org_id", orgId).gte("created_at", r.start).lt("created_at", r.end),
+    supabase.from("ledger_entries").select("amount_cents, type, method, created_at, events(title)").eq("org_id", orgId).gte("created_at", startAt).lt("created_at", endAt),
     supabase.from("unit_transactions").select("kind, category, amount_cents, occurred_on").eq("org_id", orgId).gte("occurred_on", r.start).lt("occurred_on", r.end),
     supabase.rpc("unit_balances", { p_org: orgId }),
     supabase.from("budgets").select("fiscal_year, starts_on, ends_on, approved_at, budget_lines(kind, category, planned_cents)").eq("org_id", orgId).lte("starts_on", r.end).gte("ends_on", r.start).order("starts_on", { ascending: false }).limit(1),
@@ -98,7 +99,7 @@ export default async function TreasurerReport({ searchParams }: { searchParams: 
       <div>
         <div className="text-[14px] font-bold text-smoke">{current.org.name}</div>
         <h1 className="font-display font-extrabold text-[32px] m-0">{r.label}</h1>
-        <p className="text-[13px] text-smoke m-0 mt-1">Prepared {now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} for the unit committee.</p>
+        <p className="text-[13px] text-smoke m-0 mt-1">Prepared {fmtDate(new Date().toISOString(), { month: "long", day: "numeric", year: "numeric" })} for the unit committee.</p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

@@ -29,7 +29,7 @@ begin
     hid := coalesce(public.person_household_in(nxt.person_id, nxt_org), public.person_household(nxt.person_id));
     if hid is not null and e.cost_cents > 0 then
       select coalesce(sum(amount_cents) filter (where type = 'charge'), 0),
-             coalesce(-sum(amount_cents) filter (where type in ('credit','refund')), 0)
+             coalesce(-sum(amount_cents) filter (where type = 'credit'), 0)
         into charged, credited
       from public.ledger_entries where event_id = p_event and household_id = hid and person_id = nxt.person_id;
       if charged - credited < e.cost_cents then
@@ -126,7 +126,7 @@ begin
   -- Nothing is charged while a parent's OK is pending.
   if hid is not null and e.cost_cents > 0 and not needs_ok then
     select coalesce(sum(amount_cents) filter (where type = 'charge'), 0),
-           coalesce(-sum(amount_cents) filter (where type in ('credit','refund')), 0)
+           coalesce(-sum(amount_cents) filter (where type = 'credit'), 0)
       into charged, credited
     from public.ledger_entries
     where event_id = p_event and household_id = hid and person_id = p_person;
