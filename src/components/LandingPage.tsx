@@ -46,7 +46,22 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <section className="max-w-6xl mx-auto px-5 pt-14 pb-16 flex flex-wrap gap-12 items-center">
+      <div className="relative overflow-hidden">
+      {/* Signature detail: faint topographic contour lines behind the hero. */}
+      <svg aria-hidden="true" viewBox="0 0 1400 700" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.5 }}>
+        <g fill="none" stroke="#CDBF9F" strokeWidth="1.3">
+          <path d="M-50 600 C200 520 330 640 540 570 S880 440 1060 490 S1300 580 1460 500"/>
+          <path d="M-50 540 C190 460 340 580 560 510 S870 380 1070 430 S1290 520 1460 440"/>
+          <path d="M-50 480 C180 400 350 520 580 450 S860 320 1080 370 S1280 460 1460 380"/>
+          <path d="M-50 420 C170 340 360 460 600 390 S850 260 1090 310 S1270 400 1460 320"/>
+          <path d="M-50 360 C160 280 370 400 620 330 S840 200 1100 250 S1260 340 1460 260"/>
+          <path d="M980 140 C1080 70 1220 80 1280 140 S1230 260 1120 250 S920 220 980 140Z"/>
+          <path d="M1020 150 C1100 100 1200 110 1240 150 S1210 230 1130 225 S980 200 1020 150Z"/>
+          <path d="M1070 158 C1120 130 1180 135 1200 160 S1180 200 1135 198 S1050 185 1070 158Z"/>
+        </g>
+        <path d="M640 690 C720 640 780 640 840 590 S980 470 1040 380 S1100 240 1135 170" fill="none" stroke="#F5B700" strokeWidth="3" strokeDasharray="2 12" strokeLinecap="round" opacity="0.8"/>
+      </svg>
+      <section className="relative max-w-6xl mx-auto px-5 pt-14 pb-16 flex flex-wrap gap-12 items-center">
         <div className="flex flex-col gap-6" style={{ flex: "1 1 440px" }}>
           <span className="text-[13px] font-bold uppercase tracking-[0.14em] text-forest">For Scouts BSA troops</span>
           <h1 className="font-display font-extrabold leading-[1.02] m-0" style={{ fontSize: "clamp(42px, 6vw, 66px)" }}>
@@ -62,7 +77,7 @@ export default function LandingPage() {
           <span className="text-[14px] text-smoke">No credit card needed. $125 a year after that, for the whole troop.</span>
         </div>
 
-        <div className="rounded-[20px] overflow-hidden bg-white" style={{ flex: "1 1 460px", ...HERO_SHADOW }} aria-label="Example of the leader dashboard" role="img">
+        <div className="rounded-[20px] overflow-hidden bg-white hero-float" style={{ flex: "1 1 460px", ...HERO_SHADOW }} aria-label="Example of the leader dashboard" role="img">
           <div className="bg-forest px-4 h-11 flex items-center gap-2">
             <span className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-extrabold" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
             <span className="text-white text-[13px] font-bold">Troop 999 · Leader tools</span>
@@ -100,6 +115,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      </div>
 
       <section className="bg-forest text-white">
         <div className="max-w-6xl mx-auto px-5 py-8 grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
