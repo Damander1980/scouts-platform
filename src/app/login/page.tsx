@@ -65,16 +65,18 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-wrap" style={{ background: "#E9E3D6" }}>
-      <div className="bg-forest text-white flex flex-col justify-between gap-10 px-10 py-12" style={{ flex: "1 1 420px" }}>
-        <a href="/" className="flex items-center gap-3 no-underline text-white">
+      <div className="text-white flex flex-col justify-between gap-10 px-10 py-12 relative overflow-hidden" style={{ flex: "1 1 420px", background: "var(--topo-dark), radial-gradient(120% 100% at 0% 100%, #1B4A80 0%, #12355F 45%, #0C2442 100%)", backgroundSize: "520px 520px, auto", boxShadow: "inset -4px 0 0 #F5B700" }}>
+        {/* A dashed trail climbing to the summit marker: the brand's signature, quietly. */}
+        <svg aria-hidden="true" viewBox="0 0 400 600" preserveAspectRatio="xMaxYMax slice" className="absolute inset-0 w-full h-full pointer-events-none"><path d="M40 620 C120 540 90 480 180 440 S300 360 260 280 S330 150 350 90" fill="none" stroke="#F5B700" strokeWidth="3" strokeDasharray="2 12" strokeLinecap="round" opacity=".7"/><path d="M350 72l9 16h-18z" fill="#F5B700"/></svg>
+        <a href="/" className="relative flex items-center gap-3 no-underline text-white">
           <Mark size={40} />
           <span className="font-display font-extrabold text-[20px]">ScoutPlatform</span>
         </a>
-        <div className="flex flex-col gap-4 max-w-md">
+        <div className="relative flex flex-col gap-4 max-w-md">
           <h1 className="font-display font-extrabold text-[44px] leading-[1.05] m-0">Your troop,<br /><span style={{ color: "#F5B700" }}>all in one place.</span></h1>
           <p className="text-[17px] m-0" style={{ color: "#D7E0EE" }}>Sign-ups, payments, health form status, advancement and messages for every family and leader.</p>
         </div>
-        <p className="text-[13px] m-0" style={{ color: "#AEB9C9" }}>Not affiliated with Scouting America.</p>
+        <p className="relative text-[13px] m-0" style={{ color: "#AEB9C9" }}>Not affiliated with Scouting America.</p>
       </div>
 
       <div className="flex items-center justify-center px-5 py-12" style={{ flex: "1 1 480px" }}>
