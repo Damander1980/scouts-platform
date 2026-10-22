@@ -38,16 +38,28 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
   const groupedContacts = contacts.reduce<Record<string, typeof contacts>>((a, c) => ({ ...a, [c.title]: [...(a[c.title] ?? []), c] }), {});
 
   return (
-    <div className="min-h-screen" style={{ background: "#FBFAF5", color: "#101B2D" }}>
+    <div className="min-h-screen bg-canvas" style={{ color: "#101B2D" }}>
       <header style={{ background: brand }} className="text-white">
         {site.banner_path ? (
           <img src={storageUrl + site.banner_path} alt={org.name} className="w-full max-h-[260px] object-cover" />
         ) : (
-          <div className="max-w-6xl mx-auto px-4 py-8 flex items-center gap-4">
-            {site.logo_path && <img src={storageUrl + site.logo_path} alt="" className="w-20 h-20 rounded-full bg-white object-contain" />}
-            <div>
-              <div className="font-display font-extrabold text-[36px] leading-none">{word} {org.unit_number}</div>
-              <div className="text-[16px] opacity-90">{[org.city, org.state].filter(Boolean).join(", ")}</div>
+          <div className="relative overflow-hidden">
+            <svg aria-hidden="true" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.18 }}>
+              <g fill="none" stroke="#FFFFFF" strokeWidth="1.2">
+                <path d="M-20 260 C180 200 300 280 480 230 S780 140 940 180 S1140 240 1220 200"/>
+                <path d="M-20 210 C170 150 310 230 500 180 S770 90 950 130 S1130 190 1220 150"/>
+                <path d="M-20 160 C160 100 320 180 520 130 S760 40 960 80 S1120 140 1220 100"/>
+                <path d="M860 40 C930 0 1040 10 1080 50 S1040 130 960 125 S820 90 860 40Z"/>
+              </g>
+            </svg>
+            <div className="relative max-w-6xl mx-auto px-4 pt-12 pb-10 flex items-center gap-5 flex-wrap">
+              {site.logo_path && <img src={storageUrl + site.logo_path} alt="" className="w-24 h-24 rounded-full bg-white object-contain" />}
+              <div className="flex-1 min-w-[240px]">
+                <div className="font-display font-extrabold text-[48px] leading-none">{word} {org.unit_number}</div>
+                <div className="text-[17px] opacity-90 mt-1">{[org.city, org.state].filter(Boolean).join(", ")}{site.chartered_org ? ` · ${site.chartered_org}` : ""}</div>
+                {site.meeting_info && <div className="inline-block mt-3 text-[14px] font-bold px-3 py-1 rounded-full" style={{ background: "rgba(255,255,255,.16)" }}>We meet: {site.meeting_info}</div>}
+              </div>
+              <a href={`/join/${org.slug}`} className="min-h-[52px] px-7 rounded-full font-bold text-[16px] flex items-center no-underline" style={{ background: "#F5B700", color: "#101B2D" }}>Join our troop</a>
             </div>
           </div>
         )}
@@ -64,9 +76,9 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
         </nav>
       </header>
 
-      <div className="max-w-6xl mx-auto px-4 py-8 grid lg:grid-cols-[1fr_220px_280px] gap-8">
+      <div className="max-w-6xl mx-auto px-4 py-8 grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
         <main className="flex flex-col gap-6 min-w-0">
-          <section id="welcome" className="flex flex-col gap-3">
+          <section id="welcome" className="card flex flex-col gap-3">
             <h1 className="font-display font-bold text-[34px] leading-tight m-0">{site.welcome_title || `Welcome to ${word} ${org.unit_number}!`}</h1>
             <p className="text-[16px] leading-relaxed m-0 whitespace-pre-wrap">
               {site.welcome_text || `${org.name} is a Scouting America unit in ${org.city ?? "our community"}. New families are always welcome.`}
@@ -94,7 +106,7 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
                   </div>
                 ))}
               </div>
-              <form id="contact-form" onSubmit={send} className="rounded-2xl border border-[#E6E2D3] bg-white p-4 flex flex-col gap-3">
+              <form id="contact-form" onSubmit={send} className="card flex flex-col gap-3">
                 {sent ? <div className="font-bold">Thanks! A leader will get back to you soon.</div> : (
                   <>
                     <select className="input" value={contactTo} onChange={(e) => setContactTo(e.target.value)}>
@@ -113,8 +125,8 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
             </section>
           )}
 
-          <section className="flex flex-col gap-3 border-t border-[#E6E2D3] pt-6">
-            <h2 className="font-display font-bold text-[28px] text-center m-0">About Our {word}</h2>
+          <section className="card flex flex-col gap-3">
+            <h2 className="font-display font-extrabold text-[26px] m-0">About our {word.toLowerCase()}</h2>
             <div className="text-[16px] leading-relaxed whitespace-pre-wrap">
               {site.about || `The mission of Scouting America is to prepare young people to make ethical and moral choices over their lifetimes by instilling in them the values of the Scout Oath and Scout Law.`}
             </div>
@@ -123,29 +135,31 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
           </section>
         </main>
 
-        <aside id="photos" className="flex flex-col gap-4">
+        <aside className="flex flex-col gap-6">
+        <section id="events" className="card flex flex-col gap-1">
+          <h2 className="font-display font-extrabold text-[22px] m-0 mb-2">Upcoming events</h2>
+          {events.length === 0 && <div className="text-smoke">Check back soon.</div>}
+          {events.map((e) => (
+            <div key={e.id} className="flex flex-col py-2 border-t border-[#EAE4D6] first-of-type:border-0">
+              <a href={`/events/${e.id}`} className="font-bold no-underline" style={{ color: e.deadline ? "#1E8A3E" : "#1F5F9F" }}>{e.title}</a>
+              <span className="text-[14px]">({fmt(e.start_at)})</span>
+              {e.deadline && <span className="text-[14px]">Sign up by {new Date(e.deadline).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}</span>}
+            </div>
+          ))}
+        </section>
+        <section id="photos" className="flex flex-col gap-4">
           {albums.map((a, ai) => a.photos.length > 0 && (
             <button key={a.id} onClick={() => setLightbox({ album: ai, i: 0 })} className="bg-transparent border-0 p-0 cursor-pointer text-center font-sans">
               <img src={storageUrl + a.photos[0].path} alt={a.title} className="w-full aspect-[4/3] object-cover rounded-lg" loading="lazy" />
               <div className="text-[14px] mt-1" style={{ color: "#1F5F9F" }}>{a.title}{a.taken_on ? ` (${new Date(a.taken_on).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" })})` : ""}</div>
             </button>
           ))}
-        </aside>
+        </section>
 
-        <aside id="events" className="flex flex-col gap-4 text-center">
-          <h2 className="font-display font-bold text-[24px] italic m-0">Upcoming Events</h2>
-          {events.length === 0 && <div className="text-smoke">Check back soon.</div>}
-          {events.map((e) => (
-            <div key={e.id} className="flex flex-col">
-              <a href={`/events/${e.id}`} className="font-bold no-underline" style={{ color: e.deadline ? "#1E8A3E" : "#1F5F9F" }}>{e.title}</a>
-              <span className="text-[14px]">({fmt(e.start_at)})</span>
-              {e.deadline && <span className="text-[14px]">Sign up by {new Date(e.deadline).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}</span>}
-            </div>
-          ))}
         </aside>
       </div>
 
-      <footer className="border-t border-[#E6E2D3] py-6 text-center text-[13px] text-smoke">
+      <footer className="py-8 text-center text-[13px] text-smoke">
         {org.name} · Powered by ScoutPlatform · Not affiliated with Scouting America
       </footer>
 
