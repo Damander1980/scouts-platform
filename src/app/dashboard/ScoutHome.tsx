@@ -73,10 +73,9 @@ export default function ScoutHome({ personId, firstName, events: initial, plc = 
 
       {(
         <a href={personId === "demo" ? "/demo/advancement" : `/scout/${personId}/advancement`}
-          className="rounded-[18px] p-5 flex items-center gap-4 no-underline text-white"
-          style={{ background: "#12355F", boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
+          className="patch p-5 flex items-center gap-4 no-underline">
           <div className="flex-1 flex flex-col gap-0.5">
-            <span className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>My advancement</span>
+            <span className="eyebrow" style={{ color: "#F5B700" }}>My advancement</span>
             <span className="font-display font-extrabold text-[22px] leading-tight">
               {rank ? (rank.complete ? "Eagle Scout. Amazing work!" : `${rank.name}: ${rank.done} of ${rank.total} done`) : "See what's next for your rank"}
             </span>
@@ -94,7 +93,7 @@ export default function ScoutHome({ personId, firstName, events: initial, plc = 
       {plc && (
         <a href="/plc" className="card flex items-center gap-4 no-underline text-ink">
           <div className="flex-1">
-            <div className="text-[12px] font-bold uppercase tracking-widest text-forest">Patrol Leaders&apos; Council</div>
+            <div className="eyebrow text-forest">Patrol Leaders&apos; Council</div>
             <div className="font-bold text-[17px]">Meeting agendas, notes and action items</div>
           </div>
           <span className="font-bold text-forest">Open</span>
@@ -111,7 +110,7 @@ export default function ScoutHome({ personId, firstName, events: initial, plc = 
         return (
           <div key={e.id} className="card flex flex-col gap-3" style={status === "going" ? { boxShadow: "inset 0 0 0 2px #12355F, 0 10px 28px rgba(16,27,45,.10)" } : undefined}>
             <div>
-              {!status && <span className="inline-block mb-2 text-[12px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ background: "#FFF6D6", color: "#5E4400" }}>Needs your answer</span>}
+              {!status && <span className="inline-block mb-2 eyebrow px-2.5 py-1 rounded-full" style={{ background: "#FFF6D6", color: "#5E4400" }}>Needs your answer</span>}
               <div className="font-display font-extrabold text-[22px] leading-tight">{e.title}</div>
               <div className="text-[16px] mt-1">{when(e)}</div>
               {e.location && <div className="text-[15px] text-smoke">{e.location}</div>}

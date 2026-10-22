@@ -104,7 +104,7 @@ export default function AdminLayoutClient({
 
   return (
     <div className="min-h-screen bg-canvas text-ink flex flex-col">
-      <header className="hidden md:flex print:hidden bg-forest text-white sticky top-0 z-30 h-16 items-center gap-3 px-6">
+      <header className="hidden md:flex print:hidden text-white sticky top-0 z-30 h-16 items-center gap-3 px-6" style={{ background: "linear-gradient(90deg, #0C2442 0%, #12355F 60%, #17437A 100%)", boxShadow: "inset 0 -3px 0 #F5B700" }}>
         <Link href={to("/dashboard")} aria-label="Home" className="flex items-center gap-2.5 no-underline text-white">
           <Mark size={36} />
           <span className="font-display font-extrabold text-[19px]">ScoutPlatform</span>
@@ -122,21 +122,24 @@ export default function AdminLayoutClient({
         </div>
       </header>
       <div className="md:flex flex-1">
-      <aside className="hidden md:flex print:hidden w-60 flex-none flex-col bg-forest-deep text-white sticky top-16 h-[calc(100vh-4rem)]">
+      <aside className="hidden md:flex print:hidden w-60 flex-none flex-col text-white sticky top-16 h-[calc(100vh-4rem)]" style={{ background: "var(--topo-dark), #0C2442", backgroundSize: "480px 480px" }}>
         <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-1">
+          <div className="eyebrow px-3.5 pb-2" style={{ color: "#8FA3C0" }}>Leader trail</div>
           {groups.map((g) => (
             <div key={g.label} className="flex flex-col gap-0.5">
               <Link href={to(g.href)}
-                className="flex items-center gap-3 px-3.5 min-h-[44px] rounded-[10px] text-[15px] no-underline"
+                className="flex items-center gap-3 px-3.5 min-h-[44px] rounded-xl text-[15px] no-underline transition-colors hover:bg-white/5"
                 style={g.open
-                  ? { background: "#12355F", color: "#FFFFFF", fontWeight: 700, boxShadow: "inset 3px 0 0 #F5B700" }
+                  ? { background: "rgba(245,183,0,.12)", color: "#FFFFFF", fontWeight: 700 }
                   : { color: "#D7E0EE" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={g.icon}/></svg>
+                <span className="w-7 h-7 -ml-0.5 rounded-full flex items-center justify-center flex-none"
+                  style={g.open ? { background: "#F5B700", color: "#0C2442" } : { background: "#12355F", color: "#D7E0EE" }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={g.icon}/></svg></span>
                 {g.label}
               </Link>
               {g.open && g.items.length > 1 && g.items.map((i) => (
                 <Link key={i.path} href={to(i.path)}
-                  className="ml-9 pl-3 min-h-[38px] flex items-center rounded-lg text-[14px] no-underline"
+                  className="ml-[27px] pl-6 min-h-[38px] flex items-center text-[14px] no-underline border-l-2 border-dashed border-white/15"
                   style={isActive(i.path) ? { color: "#F5B700", fontWeight: 700 } : { color: "#AEB9C9" }}>
                   {i.label}
                 </Link>
@@ -150,7 +153,7 @@ export default function AdminLayoutClient({
         </a>
       </aside>
 
-      <div className="md:hidden print:hidden bg-forest text-white sticky top-0 z-30">
+      <div className="md:hidden print:hidden text-white sticky top-0 z-30" style={{ background: "linear-gradient(90deg, #0C2442 0%, #12355F 60%, #17437A 100%)", boxShadow: "inset 0 -3px 0 #F5B700" }}>
         <div className="flex items-center gap-3 px-4 h-12">
           <Link href={to("/dashboard")} className="text-white no-underline font-bold text-[14px]">←</Link>
           <span className="font-bold text-[15px]">{unitWord} {org.unit_number} · Leaders</span>

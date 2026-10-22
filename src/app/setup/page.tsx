@@ -80,7 +80,7 @@ export default function SetupPage() {
       style={{ boxShadow: "0 1px 2px rgba(16,27,45,.06), 0 14px 36px rgba(16,27,45,.12)" }}>
       {/* Header */}
       <div className="bg-forest text-white px-5 pt-6 pb-6 flex flex-col gap-2">
-        <span className="text-xs font-bold tracking-widest uppercase text-mist-dark">
+        <span className="eyebrow text-mist-dark">
           Step {step - 1} of 2
         </span>
         <h1 className="font-display font-extrabold text-[30px] leading-tight">
@@ -163,7 +163,7 @@ export default function SetupPage() {
             </div>
             {(number || city) && (
               <div className="card flex flex-col gap-1.5">
-                <span className="text-xs font-bold tracking-widest uppercase text-smoke">
+                <span className="eyebrow text-smoke">
                   Your page address
                 </span>
                 <span className="font-display font-bold text-xl break-all">

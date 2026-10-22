@@ -40,7 +40,7 @@ export default function PayClient({ orgId, balance, online, prefs, scoutBalances
   return (
     <section className="card flex flex-col gap-4">
       <div>
-        <div className="text-[12px] font-bold uppercase tracking-widest text-smoke">Balance</div>
+        <div className="eyebrow text-smoke">Balance</div>
         <div className="font-display font-extrabold text-[34px]" style={{ color: balance > 0 ? "#5E4400" : "#12355F" }}>
           {balance > 0 ? `You owe ${money(balance)}` : balance < 0 ? `${money(-balance)} credit` : "All paid up"}
         </div>

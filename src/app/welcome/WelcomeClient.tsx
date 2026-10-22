@@ -111,7 +111,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
           <Mark size={32} />
           <span className="font-display font-extrabold text-[17px]">ScoutPlatform</span>
         </div>
-        <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#F5B700" }}>{header.kicker}</div>
+        <div className="eyebrow" style={{ color: "#F5B700" }}>{header.kicker}</div>
         <h1 className="font-display font-extrabold text-[32px] leading-tight m-0 mt-1">{header.title}</h1>
       </div>
 
@@ -208,7 +208,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
             ) : found ? (
               <div className="card flex flex-col gap-3">
                 <div>
-                  <div className="text-[12px] font-bold uppercase tracking-widest text-smoke">Joining</div>
+                  <div className="eyebrow text-smoke">Joining</div>
                   <div className="font-display font-bold text-[22px]">{found.name}</div>
                   <div className="text-[14px] text-smoke">{[found.city, found.state].filter(Boolean).join(", ")}</div>
                 </div>

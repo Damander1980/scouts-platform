@@ -36,7 +36,7 @@ export default async function FamilyPage() {
 
       <div className="card flex items-center justify-between gap-3">
         <div>
-          <div className="text-[12px] font-bold uppercase tracking-widest text-smoke">Family balance</div>
+          <div className="eyebrow text-smoke">Family balance</div>
           <div className="font-display font-extrabold text-[26px]" style={{ color: balance > 0 ? "#5E4400" : "#12355F" }}>
             {balance > 0 ? `${money(balance)} owed` : balance < 0 ? `${money(-balance)} credit` : "Paid up"}
           </div>

@@ -36,7 +36,7 @@ export default function BulkClient({ rows: initial, canEdit }: { rows: Row[]; ca
       <div className="card p-0 overflow-x-auto">
         <table className="w-full border-collapse text-[14px] min-w-[760px]">
           <thead>
-            <tr className="text-left text-[12px] uppercase tracking-widest text-smoke" style={{ background: "#F8F5EE" }}>
+            <tr className="text-left eyebrow text-smoke" style={{ background: "#F8F5EE" }}>
               <th scope="col" className="px-4 py-3">Name</th><th scope="col" className="px-2">Swim test</th><th scope="col" className="px-2">Shirt size</th>
               <th scope="col" className="px-2">YPT expires</th><th scope="col" className="px-2">Registration expires</th><th className="px-2"><span className="sr-only">Saved</span></th>
             </tr>

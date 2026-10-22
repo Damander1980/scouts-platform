@@ -29,7 +29,7 @@ export default function VolunteerClient({ family, shifts, signups, polls, votes,
       <div className="grid gap-5 lg:grid-cols-2 items-start">
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-bold text-[13px] tracking-widest uppercase m-0 text-smoke">Volunteer shifts</h2>
+        <h2 className="eyebrow m-0 text-smoke">Volunteer shifts</h2>
         {shifts.length === 0 && <div className="card text-smoke text-center py-6">No shifts posted right now.</div>}
         {shifts.map((s) => {
           const who = signups.filter((x) => x.shift_id === s.id);
@@ -65,7 +65,7 @@ export default function VolunteerClient({ family, shifts, signups, polls, votes,
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-bold text-[13px] tracking-widest uppercase m-0 text-smoke">Polls</h2>
+        <h2 className="eyebrow m-0 text-smoke">Polls</h2>
         {polls.length === 0 && <div className="card text-smoke text-center py-6">No open polls.</div>}
         {polls.map((p) => {
           const closed = !!p.closes_at && new Date(p.closes_at) < new Date();

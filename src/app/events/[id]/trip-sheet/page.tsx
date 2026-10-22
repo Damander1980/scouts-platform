@@ -75,10 +75,10 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="card"><div className="text-[11px] font-bold uppercase tracking-widest text-smoke">Scouts</div><div className="font-extrabold text-[22px]">{youth.length}</div></div>
-        <div className="card"><div className="text-[11px] font-bold uppercase tracking-widest text-smoke">Adults</div><div className="font-extrabold text-[22px]">{adults.length}</div></div>
-        <div className="card"><div className="text-[11px] font-bold uppercase tracking-widest text-smoke">Seats offered</div><div className="font-extrabold text-[22px]" style={{ color: seats < rows.length ? "#A52A1C" : undefined }}>{seats} / {rows.length}</div></div>
-        <div className="card"><div className="text-[11px] font-bold uppercase tracking-widest text-smoke">Two-deep</div><div className="font-extrabold text-[22px]" style={{ color: twoDeep ? "#12355F" : "#A52A1C" }}>{twoDeep ? "Yes" : "No"}</div></div>
+        <div className="card"><div className="eyebrow text-smoke">Scouts</div><div className="font-extrabold text-[22px]">{youth.length}</div></div>
+        <div className="card"><div className="eyebrow text-smoke">Adults</div><div className="font-extrabold text-[22px]">{adults.length}</div></div>
+        <div className="card"><div className="eyebrow text-smoke">Seats offered</div><div className="font-extrabold text-[22px]" style={{ color: seats < rows.length ? "#A52A1C" : undefined }}>{seats} / {rows.length}</div></div>
+        <div className="card"><div className="eyebrow text-smoke">Two-deep</div><div className="font-extrabold text-[22px]" style={{ color: twoDeep ? "#12355F" : "#A52A1C" }}>{twoDeep ? "Yes" : "No"}</div></div>
       </div>
       {!twoDeep && <div className="card font-bold" style={{ background: "#FFF6D6", color: "#5E4400" }}>
         Only {trainedAdults} adult{trainedAdults === 1 ? "" : "s"} going {trainedAdults === 1 ? "has" : "have"} YPT current through the trip. Two-deep leadership needs at least two registered adults with current YPT, one of them 21 or older.

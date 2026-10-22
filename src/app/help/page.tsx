@@ -70,7 +70,7 @@ export default function HelpPage() {
           <section key={g.title} className="card flex flex-col gap-3">
             <div>
               <h2 className="font-display font-extrabold text-[21px] leading-tight m-0">{g.title}</h2>
-              <span className="text-[13px] font-bold uppercase tracking-widest text-forest">{g.who}</span>
+              <span className="eyebrow text-forest">{g.who}</span>
             </div>
             <ol className="m-0 pl-5 flex flex-col gap-2 text-[15px] leading-relaxed">
               {g.steps.map((s) => <li key={s}>{s}</li>)}

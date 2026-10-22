@@ -119,9 +119,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   return (
     <Shell ctx={ctx}>
       <Link href="/events" className="text-[14px] font-bold text-forest no-underline min-h-[32px] flex items-center">← Events</Link>
-      <div className="rounded-[20px] p-6 md:p-7 flex flex-col gap-3 text-white"
-        style={{ background: "#12355F", boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
-        <span className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>
+      <div className="patch md:p-7 flex flex-col gap-3">
+        <span className="eyebrow" style={{ color: "#F5B700" }}>
           {multi ? `${fmtDate(ev.start_at, { weekday: "short", month: "short", day: "numeric" })} – ${fmtDate(ev.end_at, { weekday: "short", month: "short", day: "numeric" })}`
             : `${fmtDate(ev.start_at, { weekday: "long", month: "long", day: "numeric" })} · ${fmtTime(ev.start_at)}`}
           {ev.location ? ` · ${ev.location}` : ""}

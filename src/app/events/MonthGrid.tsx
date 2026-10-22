@@ -34,7 +34,7 @@ export default function MonthGrid({ month, events, ownOrg }: { month: string; ev
       <div className="overflow-x-auto">
         <div className="grid grid-cols-7 min-w-[700px]">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div key={d} className="px-2 py-2 text-[12px] font-bold uppercase tracking-widest text-smoke" style={{ background: "#F8F5EE" }}>{d}</div>
+            <div key={d} className="px-2 py-2 eyebrow text-smoke" style={{ background: "#F8F5EE" }}>{d}</div>
           ))}
           {cells.map((d, i) => {
             const inMonth = d >= 1 && d <= daysIn;

@@ -148,7 +148,7 @@ function Table({ head, rows }: { head: string[]; rows: string[][] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-[14px] min-w-[420px]">
-        <thead><tr>{head.map((h) => <th key={h} scope="col" className="text-left px-2 py-2 text-[12px] uppercase tracking-widest text-smoke border-b-2 border-[#DDD6C5]">{h}</th>)}</tr></thead>
+        <thead><tr>{head.map((h) => <th key={h} scope="col" className="text-left px-2 py-2 eyebrow text-smoke border-b-2 border-[#DDD6C5]">{h}</th>)}</tr></thead>
         <tbody>{rows.map((row, i) => <tr key={i} className="border-b border-[#EAE4D6]">{row.map((c, j) => <td key={j} className="px-2 py-1.5">{c}</td>)}</tr>)}</tbody>
       </table>
     </div>

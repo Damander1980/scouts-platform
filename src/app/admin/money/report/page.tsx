@@ -102,10 +102,10 @@ export default async function TreasurerReport({ searchParams }: { searchParams: 
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="card"><div className="text-[11px] font-bold tracking-widest uppercase text-smoke">Money in</div><div className="font-display font-extrabold text-[24px] mt-1">{money(totalIn)}</div></div>
-        <div className="card"><div className="text-[11px] font-bold tracking-widest uppercase text-smoke">Money out</div><div className="font-display font-extrabold text-[24px] mt-1">{money(totalOut)}</div></div>
-        <div className="card"><div className="text-[11px] font-bold tracking-widest uppercase text-smoke">Net</div><div className="font-display font-extrabold text-[24px] mt-1" style={{ color: totalIn - totalOut < 0 ? "#A52A1C" : undefined }}>{money(totalIn - totalOut)}</div></div>
-        <div className="card"><div className="text-[11px] font-bold tracking-widest uppercase text-smoke">Families owe (today)</div><div className="font-display font-extrabold text-[24px] mt-1">{money(owed.reduce((s, b) => s + b.balance_cents, 0))}</div></div>
+        <div className="card"><div className="eyebrow text-smoke">Money in</div><div className="font-display font-extrabold text-[24px] mt-1">{money(totalIn)}</div></div>
+        <div className="card"><div className="eyebrow text-smoke">Money out</div><div className="font-display font-extrabold text-[24px] mt-1">{money(totalOut)}</div></div>
+        <div className="card"><div className="eyebrow text-smoke">Net</div><div className="font-display font-extrabold text-[24px] mt-1" style={{ color: totalIn - totalOut < 0 ? "#A52A1C" : undefined }}>{money(totalIn - totalOut)}</div></div>
+        <div className="card"><div className="eyebrow text-smoke">Families owe (today)</div><div className="font-display font-extrabold text-[24px] mt-1">{money(owed.reduce((s, b) => s + b.balance_cents, 0))}</div></div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-3">
@@ -132,7 +132,7 @@ export default async function TreasurerReport({ searchParams }: { searchParams: 
             if (!lines.length) return null;
             return (
               <div key={kind} className="flex flex-col">
-                <div className="text-[12px] font-bold uppercase tracking-widest text-smoke mt-2">{kind}</div>
+                <div className="eyebrow text-smoke mt-2">{kind}</div>
                 <div className="grid grid-cols-4 text-[12px] font-bold text-smoke py-1"><span>Category</span><span className="text-right">Planned</span><span className="text-right">Actual</span><span className="text-right">Difference</span></div>
                 {lines.map((l) => {
                   const a = T.filter((t) => t.kind === kind && t.category === l.category).reduce((s, t) => s + t.amount_cents, 0);

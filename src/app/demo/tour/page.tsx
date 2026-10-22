@@ -59,7 +59,7 @@ export default function Tour() {
             </div>
           </section>
         ))}
-        <div className="rounded-[20px] p-7 flex flex-wrap items-center gap-5 text-white" style={{ background: "#12355F", boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
+        <div className="patch p-7 flex flex-wrap items-center gap-5">
           <div className="flex-1 min-w-[240px]">
             <div className="font-display font-extrabold text-[24px]">Ready to try it with your troop?</div>
             <div className="text-[15px]" style={{ color: "#D7E0EE" }}>First 30 days free. Bring your roster over from Scoutbook by file.</div>

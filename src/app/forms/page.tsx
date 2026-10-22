@@ -31,7 +31,7 @@ export default async function FormsPage() {
         <div className="card p-0 overflow-x-auto">
           <table className="w-full border-collapse min-w-[560px]">
             <thead>
-              <tr className="text-left text-[12px] uppercase tracking-widest text-smoke" style={{ background: "#F8F5EE" }}>
+              <tr className="text-left eyebrow text-smoke" style={{ background: "#F8F5EE" }}>
                 <th scope="col" className="px-5 py-3 font-bold">Name</th>
                 <th scope="col" className="px-3 py-3 font-bold">Health A and B</th>
                 <th scope="col" className="px-3 py-3 font-bold">Health C</th>

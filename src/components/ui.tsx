@@ -1,12 +1,14 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+// Page heading with the trail blaze: a short gold stripe, like the paint marks on trail trees.
 export function PageTitle({ title, sub, action }: { title: string; sub?: ReactNode; action?: ReactNode }) {
   return (
     <div className="flex items-end justify-between gap-3 flex-wrap">
       <div>
-        <h1 className="font-display font-extrabold text-[32px] leading-tight m-0">{title}</h1>
-        {sub && <p className="text-[14px] m-0 mt-1 text-smoke">{sub}</p>}
+        <span aria-hidden="true" className="block w-9 h-[5px] rounded-full mb-3" style={{ background: "linear-gradient(90deg, #F5B700 0 70%, #12355F 70%)" }} />
+        <h1 className="font-display font-extrabold text-[34px] md:text-[38px] leading-[1.05] tracking-[-0.02em] m-0">{title}</h1>
+        {sub && <p className="text-[15px] m-0 mt-1.5 text-smoke">{sub}</p>}
       </div>
       {action}
     </div>
@@ -16,14 +18,25 @@ export function PageTitle({ title, sub, action }: { title: string; sub?: ReactNo
 export function SectionLabel({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <h2 className="font-bold text-[13px] tracking-widest uppercase m-0 text-smoke">{children}</h2>
+      <h2 className="eyebrow m-0 text-forest flex items-center gap-2.5">
+        <span aria-hidden="true" className="w-2 h-2 rotate-45 bg-orange flex-none" />{children}
+      </h2>
+      <span aria-hidden="true" className="flex-1 border-t border-dashed border-sage/70 min-w-[24px]" />
       {action}
     </div>
   );
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <div className="card text-center text-[15px] text-smoke py-8">{children}</div>;
+  return (
+    <div className="card text-center text-[15px] text-smoke py-10 flex flex-col items-center gap-3">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+        <circle cx="22" cy="22" r="20" stroke="#AEB9C9" strokeDasharray="3 3" />
+        <path d="M22 9l3.5 13L22 35l-3.5-13z" fill="#F5B700" /><path d="M22 22l3.5 0L22 35z" fill="#12355F" />
+      </svg>
+      <div>{children}</div>
+    </div>
+  );
 }
 
 type Tone = "green" | "orange" | "gray" | "red" | "dark";
@@ -49,9 +62,10 @@ export function LinkButton({ href, children, variant = "primary" }: { href: stri
 
 export function Stat({ label, value, tone }: { label: string; value: ReactNode; tone?: string }) {
   return (
-    <div className="card">
-      <div className="text-[12px] font-bold tracking-widest uppercase text-forest">{label}</div>
-      <div className="font-display font-extrabold text-[30px] leading-tight mt-1" style={tone ? { color: tone } : undefined}>{value}</div>
+    <div className="card relative overflow-hidden">
+      <span aria-hidden="true" className="absolute -right-6 -top-6 w-20 h-20 rounded-full border-[6px] border-mist" />
+      <div className="eyebrow text-forest relative">{label}</div>
+      <div className="font-display font-extrabold text-[34px] tracking-[-0.02em] leading-tight mt-1.5 relative" style={tone ? { color: tone } : undefined}>{value}</div>
     </div>
   );
 }

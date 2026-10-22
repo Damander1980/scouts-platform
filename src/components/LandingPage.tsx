@@ -91,7 +91,7 @@ export default function LandingPage() {
             </div>
             <div className="flex-1 p-4 flex flex-col gap-3" style={{ background: "#E9E3D6" }}>
               <div className="rounded-xl p-3.5 text-white" style={{ background: "#12355F" }}>
-                <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>Next up · Fri, Oct 23</div>
+                <div className="eyebrow" style={{ color: "#F5B700" }}>Next up · Fri, Oct 23</div>
                 <div className="font-display font-extrabold text-[17px]">Caprock Canyons campout</div>
                 <div className="text-[12px]" style={{ color: "#D7E0EE" }}>24 going · 7 haven&apos;t answered · 2-deep covered</div>
               </div>
@@ -161,7 +161,7 @@ export default function LandingPage() {
           <div className="rounded-[40px] p-3" style={{ background: "#101B2D", width: 300, ...HERO_SHADOW }}>
             <div className="rounded-[30px] overflow-hidden flex flex-col" style={{ background: "#E9E3D6", minHeight: 560 }}>
               <div className="px-5 pt-6 pb-5 text-white flex flex-col gap-1" style={{ background: "#12355F" }}>
-                <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>Fri, Oct 30 – Sun, Nov 1</span>
+                <span className="eyebrow" style={{ color: "#F5B700" }}>Fri, Oct 30 – Sun, Nov 1</span>
                 <span className="font-display font-extrabold text-[20px] leading-tight">Caprock Canyons campout</span>
                 <span className="text-[11px] font-bold mt-1 px-2 py-0.5 rounded-full self-start" style={{ background: "#F5B700", color: "#101B2D" }}>$45.00 per person</span>
               </div>

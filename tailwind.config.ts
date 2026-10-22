@@ -30,6 +30,7 @@ const config: Config = {
       fontFamily: {
         sans: ["DM Sans", "sans-serif"],
         display: ["Bricolage Grotesque", "sans-serif"],
+        mono: ["DM Mono", "ui-monospace", "monospace"],
       },
     },
   },

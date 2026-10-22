@@ -122,10 +122,9 @@ export default async function DashboardPage() {
       ))}
 
       {next && (
-        <Link href={`/events/${next.id}`} className="rounded-[20px] p-6 md:p-7 flex flex-wrap items-center gap-5 no-underline text-white"
-          style={{ background: "#12355F", boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
+        <Link href={`/events/${next.id}`} className="patch md:p-7 flex flex-wrap items-center gap-5 no-underline">
           <div className="flex-1 min-w-[260px] flex flex-col gap-1.5">
-            <span className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>
+            <span className="eyebrow" style={{ color: "#F5B700" }}>
               Next up · {fmtDate(next.start_at, { weekday: "short", month: "short", day: "numeric" })} · {fmtTime(next.start_at)}
             </span>
             <span className="font-display font-extrabold text-[28px] leading-tight">{next.title}</span>
@@ -149,7 +148,7 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="card flex flex-col gap-1.5">
-          <span className="text-[12px] font-bold uppercase tracking-widest text-forest">You owe</span>
+          <span className="eyebrow text-forest">You owe</span>
           <span className="font-display font-extrabold text-[34px] leading-tight" style={{ color: balance > 0 ? "#5E4400" : undefined }}>
             {balance > 0 ? money(balance) : balance < 0 ? `${money(-balance)} credit` : "$0"}
           </span>
@@ -157,13 +156,13 @@ export default async function DashboardPage() {
           {balance > 0 && <Link href="/pay" className="font-bold text-forest min-h-[44px] flex items-center">Pay now</Link>}
         </div>
         <div className="card flex flex-col gap-1.5">
-          <span className="text-[12px] font-bold uppercase tracking-widest text-forest">Forms</span>
+          <span className="eyebrow text-forest">Forms</span>
           <span className="font-display font-extrabold text-[34px] leading-tight">{formIssues.length ? `${formIssues.length} needed` : "All set"}</span>
           <span className="text-[14px] text-smoke">{formIssues[0] ?? "Health forms are on file and current."}</span>
           {formIssues.length > 0 && <Link href="/forms" className="font-bold text-forest min-h-[44px] flex items-center">Get the blank form</Link>}
         </div>
         <div className="card flex flex-col gap-1.5">
-          <span className="text-[12px] font-bold uppercase tracking-widest text-forest">{leaderTodos.length ? "Leader to-dos" : "Ways to help"}</span>
+          <span className="eyebrow text-forest">{leaderTodos.length ? "Leader to-dos" : "Ways to help"}</span>
           {leaderTodos.length ? (
             <>
               <span className="font-display font-extrabold text-[34px] leading-tight">{leaderTodos.reduce((t, x) => t + x.count, 0)}</span>
@@ -192,7 +191,7 @@ export default async function DashboardPage() {
       <div className="flex flex-wrap gap-5">
         <section className="card flex-[1_1_420px] min-w-0 flex flex-col">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[12px] font-bold uppercase tracking-widest text-forest">Calendar</span>
+            <span className="eyebrow text-forest">Calendar</span>
             <Link href="/events" className="text-[14px] font-bold text-forest min-h-[44px] flex items-center">All events</Link>
           </div>
           {(events ?? []).length === 0 && <span className="text-smoke text-[14px] py-3">{isLeader ? "No events yet. Add your first one from Events." : "No events on the calendar yet."}</span>}
@@ -210,7 +209,7 @@ export default async function DashboardPage() {
 
         {scouts.length > 0 && (
           <section className="card flex-[1_1_300px] min-w-0 flex flex-col gap-3">
-            <span className="text-[12px] font-bold uppercase tracking-widest text-forest">My Scouts</span>
+            <span className="eyebrow text-forest">My Scouts</span>
             {scouts.map((p) => (
               <Link key={p.id} href={`/scout/${p.id}/advancement`} className="flex items-center gap-3 no-underline text-ink min-h-[52px]">
                 <span className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-[14px] flex-none" style={{ background: "#D7E0EE", color: "#12355F" }}>

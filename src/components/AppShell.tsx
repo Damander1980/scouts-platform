@@ -69,11 +69,11 @@ export default function AppShell({
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
-      <header className="bg-forest text-white sticky top-0 z-30">
+      <header className="text-white sticky top-0 z-30 print:static" style={{ background: "linear-gradient(90deg, #0C2442 0%, #12355F 60%, #17437A 100%)", boxShadow: "inset 0 -3px 0 #F5B700" }}>
         <div className="px-4 md:px-6 h-16 flex items-center gap-3">
           <Link href={to("/dashboard")} aria-label="Home" className="flex items-center gap-2.5 no-underline text-white flex-none">
             <Mark size={36} />
-            <span className="hidden md:inline font-display font-extrabold text-[19px]">ScoutPlatform</span>
+            <span className="hidden md:inline font-display font-extrabold text-[19px] tracking-[-0.01em]">ScoutPlatform</span>
           </Link>
           <button onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label="Switch unit"
             className="ml-1 md:ml-4 flex items-center gap-2 min-h-[40px] px-4 rounded-full border-0 cursor-pointer font-sans font-bold text-[14px] min-w-0"
@@ -106,20 +106,29 @@ export default function AppShell({
       </header>
 
       <div className="flex flex-1">
-        <aside className="hidden md:flex flex-col w-56 flex-none bg-forest-deep px-3 py-5 gap-1 sticky top-16 self-start h-[calc(100vh-4rem)] print:hidden">
+        <aside className="hidden md:flex flex-col w-60 flex-none px-3 py-5 gap-1 sticky top-16 self-start h-[calc(100vh-4rem)] print:hidden"
+          style={{ background: "var(--topo-dark), #0C2442", backgroundSize: "480px 480px" }}>
+          <div className="eyebrow px-3.5 pb-2" style={{ color: "#8FA3C0" }}>Trail map</div>
+          {/* The nav reads as a trail: a dashed path linking blaze markers, current stop in gold. */}
+          <div className="relative flex flex-col gap-1">
+            <span aria-hidden="true" className="absolute left-[27px] top-5 bottom-5 border-l-2 border-dashed" style={{ borderColor: "rgba(215,224,238,.18)" }} />
           {sideNav.map((n) => (
             <Link key={n.href} href={to(n.href)}
-              className="flex items-center gap-3 min-h-[44px] px-3.5 rounded-[10px] text-[15px] no-underline"
+              className="relative flex items-center gap-3 min-h-[44px] px-3.5 rounded-xl text-[15px] no-underline transition-colors hover:bg-white/5"
               style={active(n.href)
-                ? { background: "#12355F", color: "#FFFFFF", fontWeight: 700, boxShadow: "inset 3px 0 0 #F5B700" }
+                ? { background: "rgba(245,183,0,.12)", color: "#FFFFFF", fontWeight: 700 }
                 : { color: "#D7E0EE" }}>
-              <Icon name={n.icon} />
+              <span className="relative z-10 w-7 h-7 -ml-0.5 rounded-full flex items-center justify-center flex-none"
+                style={active(n.href) ? { background: "#F5B700", color: "#0C2442" } : { background: "#12355F", color: "#D7E0EE", boxShadow: "0 0 0 3px #0C2442" }}>
+                <Icon name={n.icon} size={15} />
+              </span>
               <span className="flex-1">{n.label}</span>
               {!!n.badge && (
                 <span className="min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center" style={{ background: "#F5B700", color: "#101B2D" }}>{n.badge}</span>
               )}
             </Link>
           ))}
+          </div>
           {isLeader && (
             <Link href={to("/admin")} className="mt-auto flex items-center gap-3 min-h-[44px] px-3.5 rounded-[10px] text-[15px] font-bold no-underline"
               style={{ background: "#F5B700", color: "#101B2D" }}>
@@ -133,7 +142,7 @@ export default function AppShell({
         </main>
       </div>
 
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white z-30 pb-[env(safe-area-inset-bottom)]" style={{ boxShadow: "0 -6px 20px rgba(16,27,45,.08)" }}>
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white z-30 pb-[env(safe-area-inset-bottom)]" style={{ boxShadow: "0 -6px 20px rgba(16,27,45,.08)", borderTop: "3px solid #F5B700" }}>
         <div className="flex justify-around px-1 pt-1.5 pb-2">
           {mobileNav.map((n) => (
             <Link key={n.href} href={to(n.href)}

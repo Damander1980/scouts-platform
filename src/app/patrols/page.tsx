@@ -49,7 +49,7 @@ export default async function PatrolsPage({ searchParams }: { searchParams: Prom
       {selected && (
         <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)] items-start">
           <section className="card flex flex-col">
-            <span className="text-[12px] font-bold uppercase tracking-widest text-forest mb-2">Members ({roster.length})</span>
+            <span className="eyebrow text-forest mb-2">Members ({roster.length})</span>
             {roster.length === 0 && <span className="text-[14px] text-smoke">Nobody in this patrol yet.</span>}
             {roster.map((m) => (
               <div key={m.person_id} className="flex items-center gap-3 min-h-[52px] border-t border-[#EAE4D6] first:border-0">
@@ -60,7 +60,7 @@ export default async function PatrolsPage({ searchParams }: { searchParams: Prom
             ))}
           </section>
           <section className="card flex flex-col">
-            <span className="text-[12px] font-bold uppercase tracking-widest text-forest mb-2">Coming up</span>
+            <span className="eyebrow text-forest mb-2">Coming up</span>
             {(events ?? []).length === 0 && <span className="text-[14px] text-smoke">Nothing on the calendar.</span>}
             {(events ?? []).map((e) => {
               const going = roster.filter((m) => (rsvps ?? []).some((r) => r.event_id === e.id && r.person_id === m.person_id && r.status === "going"));

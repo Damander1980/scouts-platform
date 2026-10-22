@@ -15,7 +15,7 @@ export default function DemoTripSheet() {
       </div>
       <div className="grid grid-cols-2 gap-2">
         {[["Scouts", "3"], ["Adults", "2"], ["Seats offered", "7 / 5"], ["Two-deep", "Yes"]].map(([l, v]) => (
-          <div key={l} className="card"><div className="text-[11px] font-bold uppercase tracking-widest text-smoke">{l}</div><div className="font-extrabold text-[22px]" style={{ color: l === "Two-deep" ? "#12355F" : undefined }}>{v}</div></div>
+          <div key={l} className="card"><div className="eyebrow text-smoke">{l}</div><div className="font-extrabold text-[22px]" style={{ color: l === "Two-deep" ? "#12355F" : undefined }}>{v}</div></div>
         ))}
       </div>
       <section className="overflow-x-auto">

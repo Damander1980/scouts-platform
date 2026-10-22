@@ -133,7 +133,7 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
       </section>
 
       <section className="flex flex-col gap-2">
-        <div className="font-bold text-[13px] tracking-widest uppercase text-smoke">Import history</div>
+        <div className="eyebrow text-smoke">Import history</div>
         {batches.length === 0 && <div className="card text-smoke">No imports yet.</div>}
         {batches.map((b) => (
           <div key={b.id} className="card flex items-center gap-3 flex-wrap">

@@ -295,7 +295,7 @@ export default function AdvancementClient({
             {scout.first_name[0]}{scout.last_name[0]}
           </div>
           <div className="flex-1">
-            <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#AEB9C9" }}>Advancement</div>
+            <div className="eyebrow" style={{ color: "#AEB9C9" }}>Advancement</div>
             <h1 className="font-display font-extrabold text-[28px] leading-tight m-0">{scout.first_name} {scout.last_name}</h1>
             <div className="text-[14px]" style={{ color: "#D7E0EE" }}>
               {currentRank ? `${currentRank.name} rank` : "Working on Scout rank"}
@@ -323,7 +323,7 @@ export default function AdvancementClient({
             { label: "Next rank", value: nextRank ? `${stats(nextRank).pct}%` : "Eagle!" },
           ].map((s) => (
             <div key={s.label} className="bg-white rounded-2xl p-4 border border-[#DDD6C5]">
-              <div className="text-[11px] font-bold tracking-widest uppercase" style={{ color: "#4B5568" }}>{s.label}</div>
+              <div className="eyebrow" style={{ color: "#4B5568" }}>{s.label}</div>
               <div className="font-display font-extrabold text-[22px] mt-1">{s.value}</div>
             </div>
           ))}
@@ -333,9 +333,9 @@ export default function AdvancementClient({
           const left = nextRank.requirements.filter((q) => !progress[q.id]?.approved_by);
           const waiting = left.filter((q) => progress[q.id]?.completed_at).length;
           return (
-            <div className="rounded-[18px] p-5 flex flex-wrap items-center gap-4 text-white" style={{ background: "#12355F", boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
+            <div className="patch flex flex-wrap items-center gap-4">
               <div className="flex-1 min-w-[240px] flex flex-col gap-1">
-                <span className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>Next step to {nextRank.name}</span>
+                <span className="eyebrow" style={{ color: "#F5B700" }}>Next step to {nextRank.name}</span>
                 <span className="font-display font-extrabold text-[22px] leading-tight">
                   {left.length === 0 ? "Every requirement is signed off" : `${left.length} requirement${left.length === 1 ? "" : "s"} left: ${left.slice(0, 6).map((q) => q.number).join(", ")}${left.length > 6 ? "…" : ""}`}
                 </span>
@@ -352,7 +352,7 @@ export default function AdvancementClient({
 
         {extras && (
           <div className="bg-white rounded-[18px] shadow-float p-4 flex flex-wrap gap-x-6 gap-y-2 items-center">
-            <span className="text-[11px] font-bold tracking-widest uppercase" style={{ color: "#4B5568" }}>From attendance</span>
+            <span className="eyebrow" style={{ color: "#4B5568" }}>From attendance</span>
             <span className="text-[15px]"><b>{extras.credits.nights}</b> nights camped</span>
             <span className="text-[15px]"><b>{extras.credits.service}</b> service hours</span>
             <span className="text-[15px]"><b>{extras.credits.miles}</b> miles</span>
@@ -364,7 +364,7 @@ export default function AdvancementClient({
         {extras?.eagle && (
           <div className="bg-white rounded-[18px] shadow-float p-5 flex flex-wrap items-center gap-4">
             <div className="flex-1 min-w-[220px]">
-              <div className="text-[12px] font-bold uppercase tracking-widest text-forest">Eagle project</div>
+              <div className="eyebrow text-forest">Eagle project</div>
               <div className="font-display font-extrabold text-[20px]">{extras.eagle.title}</div>
               <div className="text-[14px] text-smoke">{extras.eagle.passed ? "Board of review passed. Eagle Scout!" : extras.eagle.next ? `Next: ${extras.eagle.next}` : "Board of review held"}</div>
             </div>
@@ -376,7 +376,7 @@ export default function AdvancementClient({
 
         {/* Rank trail */}
         <section className="flex flex-col gap-3">
-          <h2 className="font-bold text-[13px] tracking-widest uppercase m-0" style={{ color: "#4B5568" }}>Rank trail</h2>
+          <h2 className="eyebrow m-0" style={{ color: "#4B5568" }}>Rank trail</h2>
           <div className="bg-white rounded-[18px] shadow-float p-4 overflow-x-auto">
             <div className="flex items-start min-w-[560px]">
               {ranks.map((r, i) => {
@@ -423,7 +423,7 @@ export default function AdvancementClient({
                   });
                   return checks.length > 0 && (
                     <div className="mt-3 rounded-xl p-3 flex flex-col gap-1.5" style={{ background: "#F8F5EE" }}>
-                      <div className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#4B5568" }}>Automatic checks</div>
+                      <div className="eyebrow" style={{ color: "#4B5568" }}>Automatic checks</div>
                       {checks.map((c) => (
                         <div key={c.label} className="flex items-center gap-2 text-[14px]">
                           <span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-none" style={{ background: c.ok ? "#12355F" : "#C0392B" }}>{c.ok ? "✓" : "!"}</span>
@@ -442,7 +442,7 @@ export default function AdvancementClient({
         {/* Merit badges */}
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <h2 className="font-bold text-[13px] tracking-widest uppercase m-0" style={{ color: "#4B5568" }}>Merit badges</h2>
+            <h2 className="eyebrow m-0" style={{ color: "#4B5568" }}>Merit badges</h2>
             <button onClick={() => setPicker(!picker)}
               className="min-h-[40px] px-5 rounded-full font-bold text-[14px] border-0 cursor-pointer"
               style={{ background: "#F5B700", color: "#101B2D", fontFamily: "inherit" }}>

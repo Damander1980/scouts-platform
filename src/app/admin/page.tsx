@@ -62,10 +62,9 @@ export default async function AdminOverview() {
       )}
 
       {next && (
-        <Link href={`/events/${next.id}`} className="rounded-[20px] p-6 flex flex-wrap items-center gap-5 no-underline text-white"
-          style={{ background: "#12355F", boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
+        <Link href={`/events/${next.id}`} className="patch flex flex-wrap items-center gap-5 no-underline">
           <div className="flex-1 min-w-[240px] flex flex-col gap-1">
-            <span className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>Next up · {fmtDate(next.start_at, { weekday: "short", month: "short", day: "numeric" })}</span>
+            <span className="eyebrow" style={{ color: "#F5B700" }}>Next up · {fmtDate(next.start_at, { weekday: "short", month: "short", day: "numeric" })}</span>
             <span className="font-display font-extrabold text-[26px] leading-tight">{next.title}</span>
             {next.location && <span className="text-[14px]" style={{ color: "#D7E0EE" }}>{next.location}</span>}
           </div>

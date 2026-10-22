@@ -21,9 +21,9 @@ export default function DemoLeaderOverview() {
         <p className="text-[14px] m-0 mt-1 text-smoke">Troop 999 at a glance</p>
       </div>
 
-      <div className="rounded-[20px] p-6 flex flex-wrap items-center gap-5 text-white" style={{ background: "#12355F", ...FLOAT }}>
+      <div className="patch flex flex-wrap items-center gap-5">
         <div className="flex-1 min-w-[240px] flex flex-col gap-1">
-          <span className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>Next up · Fri, Oct 30</span>
+          <span className="eyebrow" style={{ color: "#F5B700" }}>Next up · Fri, Oct 30</span>
           <span className="font-display font-extrabold text-[26px] leading-tight">Caprock Canyons campout</span>
           <span className="text-[14px]" style={{ color: "#D7E0EE" }}>Caprock Canyons State Park</span>
         </div>
@@ -61,7 +61,7 @@ export default function DemoLeaderOverview() {
       </div>
 
       <section className="flex flex-col gap-2">
-        <h2 className="font-bold text-[13px] tracking-widest uppercase m-0 text-smoke">Needs attention</h2>
+        <h2 className="eyebrow m-0 text-smoke">Needs attention</h2>
         <div className="card p-0 overflow-hidden">
           {[["Families waiting to join", "2"], ["Requirements waiting for sign-off", "12"], ["Members without a current health form (A+B)", "4"], ["Youth Protection Training missing or expiring within 60 days", "3"]].map(([t, n]) => (
             <div key={t} className="flex justify-between items-center px-5 py-4 border-b border-[#EAE4D6] last:border-0">

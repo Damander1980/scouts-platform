@@ -47,7 +47,7 @@ export default async function CounselorPage() {
 
         <aside className="flex flex-col gap-5">
           <section className="card flex flex-col gap-2">
-            <span className="text-[12px] font-bold uppercase tracking-widest text-forest">Your Scouts</span>
+            <span className="eyebrow text-forest">Your Scouts</span>
             {(mine ?? []).length === 0 && <span className="text-[14px] text-smoke">No Scouts assigned to you yet.</span>}
             {((mine ?? []) as { adv_id: string; scout_id: string; scout_name: string; badge: string; status: string }[]).map((m) => (
               <Link key={m.adv_id} href={`/scout/${m.scout_id}/advancement`} className="flex items-center gap-2 no-underline text-ink min-h-[48px] border-t border-[#EAE4D6] first:border-0 flex-wrap">
@@ -57,7 +57,7 @@ export default async function CounselorPage() {
             ))}
           </section>
           <section className="card flex flex-col gap-2">
-            <span className="text-[12px] font-bold uppercase tracking-widest text-forest">Badges you counsel</span>
+            <span className="eyebrow text-forest">Badges you counsel</span>
             <div className="flex gap-1.5 flex-wrap">{myBadges.length ? myBadges.map((b) => <Chip key={b.id} tone="green">{b.name}</Chip>) : <span className="text-[14px] text-smoke">None yet. A unit admin assigns them on the Members page.</span>}</div>
           </section>
         </aside>

@@ -76,7 +76,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
 
       {!monthView && [...byMonth.entries()].map(([month, list]) => (
         <section key={month} className="flex flex-col gap-2">
-          <h2 className="font-bold text-[13px] tracking-widest uppercase m-0 text-smoke">{month}</h2>
+          <h2 className="eyebrow m-0 text-smoke">{month}</h2>
           <div className="card p-0 overflow-hidden">
             {list.map((e) => {
               const multi = e.end_at && new Date(e.end_at).toDateString() !== new Date(e.start_at).toDateString();
