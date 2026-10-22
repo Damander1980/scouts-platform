@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ErrorBox, Field } from "@/components/ui";
+import { ErrorBox, Field, fmtStamp } from "@/components/ui";
 
 const CONSENT = "I hold this Scoutbook position for this unit and allow ScoutPlatform to sign in to Scoutbook as me to copy roster and advancement both ways. I can remove this at any time, which deletes my stored login.";
 const POSITIONS: [string, string][] = [
@@ -55,7 +55,7 @@ export default function ScoutbookConnect({ orgId, canConnect, connection }: {
         <>
           <p className="text-[14px] m-0">
             Connected as <b>{connection.scoutbook_username}</b> ({POSITIONS.find(([k]) => k === connection.scoutbook_position)?.[1] ?? connection.scoutbook_position}).
-            {connection.last_sync_at ? ` Last synced ${new Date(connection.last_sync_at).toLocaleString()}.` : " Not synced yet."}
+            {connection.last_sync_at ? ` Last synced ${fmtStamp(connection.last_sync_at)}.` : " Not synced yet."}
           </p>
           {connection.last_error && <p className="text-[13px] m-0" style={{ color: "#A52A1C" }}>Last sync problem: {connection.last_error}</p>}
           {test && <p className="text-[14px] font-bold m-0 text-forest">{test}</p>}

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Field, Stat, money } from "@/components/ui";
+import { Chip, ErrorBox, Field, Stat, money, fmtDate } from "@/components/ui";
 import DuesTab, { type DuesPlan } from "./DuesTab";
 
 type Balance = { household_id: string; household_name: string; balance_cents: number; charges: number; paid: number; last_activity: string };
@@ -207,7 +207,7 @@ function Expenses({ expenses, canAct, busy, myId, orgId, run }: { expenses: Expe
       {expenses.map((e) => (
         <div key={e.id} className="card flex items-center gap-3 flex-wrap">
           <div className="flex-1 min-w-[200px]"><div className="font-bold">{money(e.amount_cents)} · {e.description}</div>
-            <div className="text-[12px] text-smoke">{e.requester} · {e.category} · {new Date(e.created_at).toLocaleDateString()}</div></div>
+            <div className="text-[12px] text-smoke">{e.requester} · {e.category} · {fmtDate(e.created_at, { month: "short", day: "numeric", year: "numeric" })}</div></div>
           <Chip tone={e.status === "paid" ? "green" : e.status === "rejected" ? "red" : "orange"}>{e.status.replace("_", " ")}</Chip>
           {canAct && e.status === "submitted" && <><button className="btn-secondary" disabled={busy} onClick={() => act(e, "approved")}>Approve</button><button className="btn-ghost" disabled={busy} onClick={() => act(e, "rejected")}>Reject</button></>}
           {canAct && e.status === "approved" && e.amount_cents >= 50000 && e.approved_by !== myId && <button className="btn-secondary" disabled={busy} onClick={() => act(e, "second_approval")}>Second approval</button>}
@@ -239,7 +239,7 @@ function BudgetTab({ budgets, tx, canEdit, busy, orgId, run }: { budgets: Budget
     <div className="flex flex-col gap-3">
       <div className="card flex items-center justify-between flex-wrap gap-2">
         <div><div className="font-bold text-[16px]">{b.fiscal_year} budget</div>
-          <div className="text-[13px] text-smoke">{b.approved_at ? `Approved by committee ${new Date(b.approved_at).toLocaleDateString()}` : "Draft — not yet approved by the committee"}</div></div>
+          <div className="text-[13px] text-smoke">{b.approved_at ? `Approved by committee ${fmtDate(b.approved_at, { month: "short", day: "numeric", year: "numeric" })}` : "Draft — not yet approved by the committee"}</div></div>
         {canEdit && !b.approved_at && <button className="btn-secondary" disabled={busy} onClick={() => run(async () => {
           const { error } = await supabase.from("budgets").update({ approved_at: new Date().toISOString() }).eq("id", b.id);
           if (error) throw error;
@@ -301,7 +301,7 @@ function Giving(p: Parameters<typeof MoneyClient>[0] & { busy: boolean; run: (fn
           <div key={goal.id} className="card flex flex-col gap-2">
             <div className="flex justify-between gap-2"><b>{goal.title}</b><span>{money(r)} of {money(goal.target_cents)}</span></div>
             <div className="h-3 rounded-full" style={{ background: "#EAE4D6" }}><div className="h-3 rounded-full" style={{ width: `${pct}%`, background: "#F5B700" }} /></div>
-            <div className="flex gap-2 items-center text-[13px] text-smoke">{goal.deadline && <>By {new Date(goal.deadline).toLocaleDateString()} ·</>}{goal.is_public ? "Shown on public page" : "Members only"}</div>
+            <div className="flex gap-2 items-center text-[13px] text-smoke">{goal.deadline && <>By {fmtDate(goal.deadline, { month: "short", day: "numeric", year: "numeric" })} ·</>}{goal.is_public ? "Shown on public page" : "Members only"}</div>
           </div>
         );
       })}
@@ -372,7 +372,7 @@ function Fundraisers(p: Parameters<typeof MoneyClient>[0] & { busy: boolean; run
         return (
           <div key={fr.id} className="card flex flex-col gap-2">
             <div className="flex justify-between gap-2 flex-wrap"><b className="text-[16px]">{fr.name}</b><span>{money(total)}{fr.target_cents ? ` of ${money(fr.target_cents)}` : ""}</span></div>
-            <div className="text-[13px] text-smoke">{fr.scout_share_pct}% of each sale goes to the selling Scout&apos;s account{fr.money_earning_approved_on ? ` · Money-Earning Application approved ${new Date(fr.money_earning_approved_on).toLocaleDateString()}` : ""}</div>
+            <div className="text-[13px] text-smoke">{fr.scout_share_pct}% of each sale goes to the selling Scout&apos;s account{fr.money_earning_approved_on ? ` · Money-Earning Application approved ${fmtDate(fr.money_earning_approved_on, { month: "short", day: "numeric", year: "numeric" })}` : ""}</div>
             {!fr.money_earning_approved_on && p.isTreasurer && (
               <div className="flex gap-2 items-center flex-wrap">
                 <Chip tone="orange">Needs council approval date</Chip>

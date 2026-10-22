@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox } from "@/components/ui";
+import { Chip, ErrorBox, fmtDate } from "@/components/ui";
 
 type Req = { id: string; person_id: string; status: string; execute_after: string; created_at: string };
 
@@ -30,7 +30,7 @@ export default function PrivacyClient({ family, requests }: { family: { id: stri
           <div className="flex items-center gap-2 flex-wrap">
             <b>{nameOf[r.person_id] ?? "Family member"}</b>
             <Chip tone={r.status === "canceled" ? "gray" : r.status === "paused" ? "red" : "orange"}>{r.status}</Chip>
-            <span className="text-[12px] text-smoke ml-auto">asked {new Date(r.created_at).toLocaleDateString()}</span>
+            <span className="text-[12px] text-smoke ml-auto">asked {fmtDate(r.created_at, { month: "short", day: "numeric", year: "numeric" })}</span>
           </div>
           {r.status === "pending" && (
             <div className="flex flex-col gap-2">
@@ -43,7 +43,7 @@ export default function PrivacyClient({ family, requests }: { family: { id: stri
               </div>
             </div>
           )}
-          {r.status === "confirmed" && <p className="text-[14px] m-0">Confirmed. This is scheduled after {new Date(r.execute_after).toLocaleDateString()}. You can cancel until then.</p>}
+          {r.status === "confirmed" && <p className="text-[14px] m-0">Confirmed. This is scheduled after {fmtDate(r.execute_after, { month: "short", day: "numeric", year: "numeric" })}. You can cancel until then.</p>}
           {["pending", "confirmed", "paused"].includes(r.status) && (
             <button className="btn-ghost self-start" disabled={busy} onClick={() => run(async () => {
               const { error } = await supabase.rpc("cancel_deletion", { p_request: r.id }); if (error) throw error;

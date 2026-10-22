@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Field } from "@/components/ui";
+import { Chip, ErrorBox, Field, fmtDate, fmtStamp } from "@/components/ui";
 import { BLOCK_LABELS, RenderBlocks, type Block, type BlockData } from "@/components/SiteBlocks";
 
 // One list of allowed image types; the extension comes from the type, not the file name.
@@ -72,7 +72,7 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
         <div>
           <h1 className="font-display font-extrabold text-[32px] m-0">{meta.title || "Untitled"}</h1>
           <div className="flex gap-1.5 mt-1 items-center flex-wrap text-[13px]">
-            {!page.published_at ? <Chip tone="orange">Draft, not live</Chip> : <Chip tone="green">Live since {new Date(page.published_at).toLocaleDateString()}</Chip>}
+            {!page.published_at ? <Chip tone="orange">Draft, not live</Chip> : <Chip tone="green">Live since {fmtDate(page.published_at, { month: "short", day: "numeric", year: "numeric" })}</Chip>}
             {dirty && <Chip tone="orange">Unsaved changes</Chip>}
             {live && <a href={live} target="_blank" className="font-bold text-forest">View live page</a>}
           </div>
@@ -174,7 +174,7 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
           <p className="text-[13px] text-smoke m-0">Each publish is saved. Restoring loads that version into the draft so you can check it before publishing.</p>
           {versions.map((v) => (
             <div key={v.id} className="flex items-center gap-2 border-t py-1.5" style={{ borderColor: "#EAE4D6" }}>
-              <span className="text-[14px]">{new Date(v.published_at).toLocaleString()}</span>
+              <span className="text-[14px]">{fmtStamp(v.published_at)}</span>
               <button className="btn-ghost ml-auto" disabled={busy} onClick={() => {
                 // A saved-but-unpublished draft isn't in the history, so restoring would lose it too.
                 const unpublished = page.published_at === null || JSON.stringify(blocks) !== JSON.stringify(page.published ?? []);

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { fmtDate } from "@/components/ui";
 
 export type SiteData = {
   org: {
@@ -143,7 +144,7 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
             <div key={e.id} className="flex flex-col py-2 border-t border-[#EAE4D6] first-of-type:border-0">
               <a href={`/events/${e.id}`} className="font-bold no-underline" style={{ color: e.deadline ? "#1E8A3E" : "#1F5F9F" }}>{e.title}</a>
               <span className="text-[14px]">({fmt(e.start_at)})</span>
-              {e.deadline && <span className="text-[14px]">Sign up by {new Date(e.deadline).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}</span>}
+              {e.deadline && <span className="text-[14px]">Sign up by {fmtDate(e.deadline, { month: "short", day: "2-digit", year: "numeric" })}</span>}
             </div>
           ))}
         </section>
@@ -151,7 +152,7 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
           {albums.map((a, ai) => a.photos.length > 0 && (
             <button key={a.id} onClick={() => setLightbox({ album: ai, i: 0 })} className="bg-transparent border-0 p-0 cursor-pointer text-center font-sans">
               <img src={storageUrl + a.photos[0].path} alt={a.title} className="w-full aspect-[4/3] object-cover rounded-lg" loading="lazy" />
-              <div className="text-[14px] mt-1" style={{ color: "#1F5F9F" }}>{a.title}{a.taken_on ? ` (${new Date(a.taken_on).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" })})` : ""}</div>
+              <div className="text-[14px] mt-1" style={{ color: "#1F5F9F" }}>{a.title}{a.taken_on ? ` (${fmtDate(a.taken_on, { month: "2-digit", day: "2-digit", year: "2-digit" })})` : ""}</div>
             </button>
           ))}
         </section>

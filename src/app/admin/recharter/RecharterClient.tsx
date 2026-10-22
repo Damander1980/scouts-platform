@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Stat } from "@/components/ui";
+import { Chip, ErrorBox, Stat, fmtDate } from "@/components/ui";
 
 export type Person = { id: string; name: string; last: string; type: string; role: string; ypt: string | null; reg: string | null };
 type Rc = { id: string; items: Record<string, { done: boolean; at?: string }>; notes: string | null; due_on: string | null; submitted_at: string | null };
@@ -80,7 +80,7 @@ export default function RecharterClient({ orgId, year, canEdit, people, recharte
             <input type="checkbox" className="mt-1 w-5 h-5" checked={!!items[k]?.done} disabled={!canEdit || busy} onChange={() => toggle(k)} />
             <span className="flex flex-col">
               <span className="font-bold text-[14px]">{label}{k === "ypt" && yptBad.length > 0 && <span style={{ color: "#A52A1C" }}> ({yptBad.length} not current)</span>}</span>
-              <span className="text-[13px] text-smoke">{hint}{items[k]?.done && items[k]?.at ? ` Done ${new Date(items[k].at!).toLocaleDateString()}.` : ""}</span>
+              <span className="text-[13px] text-smoke">{hint}{items[k]?.done && items[k]?.at ? ` Done ${fmtDate(items[k].at!, { month: "short", day: "numeric", year: "numeric" })}.` : ""}</span>
             </span>
           </label>
         ))}

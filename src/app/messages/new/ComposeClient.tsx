@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ErrorBox, Field } from "@/components/ui";
+import { ErrorBox, Field, fmtDate } from "@/components/ui";
 
 export default function ComposeClient({ orgId, isLeader, weekBroadcasts = 0, canMoney = false, patrols, events, members, initialAudience, initialRef }: {
   orgId: string; isLeader: boolean; weekBroadcasts?: number; canMoney?: boolean;
@@ -66,7 +66,7 @@ export default function ComposeClient({ orgId, isLeader, weekBroadcasts = 0, can
       {["event", "nonresponders"].includes(audience) && (
         <Field label="Event">
           <select className="input" value={ref} onChange={(e) => setRef(e.target.value)}>
-            {events.map((ev) => <option key={ev.id} value={ev.id}>{ev.title} · {new Date(ev.start_at).toLocaleDateString()}</option>)}
+            {events.map((ev) => <option key={ev.id} value={ev.id}>{ev.title} · {fmtDate(ev.start_at, { month: "short", day: "numeric", year: "numeric" })}</option>)}
           </select>
         </Field>
       )}

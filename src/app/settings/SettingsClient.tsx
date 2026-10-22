@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ErrorBox, Field } from "@/components/ui";
+import { ErrorBox, Field, fmtDate } from "@/components/ui";
 
 const SMS_CONSENT =
   "I agree to receive text messages from ScoutPlatform about my unit's events, deadlines, payments and urgent changes at the number above. " +
@@ -87,7 +87,7 @@ export default function SettingsClient({ person, email, prefs, weekCount }: {
           <div className="flex flex-col gap-2 pl-8">
             <input aria-label="Mobile number" className="input" type="tel" placeholder="Mobile number" value={p.sms_phone ?? ""} onChange={(e) => setP({ ...p, sms_phone: e.target.value })} />
             {p.sms_consent_at ? (
-              <div className="text-[13px] text-smoke">You agreed to texts on {new Date(p.sms_consent_at).toLocaleDateString()}. Turn off anytime, or reply STOP.</div>
+              <div className="text-[13px] text-smoke">You agreed to texts on {fmtDate(p.sms_consent_at, { month: "short", day: "numeric", year: "numeric" })}. Turn off anytime, or reply STOP.</div>
             ) : (
               <label className="flex items-start gap-3 text-[13px]">
                 <input type="checkbox" className="w-5 h-5 mt-0.5 flex-none" checked={agree} onChange={(e) => setAgree(e.target.checked)} />

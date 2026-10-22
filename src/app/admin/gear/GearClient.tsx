@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Field } from "@/components/ui";
+import { Chip, ErrorBox, Field, fmtDate } from "@/components/ui";
 
 type Item = { id: string; name: string; category: string | null; tag: string | null; condition: string; notes: string | null };
 type Out = { id: string; equipment_id: string; person_id: string; out_at: string; due_at: string | null; returned_at: string | null };
@@ -58,7 +58,7 @@ export default function GearClient({ orgId, items, outs, people, docs }: { orgId
                   <div className="flex items-center gap-2 flex-wrap">
                     <b>{i.name}</b>{i.tag && <Chip>{i.tag}</Chip>}<Chip>{i.category}</Chip>
                     {i.condition === "needs_repair" && <Chip tone="orange">Needs repair</Chip>}
-                    {o ? <Chip tone={o.due_at && new Date(o.due_at) < new Date() ? "red" : "orange"}>Out with {nameOf[o.person_id] ?? "member"}{o.due_at ? `, due ${new Date(o.due_at).toLocaleDateString()}` : ""}</Chip> : <Chip tone="green">In</Chip>}
+                    {o ? <Chip tone={o.due_at && new Date(o.due_at) < new Date() ? "red" : "orange"}>Out with {nameOf[o.person_id] ?? "member"}{o.due_at ? `, due ${fmtDate(o.due_at, { month: "short", day: "numeric", year: "numeric" })}` : ""}</Chip> : <Chip tone="green">In</Chip>}
                     <div className="ml-auto flex gap-2">
                       {o ? <button className="btn-secondary" disabled={busy} onClick={() => run(async () => { const { error } = await supabase.from("checkouts").update({ returned_at: new Date().toISOString() }).eq("id", o.id); if (error) throw error; })}>Returned</button>
                         : i.condition !== "retired" && <button className="btn-secondary" onClick={() => setLending({ id: i.id, person: "", due: "" })}>Lend</button>}

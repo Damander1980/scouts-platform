@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ScoutbookSync from "@/components/ScoutbookSync";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Stat } from "@/components/ui";
+import { Chip, ErrorBox, Stat, fmtDate } from "@/components/ui";
 
 type Q = { progress_id: string; person_id: string; scout: string; item: string; item_kind: string; item_id: string; number: string; requirement: string; done_at: string; can_sign: boolean };
 type S = { person_id: string; first_name: string; last_name: string; birthdate: string | null; current_rank: string | null; rank_earned_at: string | null; badges_earned: number; eagle_groups: number; badges_in_progress: number; pending_signoffs: number };
@@ -129,7 +129,7 @@ export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitT
                     <td className="px-3 py-2"><Link href={`/scout/${s.person_id}/advancement`} className="font-bold text-ink no-underline">{s.last_name}, {s.first_name}</Link></td>
                     <td className="px-2">{a ?? "—"} {a !== null && a >= 17 && s.current_rank !== "Eagle Scout" && <Chip tone="orange">Turns 18 soon</Chip>}</td>
                     <td className="px-2">{s.current_rank ?? "—"}</td>
-                    <td className="px-2 text-smoke">{s.rank_earned_at ? new Date(s.rank_earned_at).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "—"}</td>
+                    <td className="px-2 text-smoke">{s.rank_earned_at ? fmtDate(s.rank_earned_at, { month: "short", year: "numeric" }) : "—"}</td>
                     <td className="px-2">{s.badges_earned}</td>
                     <td className="px-2">{s.eagle_groups} / 14</td>
                     <td className="px-2">{s.badges_in_progress}</td>
@@ -160,7 +160,7 @@ export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitT
           {awards.map((a) => (
             <div key={a.adv_id} className="card flex items-center gap-2 flex-wrap">
               <b className="text-[15px]">{a.scout}</b><span>{a.item}</span><Chip>{a.kind === "rank" ? "Rank" : a.kind === "badge" ? "Merit badge" : "Adventure"}</Chip>
-              <span className="text-[12px] text-smoke">earned {new Date(a.completed_at).toLocaleDateString()}</span>
+              <span className="text-[12px] text-smoke">earned {fmtDate(a.completed_at, { month: "short", day: "numeric", year: "numeric" })}</span>
               <div className="ml-auto flex gap-2">
                 {!a.purchased_at
                   ? <button className="btn-secondary" disabled={busy} onClick={() => run(async () => { const { error } = await supabase.from("scout_advancement").update({ purchased_at: new Date().toISOString() }).eq("id", a.adv_id); if (error) throw error; })}>Mark bought</button>

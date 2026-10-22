@@ -1,6 +1,6 @@
 import { requireOrg } from "@/lib/context";
 import Shell from "@/components/Shell";
-import { Chip, PageTitle, SectionLabel } from "@/components/ui";
+import { Chip, PageTitle, SectionLabel, fmtDate } from "@/components/ui";
 import { loadFamily } from "@/lib/family";
 import SignPermission from "./SignPermission";
 
@@ -19,7 +19,7 @@ export default async function FormsPage() {
     const f = (forms ?? []).find((x) => x.person_id === pid && x.type === type);
     if (!f) return { tone: "orange" as const, label: "Needed" };
     if (f.expires_at && new Date(f.expires_at) < new Date()) return { tone: "red" as const, label: "Expired" };
-    return { tone: "green" as const, label: f.expires_at ? `Good to ${new Date(f.expires_at).toLocaleDateString()}` : "On file" };
+    return { tone: "green" as const, label: f.expires_at ? `Good to ${fmtDate(f.expires_at, { month: "short", day: "numeric", year: "numeric" })}` : "On file" };
   };
 
   return (

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { parseCsv } from "@/lib/csv";
 import { mapActivity, mapAdvancement, mapRoster } from "@/lib/importMap";
-import { Chip, ErrorBox } from "@/components/ui";
+import { Chip, ErrorBox, fmtStamp } from "@/components/ui";
 
 type Batch = { id: string; kind: string; file_name: string | null; row_count: number; created_at: string; undone_at: string | null };
 
@@ -139,7 +139,7 @@ export default function ImportClient({ orgId, isAdmin, batches }: { orgId: strin
           <div key={b.id} className="card flex items-center gap-3 flex-wrap">
             <span className="font-bold text-[14px]">{b.file_name ?? b.kind}</span>
             <Chip>{b.kind}</Chip>
-            <span className="text-[13px] text-smoke">{b.row_count} rows · {new Date(b.created_at).toLocaleString()}</span>
+            <span className="text-[13px] text-smoke">{b.row_count} rows · {fmtStamp(b.created_at)}</span>
             {b.undone_at ? <Chip tone="gray">Undone</Chip> : isAdmin && (
               <button className="btn-ghost ml-auto" disabled={busy} onClick={async () => {
                 setBusy(true);

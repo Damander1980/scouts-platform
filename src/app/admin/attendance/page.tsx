@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireLeader } from "@/lib/context";
-import { Chip, PageTitle, Stat } from "@/components/ui";
+import { Chip, PageTitle, Stat, fmtDate } from "@/components/ui";
 
 type Row = { person_id: string; first_name: string; last_name: string; type: string; meetings_held: number; meetings_attended: number; outings_attended: number; nights: number; service_hours: number; miles: number; last_seen: string | null };
 
@@ -58,7 +58,7 @@ export default async function AttendanceReport({ searchParams }: { searchParams:
         <div className="card flex flex-col gap-2" style={{ background: "#FFF6D6", borderColor: "#F0DA8C" }}>
           <div className="font-bold text-[15px]">Attendance not taken yet</div>
           <div className="flex gap-2 flex-wrap">
-            {untaken.map((e) => <Link key={e.id} href={`/events/${e.id}/attendance`} className="btn-secondary no-underline">{e.title} · {new Date(e.start_at).toLocaleDateString()}</Link>)}
+            {untaken.map((e) => <Link key={e.id} href={`/events/${e.id}/attendance`} className="btn-secondary no-underline">{e.title} · {fmtDate(e.start_at, { month: "short", day: "numeric", year: "numeric" })}</Link>)}
           </div>
         </div>
       )}
@@ -68,7 +68,7 @@ export default async function AttendanceReport({ searchParams }: { searchParams:
           <thead>
             <tr className="text-left text-[11px] uppercase text-smoke">
               <th className="px-3 py-2">Scout</th><th className="px-2">Meetings</th><th className="px-2">Outings</th><th className="px-2">Nights</th><th className="px-2">Service hrs</th><th className="px-2">Miles</th>
-              {(recent ?? []).slice(0, 8).reverse().map((e) => <th key={e.id} className="px-1 text-center" title={e.title}>{new Date(e.start_at).toLocaleDateString("en-US", { month: "numeric", day: "numeric" })}</th>)}
+              {(recent ?? []).slice(0, 8).reverse().map((e) => <th key={e.id} className="px-1 text-center" title={e.title}>{fmtDate(e.start_at, { month: "numeric", day: "numeric" })}</th>)}
             </tr>
           </thead>
           <tbody>

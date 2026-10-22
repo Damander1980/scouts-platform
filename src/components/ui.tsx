@@ -65,8 +65,17 @@ export function money(cents: number) {
 // set NEXT_PUBLIC_TIME_ZONE to change it). Same zone on server and browser, so no hydration mismatch.
 export const TIME_ZONE = process.env.NEXT_PUBLIC_TIME_ZONE || "America/Chicago";
 
+// A plain calendar date ("2026-11-01": due dates, form expiry, YPT) is the same day everywhere, so it
+// is shown as-is; reading it as UTC midnight would show the day before in US time zones.
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
 export function fmtDate(iso: string, opts: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric" }) {
-  return new Date(iso).toLocaleDateString("en-US", { timeZone: TIME_ZONE, ...opts });
+  return new Date(iso).toLocaleDateString("en-US", { timeZone: DATE_ONLY.test(iso) ? "UTC" : TIME_ZONE, ...opts });
+}
+
+// Date and time in the unit's time zone, for "when" stamps (sent, synced, published).
+export function fmtStamp(iso: string) {
+  return new Date(iso).toLocaleString("en-US", { timeZone: TIME_ZONE, month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
 export function fmtTime(iso: string) {

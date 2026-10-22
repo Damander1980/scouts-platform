@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox } from "@/components/ui";
+import { Chip, ErrorBox, fmtDate } from "@/components/ui";
 
 type Person = { id: string; name: string; type: string; role: string; ypt: string | null; swim: string | null };
 type Form = { person_id: string; type: string; exam_date: string | null; expires_at: string | null };
@@ -132,7 +132,7 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
               <div className="flex flex-wrap gap-1.5">
                 {leaders.map((l) => (
                   <Chip key={l.id} tone={!l.ypt ? "orange" : new Date(l.ypt) < new Date() ? "red" : "green"}>
-                    {l.name}: {!l.ypt ? "not recorded" : new Date(l.ypt) < new Date() ? "expired" : new Date(l.ypt).toLocaleDateString()}
+                    {l.name}: {!l.ypt ? "not recorded" : new Date(l.ypt) < new Date() ? "expired" : fmtDate(l.ypt, { month: "short", day: "numeric", year: "numeric" })}
                   </Chip>
                 ))}
               </div>

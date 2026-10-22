@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireStaff } from "@/lib/context";
-import { Chip, PageTitle } from "@/components/ui";
+import { Chip, PageTitle, fmtStamp } from "@/components/ui";
 
 export default async function MessageLogPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams;
@@ -35,7 +35,7 @@ export default async function MessageLogPage({ searchParams }: { searchParams: P
                 <b>{s ? `${s.first_name} ${s.last_name}` : "Member"}</b>{s?.type === "youth" && <Chip tone="orange">Youth sender</Chip>}
                 <Chip>{m.audience}</Chip>
                 {d && <Chip tone={d.full_email ? "green" : "gray"}>{d.full_email ? `Emailed ${d.delivered}` : "In-app"}</Chip>}
-                <span className="ml-auto text-[12px] text-smoke">{new Date(m.created_at).toLocaleString()}</span>
+                <span className="ml-auto text-[12px] text-smoke">{fmtStamp(m.created_at)}</span>
               </div>
               {m.subject && <div className="font-bold">{m.subject}</div>}
               <div className="text-[14px] text-smoke line-clamp-2">{m.body}</div>
@@ -46,7 +46,7 @@ export default async function MessageLogPage({ searchParams }: { searchParams: P
       {isAdmin && (views ?? []).length > 0 && (
         <details className="card"><summary className="font-bold cursor-pointer">Who has opened this log</summary>
           <div className="flex flex-col gap-1 mt-2 text-[13px]">
-            {(views ?? []).map((v, i) => <div key={i}>{v.viewer_id ? `${nameOf[v.viewer_id]?.first_name ?? ""} ${nameOf[v.viewer_id]?.last_name ?? ""}` : "Admin"} · {new Date(v.viewed_at).toLocaleString()}</div>)}
+            {(views ?? []).map((v, i) => <div key={i}>{v.viewer_id ? `${nameOf[v.viewer_id]?.first_name ?? ""} ${nameOf[v.viewer_id]?.last_name ?? ""}` : "Admin"} · {fmtStamp(v.viewed_at)}</div>)}
           </div>
         </details>
       )}

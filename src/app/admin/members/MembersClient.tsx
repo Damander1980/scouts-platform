@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Field } from "@/components/ui";
+import { Chip, ErrorBox, Field, fmtDate } from "@/components/ui";
 
 const ROLES = [
   "scout", "parent_guardian", "scoutmaster", "assistant_scoutmaster", "committee_chair",
@@ -203,7 +203,7 @@ Or enter join code ${String(joinCode ?? "").toUpperCase()} after you sign up. Ad
           {requests.map((r) => (
             <div key={r.id} className="card flex flex-col gap-2">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div><b>{r.requester}</b> <span className="text-smoke text-[13px]">asked {new Date(r.created_at).toLocaleDateString()}</span></div>
+                <div><b>{r.requester}</b> <span className="text-smoke text-[13px]">asked {fmtDate(r.created_at, { month: "short", day: "numeric", year: "numeric" })}</span></div>
                 {isAdmin ? (
                   <div className="flex gap-2">
                     <button className="btn-primary" disabled={busy} onClick={() => decide(r.id, true)}>Approve</button>

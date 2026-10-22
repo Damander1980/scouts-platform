@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Field, money } from "@/components/ui";
+import { Chip, ErrorBox, Field, money, fmtDate } from "@/components/ui";
 
 export type DuesPlan = { id: string; name: string; school_year: string; amount_cents: number; due_on: string | null; applies_to: string };
 type Row = { person_id: string; first_name: string; last_name: string; household_id: string | null; household_name: string | null; charged_cents: number; adjusted_cents: number; family_balance_cents: number };
@@ -81,7 +81,7 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
           <div className="card flex items-center gap-3 flex-wrap">
             <div className="flex-1 min-w-[200px]">
               <div className="font-bold text-[16px]">{plan.name} · {money(plan.amount_cents)} each</div>
-              <div className="text-[13px] text-smoke">{plan.due_on ? `Due ${new Date(plan.due_on).toLocaleDateString()}` : "No due date"} · {paidUp} paid up · {owing.length} owe · {notCharged} not charged yet</div>
+              <div className="text-[13px] text-smoke">{plan.due_on ? `Due ${fmtDate(plan.due_on, { month: "short", day: "numeric", year: "numeric" })}` : "No due date"} · {paidUp} paid up · {owing.length} owe · {notCharged} not charged yet</div>
             </div>
             {canEdit && notCharged > 0 && (
               <button className="btn-primary" disabled={busy} onClick={() => run(async () => {

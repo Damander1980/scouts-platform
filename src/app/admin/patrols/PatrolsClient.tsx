@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Field } from "@/components/ui";
+import { Chip, ErrorBox, Field, fmtDate } from "@/components/ui";
 
 type Patrol = { id: string; name: string; kind: string; active: boolean };
 type PM = { id: string; patrol_id: string; person_id: string; role: string; start_date: string };
@@ -179,7 +179,7 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
             <div key={x.id} className="flex items-center gap-2 text-[14px] py-1.5 border-b border-[#EEE8D9] last:border-0 flex-wrap">
               <span className="font-bold">{nameOf[x.person_id] ?? "Scout"}</span>
               <span>{x.title}</span>
-              <span className="text-smoke">{new Date(x.start_date).toLocaleDateString()} – {x.end_date ? new Date(x.end_date).toLocaleDateString() : "now"}</span>
+              <span className="text-smoke">{fmtDate(x.start_date, { month: "short", day: "numeric", year: "numeric" })} – {x.end_date ? fmtDate(x.end_date, { month: "short", day: "numeric", year: "numeric" }) : "now"}</span>
               <Chip tone={x.end_date ? "gray" : "green"}>{months(x.start_date, x.end_date)} months</Chip>
               {!x.end_date && canEdit && (
                 <button className="btn-ghost text-[13px] ml-auto" disabled={busy} onClick={() => run(async () => {

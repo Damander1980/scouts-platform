@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Field } from "@/components/ui";
+import { Chip, ErrorBox, Field, fmtDate, fmtStamp } from "@/components/ui";
 
 type Person = { id: string; name: string; type: string; consent: boolean | null; role: string };
 type Photo = { id: string; path: string; caption: string | null; tagged: string[]; hidden: boolean };
@@ -154,7 +154,7 @@ export default function SiteEditor({ orgId, slug, isAdmin, site: initial, settin
           {albums.map((a) => (
             <div key={a.id} className="card flex flex-col gap-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <b className="text-[16px]">{a.title}</b>{a.taken_on && <span className="text-smoke text-[13px]">{new Date(a.taken_on).toLocaleDateString()}</span>}
+                <b className="text-[16px]">{a.title}</b>{a.taken_on && <span className="text-smoke text-[13px]">{fmtDate(a.taken_on, { month: "short", day: "numeric", year: "numeric" })}</span>}
                 <Chip tone={a.visibility === "public" ? "green" : "gray"}>{a.visibility === "public" ? "Public" : "Members only"}</Chip>
                 <label className="btn-secondary ml-auto cursor-pointer">Add photos
                   <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
@@ -214,7 +214,7 @@ export default function SiteEditor({ orgId, slug, isAdmin, site: initial, settin
               <div className="flex items-center gap-2 flex-wrap">
                 <b>{r.name}</b> <a href={`mailto:${r.email}`} className="text-forest">{r.email}</a>{r.phone && <span>{r.phone}</span>}
                 {r.to_person && <Chip>To {nameOf[r.to_person]?.name ?? "leader"}</Chip>}
-                <span className="ml-auto text-[12px] text-smoke">{new Date(r.created_at).toLocaleString()}</span>
+                <span className="ml-auto text-[12px] text-smoke">{fmtStamp(r.created_at)}</span>
               </div>
               <div className="text-[15px] whitespace-pre-wrap">{r.message}</div>
               {!r.handled && <button className="btn-ghost self-start" onClick={() => run(async () => {
