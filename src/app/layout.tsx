@@ -3,6 +3,8 @@ import "./globals.css";
 import RegisterSW from "@/components/RegisterSW";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  twitter: { card: "summary_large_image" },
   title: { default: "ScoutPlatform", template: "%s · ScoutPlatform" },
   description: "RSVP, pay, attendance and advancement for your Scouting unit",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "ScoutPlatform" },

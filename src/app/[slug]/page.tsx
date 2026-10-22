@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const d = await load(slug);
   if (!d?.org) return {};
-  return { title: d.org.name, description: d.org.site?.welcome_text?.slice(0, 160) ?? `${d.org.name}, ${d.org.city ?? ""}` };
+  return { title: d.org.name, openGraph: { title: d.org.name, images: ["/icons/512"] }, twitter: { card: "summary" }, description: d.org.site?.welcome_text?.slice(0, 160) ?? `${d.org.name}, ${d.org.city ?? ""}` };
 }
 
 export default async function TroopPublicPage({ params }: { params: Promise<{ slug: string }> }) {

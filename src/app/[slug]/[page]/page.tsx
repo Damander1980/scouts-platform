@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug, page } = await params;
   const d = await load(slug, page);
   if (!d.site?.org || !d.page) return {};
-  return { title: `${d.page.title} · ${d.site.org.name}`, robots: d.page.visibility === "members" ? { index: false } : undefined };
+  return { title: `${d.page.title} · ${d.site.org.name}`, openGraph: { title: `${d.page.title} · ${d.site.org.name}`, images: ["/icons/512"] }, twitter: { card: "summary" }, robots: d.page.visibility === "members" ? { index: false } : undefined };
 }
 
 export default async function SitePage({ params }: { params: Promise<{ slug: string; page: string }> }) {

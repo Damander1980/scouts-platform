@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-// Link preview image (texts, email, social posts) for the landing page.
+// Link preview image (texts, email, social posts). Troop sites override it with their own icon.
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "ScoutPlatform: less paperwork, more Scouting";
@@ -22,7 +22,7 @@ export default function OgImage() {
           <div style={{ fontSize: 92, fontWeight: 800, lineHeight: 1 }}>Less paperwork.</div>
           <div style={{ fontSize: 92, fontWeight: 800, lineHeight: 1, color: "#F5B700" }}>More Scouting.</div>
         </div>
-        <div style={{ fontSize: 30, color: "#D7E0EE" }}>Sign-ups, payments, health forms, advancement and messages for Scouts BSA troops.</div>
+        <div style={{ fontSize: 30, color: "#D7E0EE" }}>Sign-ups, payments, health form status, advancement and messages for Scouts BSA troops.</div>
       </div>
     ),
     size,
