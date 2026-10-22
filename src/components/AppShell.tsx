@@ -62,7 +62,9 @@ export default function AppShell({
   const active = (href: string) => (href === "/dashboard" ? pathname === href : pathname.startsWith(href));
 
   async function switchOrg(id: string) {
-    await fetch("/api/switch-org", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orgId: id }) });
+    const res = await fetch("/api/switch-org", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orgId: id }) }).catch(() => null);
+    // Never leave a leader thinking they switched troops when they didn't.
+    if (!res?.ok) { window.alert("Couldn't switch troops. Check your connection and try again."); return; }
     setMenu(false);
     router.refresh();
   }

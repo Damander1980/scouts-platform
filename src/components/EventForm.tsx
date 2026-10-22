@@ -58,6 +58,7 @@ export default function EventForm({ orgId, initial, copyFrom }: { orgId: string;
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setError("");
+    let createdId: string | null = null;
     try {
       if (f.end && f.start && new Date(f.end) < new Date(f.start)) throw new Error("The end must be after the start.");
       if (!initial?.id && f.kind === "meeting" && f.repeatUntil) {
@@ -95,6 +96,7 @@ export default function EventForm({ orgId, initial, copyFrom }: { orgId: string;
         ? await supabase.from("events").update(row).eq("id", initial.id).select("id").single()
         : await supabase.from("events").insert(row).select("id").single();
       if (error) throw error;
+      if (!initial?.id) createdId = data.id;
       // Editing the time or place of an event people signed up for: tell them.
       if (initial?.id) {
         const changed = [
@@ -123,7 +125,11 @@ export default function EventForm({ orgId, initial, copyFrom }: { orgId: string;
       }
       router.push(`/events/${data.id}`);
       router.refresh();
-    } catch (e: any) { setError(e.message); }
+    } catch (e: any) {
+      // The event itself was created: go to it rather than leave a form whose Save would make a second copy.
+      if (createdId) { window.alert(`The event was saved, but: ${e.message}`); router.push(`/events/${createdId}`); router.refresh(); return; }
+      setError(e.message);
+    }
     setBusy(false);
   }
 

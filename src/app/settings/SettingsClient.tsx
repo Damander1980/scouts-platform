@@ -35,7 +35,13 @@ export default function SettingsClient({ person, email, prefs, weekCount }: {
   const [saved, setSaved] = useState("");
   const [error, setError] = useState("");
 
+  const [saving, setSaving] = useState(false);
   async function save() {
+    if (saving) return;
+    setSaving(true);
+    try { await saveInner(); } finally { setSaving(false); }
+  }
+  async function saveInner() {
     setError(""); setSaved("");
     if (p.sms_on && !p.sms_consent_at && !agree) { setError("Check the box to agree to texts first."); return; }
     if (p.sms_on && !/^\+?[0-9 ()-]{10,}$/.test(p.sms_phone ?? "")) { setError("Enter a valid mobile number for texts."); return; }
@@ -124,7 +130,7 @@ export default function SettingsClient({ person, email, prefs, weekCount }: {
       </div>
 
       <div className="flex gap-3 flex-wrap items-center">
-      <button className="btn-primary px-10" onClick={save}>Save settings</button>
+      <button className="btn-primary px-10" disabled={saving} onClick={save}>{saving ? "Saving..." : "Save settings"}</button>
       <a href="/settings/privacy" className="btn-secondary no-underline">Privacy & data (request deletion)</a>
       <button className="btn-ghost" onClick={async () => { navigator.serviceWorker?.controller?.postMessage("clear-private"); await supabase.auth.signOut(); window.location.href = "/login"; }}>Sign out</button>
       </div>

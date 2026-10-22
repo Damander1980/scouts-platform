@@ -25,6 +25,7 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
   });
   const [ok, setOk] = useState("");
   const [error, setError] = useState("");
+  const [rotating, setRotating] = useState(false);
   const [token, setToken] = useState(calendarToken);
 
   async function save() {
@@ -109,8 +110,11 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
         <div className="font-bold text-[16px]">Calendar feed</div>
         <p className="text-[13px] text-smoke m-0">Families add this to Google or Apple Calendar from the Events page. If the link leaks, make a new one.</p>
         <code className="text-[12px] break-all bg-paper rounded-lg p-2">{feed}</code>
-        {isAdmin && <button className="btn-secondary self-start" onClick={async () => {
+        {isAdmin && <button className="btn-secondary self-start" disabled={rotating} onClick={async () => {
+          if (!window.confirm("Make a new calendar link? Everyone using the old link stops getting updates until they add the new one.")) return;
+          setRotating(true);
           const { data, error } = await supabase.rpc("rotate_calendar_token", { p_org: org.id });
+          setRotating(false);
           if (error) setError(error.message); else setToken(String(data));
         }}>Make a new link</button>}
       </section>

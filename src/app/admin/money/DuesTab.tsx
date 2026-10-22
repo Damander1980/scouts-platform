@@ -25,12 +25,15 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
 
   useEffect(() => {
     if (!selected) { setRows([]); return; }
-    supabase.rpc("dues_status", { p_plan: selected }).then(({ data }) => setRows((data ?? []) as Row[]));
+    supabase.rpc("dues_status", { p_plan: selected }).then(({ data, error: dErr }) => {
+      if (dErr) setError(`Couldn't load who owes dues: ${dErr.message}`); // never show an empty list as "nobody owes"
+      setRows((data ?? []) as Row[]);
+    });
   }, [selected, supabase]);
 
   const run = async (fn: () => Promise<void>, msg?: string) => {
     setBusy(true); setError(""); setOk("");
-    try { await fn(); if (msg) setOk(msg); router.refresh(); if (selected) { const { data } = await supabase.rpc("dues_status", { p_plan: selected }); setRows((data ?? []) as Row[]); } }
+    try { await fn(); if (msg) setOk(msg); router.refresh(); if (selected) { const { data, error: dErr } = await supabase.rpc("dues_status", { p_plan: selected }); if (dErr) throw dErr; setRows((data ?? []) as Row[]); } }
     catch (e: any) { setError(e.message ?? String(e)); }
     setBusy(false);
   };
@@ -51,9 +54,10 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
       {canEdit && (
         <form className="card grid sm:grid-cols-5 gap-3 items-end" onSubmit={(e) => { e.preventDefault(); run(async () => {
           const { data: { user } } = await supabase.auth.getUser();
-          const { data: me } = await supabase.from("persons").select("id").eq("user_id", user!.id).single();
+          const { data: me } = user ? await supabase.from("persons").select("id").eq("user_id", user.id).maybeSingle() : { data: null };
+          if (!me) throw new Error("Sign in again, then try once more.");
           const { data, error } = await supabase.from("dues_plans").insert({
-            org_id: orgId, name: f.name, school_year: f.year, amount_cents: Math.round(parseFloat(f.amount || "0") * 100), due_on: f.due || null, applies_to: f.applies, created_by: me!.id,
+            org_id: orgId, name: f.name, school_year: f.year, amount_cents: Math.round(parseFloat(f.amount || "0") * 100), due_on: f.due || null, applies_to: f.applies, created_by: me.id,
           }).select("id").single();
           if (error) throw error; setSelected(data.id); setF({ ...f, amount: "" });
         }, "Plan created. Review it, then charge families."); }}>

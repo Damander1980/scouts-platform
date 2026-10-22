@@ -33,6 +33,7 @@ export default function ChildLogin({ personId, name, age, email, linked }: { per
           setBusy(true); const { error } = await supabase.rpc("revoke_child_login", { p_person: personId });
           if (error) setError(error.message); else router.refresh(); setBusy(false);
         }}>Remove login</button>
+        {error && <span className="basis-full font-bold" style={{ color: "#A52A1C" }}>{error}</span>}
       </div>
     );
   }

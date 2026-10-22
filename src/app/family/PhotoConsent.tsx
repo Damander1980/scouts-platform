@@ -6,9 +6,12 @@ import { createClient } from "@/lib/supabase/client";
 export default function PhotoConsent({ personId, name, initial }: { personId: string; name: string; initial: boolean | null }) {
   const [value, setValue] = useState(initial);
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   async function set(v: boolean) {
-    setError("");
+    if (busy) return; // one change at a time, so quick taps can't land out of order
+    setError(""); setBusy(true);
     const { error } = await createClient().rpc("set_photo_consent", { p_person: personId, p_consent: v });
+    setBusy(false);
     if (error) setError(error.message); else setValue(v);
   }
   return (

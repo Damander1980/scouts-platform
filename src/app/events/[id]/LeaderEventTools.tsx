@@ -11,11 +11,14 @@ export default function LeaderEventTools({ eventId, canceled, ratioOk, adults, t
   const supabase = createClient();
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
+  const [canceling, setCanceling] = useState(false);
   const [error, setError] = useState("");
 
   async function cancel() {
+    if (canceling) return;
+    setCanceling(true);
     const { error } = await supabase.rpc("cancel_event", { p_event: eventId, p_reason: null });
-    if (error) { setError(error.message); return; }
+    if (error) { setError(error.message); setCanceling(false); setConfirming(false); return; }
     // Tell everyone signed up right away (urgent notice; server checks leader rights and sends once).
     await fetch("/api/notify/cancel", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId }) }).catch(() => {});
     router.refresh();
@@ -46,7 +49,7 @@ export default function LeaderEventTools({ eventId, canceled, ratioOk, adults, t
         <Link href={`/events/${eventId}/edit`} className="text-forest min-h-[44px] flex items-center">Edit event</Link>
         <Link href={`/events/new?copy=${eventId}`} className="text-forest min-h-[44px] flex items-center">Copy this event</Link>
         {!canceled && (confirming
-          ? <button className="btn-primary" onClick={cancel}>Yes, cancel, credit and notify everyone</button>
+          ? <button className="btn-primary" disabled={canceling} onClick={cancel}>{canceling ? "Canceling..." : "Yes, cancel, credit and notify everyone"}</button>
           : <button className="bg-transparent border-0 p-0 cursor-pointer font-sans font-bold text-[14px] min-h-[44px] ml-auto" style={{ color: "#A52A1C" }} onClick={() => setConfirming(true)}>Cancel event</button>)}
       </nav>
     </section>

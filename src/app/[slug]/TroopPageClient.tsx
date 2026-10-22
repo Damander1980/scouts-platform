@@ -24,15 +24,18 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
   const [contactTo, setContactTo] = useState<string>(contacts[0]?.person_id ?? "");
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [lightbox, setLightbox] = useState<{ album: number; i: number } | null>(null);
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
+    if (sending) return;
+    setError(""); setSending(true);
     const { error } = await createClient().rpc("submit_contact", {
       p_slug: org.slug, p_to: contactTo || null, p_name: form.name, p_email: form.email, p_phone: form.phone, p_message: form.message,
     });
+    setSending(false);
     if (error) setError(error.message); else setSent(true);
   }
 
@@ -119,7 +122,7 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
                     </div>
                     <textarea className="input py-3 min-h-[100px]" placeholder="Your message" required value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
                     {error && <div className="text-[14px] font-bold" style={{ color: "#A52A1C" }}>{error}</div>}
-                    <button className="btn-primary self-start">Send message</button>
+                    <button className="btn-primary self-start" disabled={sending}>{sending ? "Sending..." : "Send message"}</button>
                   </>
                 )}
               </form>

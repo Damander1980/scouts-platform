@@ -14,15 +14,21 @@ export default function NewTopic({ orgId, personId, isAdult }: { orgId: string; 
   const [audience, setAudience] = useState("everyone");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  // Posts are permanent, so a failed first post retries into the same topic instead of starting another.
+  const [topicId, setTopicId] = useState<string | null>(null);
 
   if (!open) return <button className="btn-primary self-start" onClick={() => setOpen(true)}>Start a conversation</button>;
 
   return (
     <form className="card flex flex-col gap-3" onSubmit={async (e) => {
-      e.preventDefault(); setBusy(true); setError("");
-      const { data: t, error: e1 } = await supabase.from("forum_topics")
-        .insert({ org_id: orgId, title: title.trim(), audience: isAdult ? audience : "everyone", created_by: personId }).select("id").single();
-      if (e1 || !t) { setError(e1?.message ?? "Could not start it"); setBusy(false); return; }
+      e.preventDefault(); if (busy) return; setBusy(true); setError("");
+      let t = topicId ? { id: topicId } : null;
+      if (!t) {
+        const { data, error: e1 } = await supabase.from("forum_topics")
+          .insert({ org_id: orgId, title: title.trim(), audience: isAdult ? audience : "everyone", created_by: personId }).select("id").single();
+        if (e1 || !data) { setError(e1?.message ?? "Could not start it"); setBusy(false); return; }
+        t = data; setTopicId(data.id);
+      }
       const { error: e2 } = await supabase.from("forum_posts").insert({ topic_id: t.id, org_id: orgId, author_id: personId, body: body.trim() });
       if (e2) { setError(e2.message); setBusy(false); return; }
       router.push(`/forum/${t.id}`);

@@ -9,6 +9,7 @@ export default function SignPermission({ orgId, personId, name }: { orgId: strin
   const router = useRouter();
   const [agree, setAgree] = useState(false);
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   return (
     <div className="rounded-xl p-3 flex flex-col gap-2" style={{ background: "#F8F5EE" }}>
       <label className="flex items-start gap-3 text-[14px]">
@@ -19,9 +20,11 @@ export default function SignPermission({ orgId, personId, name }: { orgId: strin
         </span>
       </label>
       {error && <div className="text-[13px] font-bold" style={{ color: "#A52A1C" }}>{error}</div>}
-      <button className="btn-primary self-start" disabled={!agree} onClick={async () => {
+      <button className="btn-primary self-start" disabled={!agree || busy} onClick={async () => {
+        setBusy(true); setError("");
         const { error } = await supabase.rpc("sign_permission", { p_org: orgId, p_person: personId });
         if (error) setError(error.message); else router.refresh();
+        setBusy(false);
       }}>Sign for {name}</button>
     </div>
   );

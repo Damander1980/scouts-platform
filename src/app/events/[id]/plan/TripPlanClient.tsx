@@ -98,6 +98,8 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
           <span>Total <b>{money(totalCost)}</b> · per Scout <b>{money(perScout)}</b> ({youthGoing || "no"} Scouts going)</span>
           {canEdit && perScout !== costCents && perScout > 0 && (
             <button className="btn-secondary" onClick={async () => {
+              // This changes what every family pays, so ask first.
+              if (!window.confirm(`Set the trip fee to ${money(perScout)} per person? New sign-ups pay this. Families already signed up keep their current charge unless they change their sign-up.`)) return;
               const { error } = await supabase.from("events").update({ cost_cents: perScout }).eq("id", eventId);
               if (error) setError(error.message); else router.refresh();
             }}>Set event fee to {money(perScout)}</button>

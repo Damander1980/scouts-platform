@@ -160,11 +160,16 @@ export default function SiteEditor({ orgId, slug, isAdmin, site: initial, settin
                   <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
                     const files = [...(e.target.files ?? [])];
                     run(async () => {
+                      // Keep going past a bad file and say exactly what happened, so a retry doesn't duplicate photos.
+                      const failed: string[] = [];
                       for (const f of files) {
-                        const path = await upload(f, "photo");
-                        const { error } = await supabase.from("photos").insert({ org_id: orgId, album_id: a.id, path });
-                        if (error) throw error;
+                        try {
+                          const path = await upload(f, "photo");
+                          const { error } = await supabase.from("photos").insert({ org_id: orgId, album_id: a.id, path });
+                          if (error) throw error;
+                        } catch { failed.push(f.name); }
                       }
+                      if (failed.length) throw new Error(`${files.length - failed.length} of ${files.length} added. These didn't upload: ${failed.join(", ")}`);
                     }, `${files.length} photo(s) added. Tag Scouts so consent is checked.`);
                   }} />
                 </label>
