@@ -14,3 +14,8 @@ create policy "plc_actions: members add" on public.plc_actions for insert with c
 create policy "plc_actions: members edit" on public.plc_actions for update using (public.is_plc_member(org_id)) with check (public.is_plc_member(org_id)
   and (owner_id is null or public.person_in_org(owner_id, org_id))
   and (meeting_id is null or exists (select 1 from public.plc_meetings m where m.id = meeting_id and m.org_id = plc_actions.org_id)));
+
+-- Internal helpers: used only inside other database functions, never by the app. Callable by anyone
+-- signed in, they revealed any person's family id and unit.
+revoke execute on function public.person_household_in(uuid, uuid) from public, anon, authenticated;
+revoke execute on function public.rsvp_unit(uuid, uuid) from public, anon, authenticated;
