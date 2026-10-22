@@ -31,6 +31,14 @@ function inQuietHours(start: string, end: string, tz: string) {
   return start > end ? hm >= start || hm < end : hm >= start && hm < end;
 }
 
+// Marks a one-time system notice as sent; false if it already was (a unique index makes this race-free).
+export async function claimOnce(db: NonNullable<ReturnType<typeof adminClient>>, key: string) {
+  const { error } = await db.from("notification_log").insert({ category: key, channel: "system", status: "done" });
+  return !error;
+}
+
+const esc = (t: string) => t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+
 // Notices never include message content: just that something is waiting, with a link.
 export async function notifyPeople(personIds: string[], category: Category, subject: string, path: string) {
   const db = adminClient();
@@ -50,7 +58,7 @@ export async function notifyPeople(personIds: string[], category: Category, subj
 
     if (pref.email_on && email && (!quiet || category === "urgent")) {
       const r = await sendEmail(email, subject,
-        `<div style="font-family:Arial,sans-serif;max-width:480px;padding:20px;color:#101B2D"><p style="font-size:16px">${subject}</p>
+        `<div style="font-family:Arial,sans-serif;max-width:480px;padding:20px;color:#101B2D"><p style="font-size:16px">${esc(subject)}</p>
          <p><a href="${link}" style="background:#F5B700;color:#101B2D;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold">Open in ScoutPlatform</a></p>
          <p style="font-size:12px;color:#4B5568">Change what you get in Settings. <a href="${SITE_URL}/settings">Unsubscribe</a>.</p></div>`);
       await db.from("notification_log").insert({ person_id: p.id, channel: "email", category, status: r.status, provider_id: r.id ?? null });

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ErrorBox, Field } from "@/components/ui";
+import { ErrorBox, Field, toZonedInput, fromZonedInput } from "@/components/ui";
 
 export type EventInput = {
   id?: string; title: string; description: string | null; location: string | null; kind: string;
@@ -12,12 +12,9 @@ export type EventInput = {
   service_hours: number; miles: number; questions: string[];
 };
 
-const toLocal = (iso: string | null) => {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-};
-const fromLocal = (v: string) => (v ? new Date(v).toISOString() : null);
+// Times are entered in the troop's time zone, not the device's (a leader traveling still schedules Plano time).
+const toLocal = toZonedInput;
+const fromLocal = fromZonedInput;
 
 const KINDS = [
   ["meeting", "Troop meeting"], ["campout", "Campout"], ["service", "Service project"],
@@ -102,8 +99,11 @@ export default function EventForm({ orgId, initial, copyFrom }: { orgId: string;
       if (initial?.id) {
         const changed = [
           ...(row.start_at !== (initial.start_at ? new Date(initial.start_at).toISOString() : null) ? ["start"] : []),
+          ...(row.end_at !== (initial.end_at ? new Date(initial.end_at).toISOString() : null) ? ["end"] : []),
           ...((row.location ?? "") !== (initial.location ?? "") ? ["location"] : []),
         ];
+        // A raised (or removed) cap opens spots: move people up from the waitlist.
+        if (row.cap !== initial.cap) await supabase.rpc("promote_waitlist", { p_event: initial.id });
         if (changed.length) await fetch("/api/notify/change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId: initial.id, changed }) }).catch(() => {});
       }
       // Copying an event brings its trip plan along, with every checkbox cleared for the new trip.

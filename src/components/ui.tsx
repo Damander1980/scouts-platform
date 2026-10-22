@@ -120,3 +120,29 @@ export function ErrorBox({ children }: { children: ReactNode }) {
   if (!children) return null;
   return <div className="rounded-xl px-4 py-3 text-[14px] font-bold" style={{ background: "#FFF6D6", color: "#5E4400" }}>{children}</div>;
 }
+
+// Wall-clock time in the unit's zone, as a datetime-local value ("2026-10-23T19:00"), whatever zone the device is in.
+export function toZonedInput(iso: string | null) {
+  if (!iso) return "";
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: TIME_ZONE, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+    .formatToParts(new Date(iso)).map((x) => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
+}
+
+// A datetime-local value read as the unit's wall-clock time, back to a UTC instant (DST-safe).
+export function fromZonedInput(v: string) {
+  if (!v) return null;
+  const [d, t] = v.split("T");
+  const [y, mo, da] = d.split("-").map(Number);
+  const [h, mi] = (t ?? "00:00").split(":").map(Number);
+  const wall = Date.UTC(y, mo - 1, da, h, mi);
+  let utc = wall;
+  for (let i = 0; i < 2; i++) {
+    const seen = toZonedInput(new Date(utc).toISOString());
+    const [sd, st] = seen.split("T");
+    const [sy, smo, sda] = sd.split("-").map(Number);
+    const [sh, smi] = st.split(":").map(Number);
+    utc += wall - Date.UTC(sy, smo - 1, sda, sh, smi);
+  }
+  return new Date(utc).toISOString();
+}

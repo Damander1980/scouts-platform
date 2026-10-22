@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/admin";
-import { notifyPeople } from "@/lib/notify";
+import { claimOnce, notifyPeople } from "@/lib/notify";
 import { fmtDate, isoDay } from "@/components/ui";
 
 // Runs daily (see vercel.json). Protected by CRON_SECRET.
@@ -20,8 +20,7 @@ export async function GET(request: Request) {
   const { data: dueEvents } = await db.from("events").select("id, org_id, title, rsvp_deadline")
     .eq("canceled", false).gt("rsvp_deadline", now.toISOString()).lt("rsvp_deadline", in48);
   for (const ev of dueEvents ?? []) {
-    const { data: already } = await db.from("notification_log").select("id").eq("category", `deadline:${ev.id}`).limit(1);
-    if (already?.length) continue;
+    if (!(await claimOnce(db, `deadline:${ev.id}`))) continue;
     const { data: members } = await db.from("memberships").select("person_id, persons(type)").eq("org_id", ev.org_id).eq("status", "active");
     const { data: rsvps } = await db.from("rsvps").select("person_id").eq("event_id", ev.id);
     const replied = new Set((rsvps ?? []).map((r) => r.person_id));
@@ -46,7 +45,6 @@ export async function GET(request: Request) {
       await notifyPeople(ids, "deadlines", `Please RSVP for ${ev.title} by ${fmtDate(ev.rsvp_deadline!, { month: "short", day: "numeric" })}.`, `/events/${ev.id}`);
       reminders += ids.length;
     }
-    await db.from("notification_log").insert({ category: `deadline:${ev.id}`, channel: "system", status: "done" });
   }
 
   // Health form expiry, 30 and 7 days out. Status only: we never hold the form itself.
@@ -57,8 +55,7 @@ export async function GET(request: Request) {
       .in("type", ["health_ab", "health_c"]).gte("expires_at", day).lt("expires_at", day + "T23:59:59");
     for (const f of expiring ?? []) {
       const key = `form:${f.id}:${days}`;
-      const { data: done } = await db.from("notification_log").select("id").eq("category", key).limit(1);
-      if (done?.length) continue;
+      if (!(await claimOnce(db, key))) continue;
       const who = f.persons as unknown as { first_name: string; type: string };
       const ids = new Set<string>();
       if (who.type === "adult") ids.add(f.person_id);
@@ -72,7 +69,6 @@ export async function GET(request: Request) {
         await notifyPeople([...ids], "reminders", `${who.first_name}'s health form (${part}) expires in ${days} days. Download a blank form and give the new one to a leader.`, "/forms");
         formReminders += ids.size;
       }
-      await db.from("notification_log").insert({ category: key, channel: "system", status: "done" });
     }
   }
 
@@ -82,11 +78,9 @@ export async function GET(request: Request) {
     const { data: lapsing } = await db.from("memberships").select("id, person_id").eq("status", "active").eq("ypt_expires", day);
     for (const m of lapsing ?? []) {
       const key = `ypt:${m.id}:${days}`;
-      const { data: done } = await db.from("notification_log").select("id").eq("category", key).limit(1);
-      if (done?.length) continue;
+      if (!(await claimOnce(db, key))) continue;
       await notifyPeople([m.person_id], "reminders", `Your Youth Protection Training expires in ${days} days. Retake it at my.scouting.org, then update your date so you keep access to leader tools.`, "/settings");
       formReminders++;
-      await db.from("notification_log").insert({ category: key, channel: "system", status: "done" });
     }
   }
 

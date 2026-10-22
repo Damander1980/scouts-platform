@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/admin";
-import { notifyPeople } from "@/lib/notify";
+import { claimOnce, notifyPeople } from "@/lib/notify";
 import { fmtDate } from "@/components/ui";
 
 // An event was just canceled: tell everyone signed up (adults directly, Scouts through their
@@ -23,8 +23,8 @@ export async function POST(request: Request) {
   if (!isLeader && !canEvents) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const key = `cancel:${ev.id}`;
-  const { data: done } = await db.from("notification_log").select("id").eq("category", key).limit(1);
-  if (done?.length) return NextResponse.json({ notified: 0 });
+  // Claimed before sending, so a double click or retry can't send it twice.
+  if (!(await claimOnce(db, key))) return NextResponse.json({ notified: 0 });
 
   const { data: rs } = await db.from("rsvps").select("person_id, persons(type)").eq("event_id", ev.id).in("status", ["going", "waitlisted"]);
   const ids = new Set<string>();
@@ -39,6 +39,5 @@ export async function POST(request: Request) {
   const when = fmtDate(ev.start_at, { weekday: "short", month: "short", day: "numeric" });
   const money = ev.cost_cents > 0 ? " Anything you paid becomes a credit on your family account." : "";
   if (ids.size) await notifyPeople([...ids], "urgent", `CANCELED: ${ev.title} (${when}).${money}`, `/events/${ev.id}`);
-  await db.from("notification_log").insert({ category: key, channel: "system", status: "done" });
   return NextResponse.json({ notified: ids.size });
 }

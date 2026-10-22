@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/admin";
-import { notifyPeople } from "@/lib/notify";
+import { claimOnce, notifyPeople } from "@/lib/notify";
 import { fmtDate, fmtTime } from "@/components/ui";
 
 // A leader changed an event's time or place: tell everyone signed up (parents for Scouts).
@@ -14,11 +14,14 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const db = adminClient();
   if (!db) return NextResponse.json({ notified: 0 });
-  const { data: ev } = await db.from("events").select("id, org_id, title, start_at, location, canceled").eq("id", eventId).maybeSingle();
+  const { data: ev } = await db.from("events").select("id, org_id, title, start_at, end_at, location, canceled").eq("id", eventId).maybeSingle();
   if (!ev || ev.canceled) return NextResponse.json({ notified: 0 });
   const { data: isLeader } = await supabase.rpc("has_perm", { org: ev.org_id, perm: "leader" });
   const { data: canEvents } = await supabase.rpc("has_perm", { org: ev.org_id, perm: "events.manage" });
   if (!isLeader && !canEvents) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+
+  // One notice per actual new time/place: repeat saves or POSTs don't text families again.
+  if (!(await claimOnce(db, `change:${ev.id}:${ev.start_at}|${ev.end_at ?? ""}|${ev.location ?? ""}`))) return NextResponse.json({ notified: 0 });
 
   const { data: rs } = await db.from("rsvps").select("person_id, persons(type)").eq("event_id", ev.id).in("status", ["going", "waitlisted"]);
   const ids = new Set<string>();
@@ -32,6 +35,7 @@ export async function POST(request: Request) {
   }
   const soon = new Date(ev.start_at).getTime() - Date.now() < 48 * 3600000;
   const parts = [`now starts ${fmtDate(ev.start_at, { weekday: "short", month: "short", day: "numeric" })} at ${fmtTime(ev.start_at)}`];
+  if (changed.includes("end") && ev.end_at) parts.push(`and ends ${fmtDate(ev.end_at, { weekday: "short", month: "short", day: "numeric" })} at ${fmtTime(ev.end_at)}`);
   if (changed.includes("location") && ev.location) parts.push(`at ${ev.location}`);
   if (ids.size) await notifyPeople([...ids], soon ? "urgent" : "reminders", `Updated: ${ev.title} ${parts.join(" ")}.`, `/events/${ev.id}`);
   return NextResponse.json({ notified: ids.size });
