@@ -29,10 +29,11 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
   const status = (pid: string, type: string) => {
     const f = forms.find((x) => x.person_id === pid && x.type === type);
     if (!f) return { tone: "orange" as const, label: "Needed", f };
-    const exp = f.expires_at ? new Date(f.expires_at) : null;
-    if (exp && exp < new Date()) return { tone: "red" as const, label: "Expired", f };
-    if (exp && exp.getTime() < Date.now() + 30 * 86400000) return { tone: "orange" as const, label: `Expires ${exp.toLocaleDateString()}`, f };
-    return { tone: "green" as const, label: exp ? `To ${exp.toLocaleDateString("en-US", { month: "short", year: "numeric" })}` : "On file", f };
+    // Expiry is a calendar date: compare troop-zone days, so a form isn't "expired" the evening before.
+    const exp = f.expires_at ? f.expires_at.slice(0, 10) : null;
+    if (exp && exp < isoDay()) return { tone: "red" as const, label: "Expired", f };
+    if (exp && exp < isoDay(new Date(Date.now() + 30 * 86400000))) return { tone: "orange" as const, label: `Expires ${fmtDate(exp, { month: "short", day: "numeric", year: "numeric" })}`, f };
+    return { tone: "green" as const, label: exp ? `To ${fmtDate(exp, { month: "short", year: "numeric" })}` : "On file", f };
   };
 
   async function mark(pid: string, type: string, received: boolean) {

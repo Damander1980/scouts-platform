@@ -11,9 +11,17 @@ export type RuleInput = {
 
 export type Check = { label: string; ok: boolean; detail: string };
 
-const monthsBetween = (a: string, b: Date = new Date()) => {
-  const s = new Date(a);
-  return (b.getFullYear() - s.getFullYear()) * 12 + b.getMonth() - s.getMonth() - (b.getDate() < s.getDate() ? 1 : 0);
+// Calendar day [y, m, d]: a plain date is taken as written; a moment is read in the troop's zone.
+// (new Date("2026-04-15") is UTC midnight, the evening before in Texas, which made tenure and age
+// checks pass a day early.)
+const TZ = process.env.NEXT_PUBLIC_TIME_ZONE || "America/Chicago";
+const ymd = (x: string | Date) => {
+  const s = typeof x === "string" && /^\d{4}-\d{2}-\d{2}$/.test(x) ? x : new Date(x).toLocaleDateString("en-CA", { timeZone: TZ });
+  return s.split("-").map(Number);
+};
+const monthsBetween = (a: string | Date, b: string | Date = new Date()) => {
+  const [sy, sm, sd] = ymd(a), [by, bm, bd] = ymd(b);
+  return (by - sy) * 12 + bm - sm - (bd < sd ? 1 : 0);
 };
 
 function eagleCount(badges: RuleInput["badgesEarned"]) {
@@ -23,13 +31,11 @@ function eagleCount(badges: RuleInput["badgesEarned"]) {
 // Position months served while holding the previous rank (APL doesn't count; for Eagle, bugler doesn't either).
 function porMonths(input: RuleInput, since: string | null, rank: "star" | "life" | "eagle") {
   if (!since) return 0;
-  const start = new Date(since);
   return input.positions
     .filter((p) => p.counts_for_rank && p.title !== "Assistant Patrol Leader" && !(rank === "eagle" && p.title === "Bugler"))
     .reduce((sum, p) => {
-      const s = new Date(Math.max(new Date(p.start_date).getTime(), start.getTime()));
-      const e = p.end_date ? new Date(p.end_date) : new Date();
-      return sum + Math.max(0, monthsBetween(s.toISOString(), e));
+      const s = p.start_date > since.slice(0, 10) ? p.start_date : since;
+      return sum + Math.max(0, monthsBetween(s, p.end_date ?? new Date()));
     }, 0);
 }
 

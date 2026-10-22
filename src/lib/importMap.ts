@@ -42,9 +42,16 @@ export function mapRow(row: Record<string, string>, fields: Record<string, strin
 export function toIsoDate(s: string) {
   if (!s) return "";
   const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-  if (m) { const y = m[3].length === 2 ? `20${m[3]}` : m[3]; return `${y}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`; }
+  if (m) {
+    // Two-digit years: more than 10 years ahead is last century ("65" birth year is 1965; "27" YPT expiry is 2027).
+    const yy = Number(m[3]), cur = new Date().getFullYear() % 100;
+    const y = m[3].length === 2 ? (yy > cur + 10 ? 1900 + yy : 2000 + yy) : yy;
+    return `${y}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`;
+  }
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  // Other formats ("Mar 15, 2010", "2010/03/15") parse as local midnight: keep the local calendar day.
   const d = new Date(s);
-  return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+  return isNaN(d.getTime()) ? "" : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 

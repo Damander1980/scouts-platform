@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { fmtDate } from "@/components/ui";
+import { fmtDate, TIME_ZONE } from "@/components/ui";
 
 export type SiteData = {
   org: {
@@ -14,7 +14,7 @@ export type SiteData = {
   albums: { id: string; title: string; taken_on: string | null; photos: { path: string; caption: string | null }[] }[];
 };
 
-const fmt = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+const fmt = (iso: string) => new Date(iso).toLocaleString("en-US", { timeZone: TIME_ZONE, month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 
 export default function TroopPageClient({ data, storageUrl, menu = [] }: { data: SiteData; storageUrl: string; menu?: { slug: string; title: string }[] }) {
   const { org, contacts, events, albums } = data;

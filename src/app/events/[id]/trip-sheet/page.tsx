@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requirePerm } from "@/lib/context";
 import PrintButton from "@/components/PrintButton";
 import type { Plan } from "../plan/TripPlanClient";
+import { TIME_ZONE } from "@/components/ui";
 
 // Printable trip sheet. Scouting America retired the old tour permit / tour plan in 2019;
 // this sheet carries what leaders still need on paper: details, itinerary, who is going,
@@ -54,7 +55,7 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
     const k = (patrolNames ?? []).find((x) => x.id === d.patrol)?.name ?? "Patrol";
     (acc[k] ??= []).push(d); return acc;
   }, {}));
-  const when = (iso: string) => new Date(iso).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  const when = (iso: string) => new Date(iso).toLocaleString("en-US", { timeZone: TIME_ZONE, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
   const cell = "border px-2 py-1 text-left";
   const bd = { borderColor: "#DDD6C5" };

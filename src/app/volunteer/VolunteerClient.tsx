@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox } from "@/components/ui";
+import { Chip, ErrorBox, TIME_ZONE } from "@/components/ui";
 
 type Shift = { id: string; title: string; location: string | null; starts_at: string; ends_at: string; slots: number };
 type Poll = { id: string; question: string; options: string[]; audience: string; closes_at: string | null };
@@ -41,7 +41,7 @@ export default function VolunteerClient({ family, shifts, signups, polls, votes,
                 <Chip tone={full ? "green" : "orange"}>{who.length} / {s.slots}</Chip>
               </div>
               <div className="text-[14px] text-smoke">
-                {new Date(s.starts_at).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} to {new Date(s.ends_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                {new Date(s.starts_at).toLocaleString("en-US", { timeZone: TIME_ZONE, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} to {new Date(s.ends_at).toLocaleTimeString("en-US", { timeZone: TIME_ZONE, hour: "numeric", minute: "2-digit" })}
                 {s.location ? ` · ${s.location}` : ""}
               </div>
               {who.length > 0 && <div className="text-[13px]">{who.map((w) => w.name).join(", ")}</div>}

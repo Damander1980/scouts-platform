@@ -1,3 +1,4 @@
+import { TIME_ZONE } from "@/components/ui";
 // Block types for website builder pages, and the renderer shared by the public page and
 // the editor preview. No hooks, so it renders on the server or the client.
 
@@ -70,7 +71,7 @@ export function RenderBlocks({ blocks, data }: { blocks: Block[]; data: BlockDat
               {data.events.slice(0, 6).map((e) => (
                 <div key={e.id} className="rounded-xl border p-3" style={{ borderColor: "#DDD6C5" }}>
                   <div className="font-bold">{e.title}</div>
-                  <div className="text-[13px] text-smoke">{new Date(e.start_at).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}{e.location ? ` · ${e.location}` : ""}</div>
+                  <div className="text-[13px] text-smoke">{new Date(e.start_at).toLocaleString("en-US", { timeZone: TIME_ZONE, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}{e.location ? ` · ${e.location}` : ""}</div>
                 </div>
               ))}
             </div>

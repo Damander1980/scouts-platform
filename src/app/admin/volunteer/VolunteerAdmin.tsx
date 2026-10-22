@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Field } from "@/components/ui";
+import { Chip, ErrorBox, Field, TIME_ZONE } from "@/components/ui";
 
 type Shift = { id: string; title: string; location: string | null; starts_at: string; ends_at: string; slots: number };
 type Poll = { id: string; question: string; options: string[]; audience: string; closes_at: string | null };
@@ -42,7 +42,7 @@ export default function VolunteerAdmin({ orgId, shifts, signups, polls, votes }:
           const who = signups.filter((y) => y.shift_id === x.id);
           return (
             <div key={x.id} className="card flex items-center gap-2 flex-wrap">
-              <b>{x.title}</b><span className="text-smoke text-[13px]">{new Date(x.starts_at).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>
+              <b>{x.title}</b><span className="text-smoke text-[13px]">{new Date(x.starts_at).toLocaleString("en-US", { timeZone: TIME_ZONE, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>
               <Chip tone={who.length >= x.slots ? "green" : "orange"}>{who.length} / {x.slots}</Chip>
               <span className="text-[13px]">{who.map((w) => w.name).join(", ")}</span>
             </div>
