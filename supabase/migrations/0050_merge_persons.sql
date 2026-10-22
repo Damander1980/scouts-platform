@@ -27,6 +27,15 @@ begin
     raise exception 'Both records have their own login; ask one person to stop using theirs first';
   end if;
 
+  -- Where both records have the same requirement or award, keep the better one: an approved sign-off or
+  -- completed award on the duplicate replaces an unapproved/in-progress copy on the kept record.
+  delete from public.requirement_progress k using public.requirement_progress d
+    where k.person_id = p_keep and d.person_id = p_drop and k.requirement_id = d.requirement_id
+      and k.approved_at is null and d.approved_at is not null;
+  delete from public.scout_advancement k using public.scout_advancement d
+    where k.person_id = p_keep and d.person_id = p_drop and k.item_id = d.item_id
+      and k.status <> 'completed' and d.status = 'completed';
+
   -- Every foreign key in public that points at persons(id).
   for fk in
     select cl.relname as tbl, a.attname as col
@@ -37,6 +46,8 @@ begin
     where con.contype = 'f' and con.confrelid = 'public.persons'::regclass and n.nspname = 'public'
       and array_length(con.conkey, 1) = 1
   loop
+    -- Permanent records (message log, audit trail, forum, published pages) stay as written.
+    continue when fk.tbl in ('message_log', 'audit_log', 'forum_posts', 'web_page_versions');
     for r in execute format('select ctid from public.%I where %I = $1', fk.tbl, fk.col) using p_drop loop
       begin
         execute format('update public.%I set %I = $1 where ctid = $2', fk.tbl, fk.col) using p_keep, r.ctid;
@@ -44,8 +55,12 @@ begin
       exception
         when unique_violation then
           -- The kept record already has this row; the duplicate's copy goes, except in tables that never delete.
-          begin execute format('delete from public.%I where ctid = $1', fk.tbl) using r.ctid; exception when others then null; end;
-        when others then null; -- append-only tables (message log) refuse updates; leave those rows as they are
+          begin execute format('delete from public.%I where ctid = $1', fk.tbl) using r.ctid;
+          exception when others then if fk.tbl <> 'message_recipients' then raise; end if; end;
+        when others then
+          -- Message copies may refuse changes (youth-protection log); anything else stops the whole merge,
+          -- so nothing is left stranded on a hidden record.
+          if fk.tbl <> 'message_recipients' then raise; end if;
       end;
     end loop;
   end loop;
