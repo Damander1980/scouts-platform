@@ -45,7 +45,11 @@ begin
   if pay_org is null then raise exception 'That person is not a member of this unit or a linked unit'; end if;
   if not (public.can_act_for(p_person) or public.is_org_leader(e.org_id) or public.is_org_leader(pay_org)) then raise exception 'Not allowed'; end if;
   if p_status not in ('going','not_going') then raise exception 'Bad status'; end if;
-  if e.rsvp_deadline is not null and now() > e.rsvp_deadline and not public.is_org_leader(e.org_id) then
+  select * into prev from public.rsvps where event_id = p_event and person_id = p_person;
+  -- The deadline closes NEW sign-ups only. Families can still cancel (the refund rule decides any
+  -- credit), edit notes, and a parent can still approve a Scout's sign-up made before the deadline.
+  if e.rsvp_deadline is not null and now() > e.rsvp_deadline and p_status = 'going'
+     and coalesce(prev.status, '') not in ('going', 'waitlisted') and not public.is_org_leader(e.org_id) then
     raise exception 'The sign-up deadline has passed. Ask a leader to add you.';
   end if;
   -- Unit setting "When a Scout with a login RSVPs" (SPEC: Scouts do it themselves; parents keep the
@@ -59,7 +63,6 @@ begin
   label := e.title || case when pay_org <> e.org_id
     then ' (hosted by ' || (select name from public.organizations where id = e.org_id) || ')' else '' end;
 
-  select * into prev from public.rsvps where event_id = p_event and person_id = p_person;
   -- Unit setting: block new sign-ups for families who owe more than a set amount (leaders can still add anyone).
   owe_limit := nullif(coalesce((select settings->>'block_owing_cents' from public.organizations where id = pay_org), ''), '')::int;
   if owe_limit is not null and p_status = 'going' and coalesce(prev.status, '') <> 'going'
@@ -97,9 +100,10 @@ begin
     from public.ledger_entries
     where event_id = p_event and household_id = hid and person_id = p_person;
 
-    if final_status = 'going' and charged - credited <= 0 then
+    -- Charge up to the event cost (after a partial credit, signing up again charges only the difference).
+    if final_status = 'going' and charged - credited < e.cost_cents then
       insert into public.ledger_entries (org_id, household_id, amount_cents, type, description, event_id, created_by, person_id)
-      values (pay_org, hid, e.cost_cents, 'charge', label, p_event, me, p_person);
+      values (pay_org, hid, e.cost_cents - (charged - credited), 'charge', label, p_event, me, p_person);
     elsif final_status <> 'going' and charged - credited > 0 then
       refund := case e.refund_rule when 'full' then charged - credited
                                    when 'partial' then (charged - credited) / 2 else 0 end;

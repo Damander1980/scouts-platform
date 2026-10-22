@@ -14,7 +14,8 @@ export default function PayClient({ orgId, balance, online, prefs, scoutBalances
   const [amount, setAmount] = useState((Math.max(balance, 0) / 100).toFixed(2));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const cents = Math.max(0, Math.round(parseFloat(amount || "0") * 100));
+  // Never more than what's owed (the server caps it too), so the total shown is what gets charged.
+  const cents = Math.min(Math.max(0, Math.round(parseFloat(amount || "0") * 100) || 0), Math.max(balance, 0));
   const fee = familyFee(cents, prefs);
   const showCash = prefs.methods !== "card";
   const showCard = prefs.methods !== "cash";
