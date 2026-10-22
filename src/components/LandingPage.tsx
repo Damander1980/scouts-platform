@@ -148,7 +148,7 @@ export default function LandingPage() {
           <h2 className="font-display font-extrabold text-[40px] leading-tight m-0">A text arrives. A minute later, they&apos;re signed up and paid.</h2>
           <ol className="m-0 p-0 list-none flex flex-col gap-4">
             {[["Tap the link", "It opens the trip: dates, cost, deadline and the refund rule, in plain words."],
-              ["Pick who's going", "Their Scouts are already listed, and parents who can drive offer seats right there."],
+              ["Pick who's going", "Their Scouts are already listed, and allergy notes carry over from the last trip."],
               ["Pay or OK it", "Apple Pay, card, or cash to a leader. If a Scout signed up, the parent just approves."]].map(([t, b], i) => (
               <li key={t} className="flex gap-4 items-start">
                 <span className="w-9 h-9 rounded-full flex items-center justify-center font-display font-extrabold text-white flex-none" style={{ background: "#12355F" }}>{i + 1}</span>

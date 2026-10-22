@@ -76,9 +76,17 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
   const multi = ev.end_at && new Date(ev.end_at).toDateString() !== new Date(ev.start_at).toDateString();
   const myFamily = family.filter((f) => f.in_org);
+  // Carry each family member's latest allergy/dietary note into a new sign-up so nobody retypes it.
+  const needNote = myFamily.filter((f) => !byPerson[f.id]?.dietary).map((f) => f.id);
+  const { data: priorNotes } = needNote.length
+    ? await supabase.from("rsvps").select("person_id, dietary, rsvp_at").in("person_id", needNote).not("dietary", "is", null).order("rsvp_at", { ascending: false }).limit(50)
+    : { data: [] as { person_id: string; dietary: string | null }[] };
+  const lastNote = new Map<string, string>();
+  for (const r of priorNotes ?? []) if (r.dietary?.trim() && !lastNote.has(r.person_id)) lastNote.set(r.person_id, r.dietary.trim());
+
   const famRsvps: RsvpRow[] = myFamily.map((f) => ({
     person_id: f.id, first_name: f.first_name, type: f.type,
-    status: byPerson[f.id]?.status ?? null, notes: byPerson[f.id]?.notes ?? "", dietary: byPerson[f.id]?.dietary ?? "",
+    status: byPerson[f.id]?.status ?? null, notes: byPerson[f.id]?.notes ?? "", dietary: byPerson[f.id]?.dietary || lastNote.get(f.id) || "",
     driver_seats: byPerson[f.id]?.driver_seats ?? 0, answers: (byPerson[f.id]?.answers ?? {}) as Record<string, string>,
     pending: byPerson[f.id]?.rsvp_approval_status === "pending",
   }));
