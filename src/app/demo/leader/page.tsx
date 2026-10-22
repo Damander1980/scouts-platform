@@ -36,11 +36,11 @@ export default function DemoLeaderOverview() {
 
       <nav aria-label="Quick actions" className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {actions.map(([label, icon, href]) => (
-          <Link key={label} href={href} className="card flex items-center gap-3 no-underline text-ink min-h-[64px]">
+          <Link key={label} href={href} className="card !p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-underline text-ink min-h-[64px] min-w-0">
             <span className="w-10 h-10 rounded-xl flex items-center justify-center text-forest flex-none" style={{ background: "#EEE8D9" }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={icon} /></svg>
             </span>
-            <span className="font-bold text-[15px]">{label}</span>
+            <span className="font-bold text-[15px] leading-snug min-w-0">{label}</span>
           </Link>
         ))}
       </nav>

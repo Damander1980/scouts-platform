@@ -83,11 +83,11 @@ export default async function AdminOverview() {
           ["/admin/money?tab=record", "Record cash or check", "M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"],
           ["/admin/advancement", "Sign off advancement", "M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"],
         ].map(([href, label, icon]) => (
-          <Link key={href} href={href} className="card flex items-center gap-3 no-underline text-ink min-h-[64px]">
+          <Link key={href} href={href} className="card !p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-underline text-ink min-h-[64px] min-w-0">
             <span className="w-10 h-10 rounded-xl flex items-center justify-center text-forest flex-none" style={{ background: "#EEE8D9" }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={icon} /></svg>
             </span>
-            <span className="font-bold text-[15px]">{label}</span>
+            <span className="font-bold text-[15px] leading-snug min-w-0">{label}</span>
           </Link>
         ))}
       </nav>
