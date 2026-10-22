@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, fmtDate } from "@/components/ui";
+import { Chip, ErrorBox, fmtDate, isoDay } from "@/components/ui";
 
 type Person = { id: string; name: string; type: string; role: string; ypt: string | null; swim: string | null };
 type Form = { person_id: string; type: string; exam_date: string | null; expires_at: string | null };
@@ -20,7 +20,7 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
   const [forms, setForms] = useState(initialForms);
   const [scoutCerts, setScoutCerts] = useState(initialCerts);
   const [editing, setEditing] = useState<{ pid: string; type: string } | null>(null);
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(isoDay());
   const [view, setView] = useState<"forms" | "certs">("forms");
   const [filter, setFilter] = useState<"all" | "missing">("all");
   const [error, setError] = useState("");

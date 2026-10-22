@@ -73,6 +73,11 @@ export function fmtDate(iso: string, opts: Intl.DateTimeFormatOptions = { weekda
   return new Date(iso).toLocaleDateString("en-US", { timeZone: DATE_ONLY.test(iso) ? "UTC" : TIME_ZONE, ...opts });
 }
 
+// A calendar date (YYYY-MM-DD) in the unit's time zone; toISOString() would give tomorrow after 7pm Central.
+export function isoDay(d: Date = new Date()) {
+  return d.toLocaleDateString("en-CA", { timeZone: TIME_ZONE });
+}
+
 // Date and time in the unit's time zone, for "when" stamps (sent, synced, published).
 export function fmtStamp(iso: string) {
   return new Date(iso).toLocaleString("en-US", { timeZone: TIME_ZONE, month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });

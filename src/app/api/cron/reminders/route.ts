@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/admin";
 import { notifyPeople } from "@/lib/notify";
-import { fmtDate } from "@/components/ui";
+import { fmtDate, isoDay } from "@/components/ui";
 
 // Runs daily (see vercel.json). Protected by CRON_SECRET.
 //  1) RSVP deadline reminders, only to families who haven't responded.
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
   // Health form expiry, 30 and 7 days out. Status only: we never hold the form itself.
   let formReminders = 0;
   for (const days of [30, 7]) {
-    const day = new Date(now.getTime() + days * 86400000).toISOString().slice(0, 10);
+    const day = isoDay(new Date(now.getTime() + days * 86400000));
     const { data: expiring } = await db.from("forms").select("id, org_id, person_id, type, expires_at, persons(first_name, type)")
       .in("type", ["health_ab", "health_c"]).gte("expires_at", day).lt("expires_at", day + "T23:59:59");
     for (const f of expiring ?? []) {
@@ -78,7 +78,7 @@ export async function GET(request: Request) {
 
   // Leaders' Youth Protection Training, 30 and 7 days out: without it they lose access to kids' private details.
   for (const days of [30, 7]) {
-    const day = new Date(now.getTime() + days * 86400000).toISOString().slice(0, 10);
+    const day = isoDay(new Date(now.getTime() + days * 86400000));
     const { data: lapsing } = await db.from("memberships").select("id, person_id").eq("status", "active").eq("ypt_expires", day);
     for (const m of lapsing ?? []) {
       const key = `ypt:${m.id}:${days}`;

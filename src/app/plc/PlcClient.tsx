@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Field, fmtDate } from "@/components/ui";
+import { Chip, ErrorBox, Field, fmtDate, isoDay } from "@/components/ui";
 
 export type Meeting = { id: string; meeting_date: string; agenda: string | null; notes: string | null };
 export type Action = { id: string; text: string; owner_id: string | null; due_date: string | null; done_at: string | null };
@@ -15,7 +15,7 @@ export default function PlcClient({ orgId, myId, meetings, actions: initialActio
   const router = useRouter();
   const [actions, setActions] = useState(initialActions);
   const [error, setError] = useState("");
-  const [newMeeting, setNewMeeting] = useState({ date: new Date().toISOString().slice(0, 10), agenda: "" });
+  const [newMeeting, setNewMeeting] = useState({ date: isoDay(), agenda: "" });
   const [newAction, setNewAction] = useState({ text: "", owner: "", due: "" });
   const nameOf = Object.fromEntries(people.map((p) => [p.id, p.name]));
   const open = actions.filter((a) => !a.done_at);

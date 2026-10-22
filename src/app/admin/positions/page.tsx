@@ -1,5 +1,6 @@
 import { requireStaff } from "@/lib/context";
 import PositionsClient, { type Position, type CatalogPerm, type Person } from "./PositionsClient";
+import { isoDay } from "@/components/ui";
 
 export default async function PositionsPage() {
   const { supabase, current, isAdmin } = await requireStaff();
@@ -13,7 +14,7 @@ export default async function PositionsPage() {
   ]);
 
   const people: Person[] = ((members ?? []) as unknown as { person_id: string; ypt_expires: string | null; persons: { first_name: string; last_name: string; type: string } }[])
-    .map((m) => ({ id: m.person_id, name: `${m.persons.last_name}, ${m.persons.first_name}`, type: m.persons.type, yptOk: !!m.ypt_expires && m.ypt_expires >= new Date().toISOString().slice(0, 10) }))
+    .map((m) => ({ id: m.person_id, name: `${m.persons.last_name}, ${m.persons.first_name}`, type: m.persons.type, yptOk: !!m.ypt_expires && m.ypt_expires >= isoDay() }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (

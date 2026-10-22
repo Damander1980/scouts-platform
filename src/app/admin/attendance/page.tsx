@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireLeader } from "@/lib/context";
-import { Chip, PageTitle, Stat, fmtDate } from "@/components/ui";
+import { Chip, PageTitle, Stat, fmtDate, isoDay } from "@/components/ui";
 
 type Row = { person_id: string; first_name: string; last_name: string; type: string; meetings_held: number; meetings_attended: number; outings_attended: number; nights: number; service_hours: number; miles: number; last_seen: string | null };
 
@@ -10,8 +10,8 @@ export default async function AttendanceReport({ searchParams }: { searchParams:
   const orgId = current.org.id;
   const now = new Date();
   const programStart = new Date(now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1, 7, 1);
-  const from = sp.from ?? programStart.toISOString().slice(0, 10);
-  const to = sp.to ?? now.toISOString().slice(0, 10);
+  const from = sp.from ?? isoDay(programStart);
+  const to = sp.to ?? isoDay(now);
 
   const [{ data }, { data: patrols }, { data: pm }, { data: recent }] = await Promise.all([
     supabase.rpc("attendance_summary", { p_org: orgId, p_from: from, p_to: to }),

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Field, fmtDate } from "@/components/ui";
+import { Chip, ErrorBox, Field, fmtDate, isoDay } from "@/components/ui";
 
 type Patrol = { id: string; name: string; kind: string; active: boolean };
 type PM = { id: string; patrol_id: string; person_id: string; role: string; start_date: string };
@@ -35,7 +35,7 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
   const [newKind, setNewKind] = useState("patrol");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [pos, setPos] = useState({ person: "", title: POR[0], start: new Date().toISOString().slice(0, 10) });
+  const [pos, setPos] = useState({ person: "", title: POR[0], start: isoDay() });
   const groupWord = "Patrol";
 
   const run = async (fn: () => Promise<void>) => {
@@ -51,7 +51,7 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
 
   const assign = (personId: string, patrolId: string) => run(async () => {
     const cur = patrolOf(personId);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = isoDay();
     if (cur) {
       if (cur.patrol_id === patrolId) return;
       const { error } = await supabase.from("patrol_members").update({ end_date: today }).eq("id", cur.id);
@@ -67,7 +67,7 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
     const { error } = await supabase.from("patrol_members").update({ role }).eq("id", pm.id);
     if (error) throw error;
     const title = role === "patrol_leader" ? "Patrol Leader" : role === "assistant_patrol_leader" ? "Assistant Patrol Leader" : null;
-    if (title) await supabase.from("leadership_positions").insert({ org_id: orgId, person_id: pm.person_id, title, start_date: new Date().toISOString().slice(0, 10) });
+    if (title) await supabase.from("leadership_positions").insert({ org_id: orgId, person_id: pm.person_id, title, start_date: isoDay() });
   });
 
   return (
@@ -137,7 +137,7 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
               ))}
               {canEdit && (
                 <button className="btn-ghost self-start text-[13px]" disabled={busy} onClick={() => run(async () => {
-                  for (const m of list) await supabase.from("patrol_members").update({ end_date: new Date().toISOString().slice(0, 10) }).eq("id", m.id);
+                  for (const m of list) await supabase.from("patrol_members").update({ end_date: isoDay() }).eq("id", m.id);
                   const { error } = await supabase.from("patrols").update({ active: false }).eq("id", p.id);
                   if (error) throw error;
                 })}>Retire {groupWord.toLowerCase()}</button>
@@ -183,7 +183,7 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
               <Chip tone={x.end_date ? "gray" : "green"}>{months(x.start_date, x.end_date)} months</Chip>
               {!x.end_date && canEdit && (
                 <button className="btn-ghost text-[13px] ml-auto" disabled={busy} onClick={() => run(async () => {
-                  const { error } = await supabase.from("leadership_positions").update({ end_date: new Date().toISOString().slice(0, 10) }).eq("id", x.id);
+                  const { error } = await supabase.from("leadership_positions").update({ end_date: isoDay() }).eq("id", x.id);
                   if (error) throw error;
                 })}>End position</button>
               )}
