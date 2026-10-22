@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireOrg } from "@/lib/context";
 import Shell from "@/components/Shell";
-import { Chip, SectionLabel, fmtDate, fmtTime, money } from "@/components/ui";
+import { Chip, SectionLabel, fmtDate, fmtTime, isoDay, money } from "@/components/ui";
 import { loadFamily } from "@/lib/family";
 import RsvpPanel, { type RsvpRow } from "./RsvpPanel";
 import LeaderEventTools from "./LeaderEventTools";
@@ -34,7 +34,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
     supabase.from("patrol_members").select("person_id, patrols(name)").eq("org_id", orgId).is("end_date", null),
     loadFamily(supabase, orgId),
     seesForms ? supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId) : Promise.resolve({ data: [] as { person_id: string; type: string; expires_at: string | null }[] }),
-    supabase.rpc("member_age_flags", { p_org: orgId, p_on: ev.start_at.slice(0, 10) }),
+    supabase.rpc("member_age_flags", { p_org: orgId, p_on: isoDay(new Date(ev.start_at)) }),
   ]);
   const { data: guestRows } = !guest && isLeader ? await supabase.rpc("event_guests", { p_event: id }) : { data: [] };
   const guests = (guestRows ?? []) as { person_id: string; first_name: string; last_name: string; type: string; unit_name: string; status: string; driver_seats: number; dietary: string | null }[];
@@ -74,7 +74,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const ratioOk = youthGoing.length === 0 || (adultsGoing.length >= 2 && trainedLeaders.length >= 2);
   const seats = going.reduce((s, p) => s + (byPerson[p.person_id]?.driver_seats ?? 0), 0);
 
-  const multi = ev.end_at && new Date(ev.end_at).toDateString() !== new Date(ev.start_at).toDateString();
+  const multi = ev.end_at && isoDay(new Date(ev.end_at)) !== isoDay(new Date(ev.start_at));
   const myFamily = family.filter((f) => f.in_org);
   // Carry each family member's latest allergy/dietary note into a new sign-up so nobody retypes it.
   const needNote = myFamily.filter((f) => !byPerson[f.id]?.dietary).map((f) => f.id);
@@ -165,7 +165,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
                 <span className="font-bold">Added to your balance</span>
                 <span className="font-display font-extrabold text-[28px]">{money(famRsvps.filter((f) => f.status === "going" && !f.pending).length * ev.cost_cents)}</span>
               </div>
-              {famRsvps.some((f) => f.status === "going") && <Link href="/pay" className="btn-primary no-underline">Pay now</Link>}
+              {famRsvps.some((f) => f.status === "going" && !f.pending) && <Link href="/pay" className="btn-primary no-underline">Pay now</Link>}
               <span className="text-[13px] text-smoke">
                 {ev.refund_rule === "full" ? "Cancel any time for a full credit to your family balance."
                   : ev.refund_rule === "partial" ? "Cancel before the deadline for a full credit; after it, half."

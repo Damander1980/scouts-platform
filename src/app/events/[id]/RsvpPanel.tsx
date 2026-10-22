@@ -38,8 +38,13 @@ export default function RsvpPanel({ eventId, canApprove = false, costCents, ques
       });
       if (error) throw error;
       // A Scout signing up for a paid event may need a parent's OK; the server notifies parents if so.
-      if (!canApprove && status === "going" && costCents > 0) fetch("/api/notify/approval", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId }) }).catch(() => {});
-      update(row.person_id, { status: data as string, pending: !canApprove && status === "going" && costCents > 0 ? row.pending : false });
+      let pending = false;
+      if (!canApprove && status === "going" && costCents > 0) {
+        const { data: r } = await supabase.from("rsvps").select("rsvp_approval_status").eq("event_id", eventId).eq("person_id", row.person_id).maybeSingle();
+        pending = r?.rsvp_approval_status === "pending";
+        if (pending) fetch("/api/notify/approval", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId }) }).catch(() => {});
+      }
+      update(row.person_id, { status: data as string, pending });
       setConfirm(null);
       setOpen(rows.find((r) => r.person_id !== row.person_id && !r.status)?.person_id ?? null);
       router.refresh();
