@@ -6,7 +6,7 @@ import { fmtDate, TIME_ZONE } from "@/components/ui";
 
 export type SiteData = {
   org: {
-    id: string; name: string; type: string; unit_number: string | null; city: string | null; state: string | null; slug: string; join_code: string;
+    id: string; name: string; type: string; unit_number: string | null; city: string | null; state: string | null; slug: string; join_code?: string;
     site: { brand_color?: string; logo_path?: string; banner_path?: string; welcome_title?: string; welcome_text?: string; about?: string; facebook_url?: string; meeting_info?: string; chartered_org?: string };
   };
   contacts: { title: string; person_id: string; name: string }[];
