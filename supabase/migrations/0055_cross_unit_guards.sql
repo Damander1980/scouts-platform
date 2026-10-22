@@ -29,7 +29,8 @@ declare c text; hid uuid;
 begin
   if not public.is_org_admin(p_org) then raise exception 'Not allowed'; end if;
   if not public.person_in_org(p_person, p_org) then raise exception 'That person is not in this unit'; end if;
-  hid := coalesce(public.person_household_in(p_person, p_org), public.person_household(p_person));
+  hid := public.person_household_in(p_person, p_org);
+  if hid is null then raise exception 'That person has no family in this unit yet'; end if;
   insert into public.claim_codes (org_id, household_id, person_id) values (p_org, hid, p_person) returning code into c;
   return c;
 end;

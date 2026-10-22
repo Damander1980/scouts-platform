@@ -113,14 +113,19 @@ begin
 
   -- A parent's earlier OK counts only for the sign-up it was given for, not after a cancel.
   needs_ok := coalesce(scout_self and mode = 'parent_approves_paid' and e.cost_cents > 0 and final_status in ('going', 'waitlisted')
-    and not (prev.rsvp_approval_status = 'approved' and prev.status in ('going', 'waitlisted')), false);
+    and not (prev.rsvp_approval_status = 'approved' and prev.status in ('going', 'waitlisted')), false)
+    -- A Scout's sign-up waiting for a parent stays waiting when a leader edits it (only a parent approves money).
+    or coalesce(final_status in ('going', 'waitlisted') and prev.rsvp_approval_status = 'pending' and e.cost_cents > 0
+       and not public.is_guardian_of(p_person), false);
 
   insert into public.rsvps (event_id, person_id, status, notes, driver_seats, dietary, answers, updated_by, updated_at, rsvp_approval_status)
   values (p_event, p_person, final_status, p_notes, coalesce(p_driver_seats, 0), p_dietary, coalesce(p_answers, '{}'), me, now(),
           case when needs_ok then 'pending' when final_status = 'not_going' and prev.rsvp_approval_status = 'denied' then 'denied' else 'approved' end)
   on conflict (event_id, person_id) do update set status = excluded.status, notes = excluded.notes,
     driver_seats = excluded.driver_seats, dietary = excluded.dietary, answers = excluded.answers,
-    updated_by = me, updated_at = now(), rsvp_approval_status = excluded.rsvp_approval_status;
+    updated_by = me, updated_at = now(), rsvp_approval_status = excluded.rsvp_approval_status,
+    -- Signing up again after canceling goes to the back of the line.
+    rsvp_at = case when rsvps.status not in ('going', 'waitlisted') and excluded.status in ('going', 'waitlisted') then now() else rsvps.rsvp_at end;
 
   hid := coalesce(public.person_household_in(p_person, pay_org), public.person_household(p_person));
   -- Nothing is charged while a parent's OK is pending.

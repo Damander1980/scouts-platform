@@ -19,13 +19,34 @@ end;
 $$;
 
 -- Manual refunds already recorded with the old (wrong) sign.
+-- The ledger normally refuses updates (rule ledger_no_update); lifted just for this correction.
+alter table public.ledger_entries disable rule ledger_no_update;
 update public.ledger_entries set amount_cents = -amount_cents where type = 'refund' and manual and amount_cents < 0;
+alter table public.ledger_entries enable rule ledger_no_update;
 
 -- Stripe can deliver the same event twice at once; the check-then-insert in the webhook let both
 -- through. These make the second insert fail, and the webhook treats that as already recorded.
-create unique index if not exists ledger_stripe_payment_once on public.ledger_entries (stripe_pi_id) where type = 'payment' and stripe_pi_id is not null;
-create unique index if not exists ledger_stripe_refund_once on public.ledger_entries (stripe_refund_id) where stripe_refund_id is not null;
-create unique index if not exists unit_tx_stripe_once on public.unit_transactions (stripe_id, kind, category) where stripe_id is not null;
+-- If a double delivery already left duplicates, the index is skipped with a notice (ledger rows can't be
+-- deleted); the treasurer reviews them and the index is added later.
+do $$
+begin
+  if exists (select 1 from public.ledger_entries where type = 'payment' and stripe_pi_id is not null group by stripe_pi_id having count(*) > 1) then
+    raise notice 'Duplicate Stripe payments on the ledger; ledger_stripe_payment_once not created';
+  else
+    create unique index if not exists ledger_stripe_payment_once on public.ledger_entries (stripe_pi_id) where type = 'payment' and stripe_pi_id is not null;
+  end if;
+  if exists (select 1 from public.ledger_entries where stripe_refund_id is not null group by stripe_refund_id having count(*) > 1) then
+    raise notice 'Duplicate Stripe refunds on the ledger; ledger_stripe_refund_once not created';
+  else
+    create unique index if not exists ledger_stripe_refund_once on public.ledger_entries (stripe_refund_id) where stripe_refund_id is not null;
+  end if;
+  if exists (select 1 from public.unit_transactions where stripe_id is not null group by stripe_id, kind, category having count(*) > 1) then
+    raise notice 'Duplicate Stripe unit transactions; unit_tx_stripe_once not created';
+  else
+    create unique index if not exists unit_tx_stripe_once on public.unit_transactions (stripe_id, kind, category) where stripe_id is not null;
+  end if;
+end;
+$$;
 
 -- Refunded donations no longer count toward campaign goals.
 alter table public.donations add column if not exists refunded_cents int not null default 0;

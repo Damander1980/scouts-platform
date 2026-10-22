@@ -27,6 +27,20 @@ begin
     raise exception 'Both records have their own login; ask one person to stop using theirs first';
   end if;
 
+  -- Money can't be moved (ledger and Scout-account rows are permanent), so a duplicate with money on it
+  -- isn't merged; the treasurer moves the balance with offsetting entries first.
+  if exists (select 1 from public.ledger_entries where person_id = p_drop)
+     or exists (select 1 from public.scout_account_entries where scout_id = p_drop) then
+    raise exception 'This record has charges, payments or Scout-account money on it. Ask the treasurer to move those to the kept record first.';
+  end if;
+
+  -- The kept membership takes the duplicate's admin/leader flags and the later YPT date; the duplicate's
+  -- own membership is left in place (made inactive below) rather than moved.
+  update public.memberships k set is_admin = k.is_admin or d.is_admin,
+      is_designated_leader = k.is_designated_leader or d.is_designated_leader,
+      ypt_expires = greatest(k.ypt_expires, d.ypt_expires)
+    from public.memberships d where k.org_id = p_org and k.person_id = p_keep and d.org_id = p_org and d.person_id = p_drop;
+
   -- Where both records have the same requirement or award, keep the better one: an approved sign-off or
   -- completed award on the duplicate replaces an unapproved/in-progress copy on the kept record.
   delete from public.requirement_progress k using public.requirement_progress d
@@ -45,9 +59,12 @@ begin
     join pg_attribute a on a.attrelid = con.conrelid and a.attnum = con.conkey[1]
     where con.contype = 'f' and con.confrelid = 'public.persons'::regclass and n.nspname = 'public'
       and array_length(con.conkey, 1) = 1
+    -- Counselor approvals first, so badges the duplicate counsels can move to the kept person.
+    order by (cl.relname = 'merit_badge_counselors') desc
   loop
     -- Permanent records (message log, audit trail, forum, published pages) stay as written.
-    continue when fk.tbl in ('message_log', 'audit_log', 'forum_posts', 'web_page_versions');
+    continue when fk.tbl in ('message_log', 'audit_log', 'forum_posts', 'web_page_versions', 'memberships',
+                              'ledger_entries', 'scout_account_entries', 'unit_transactions');
     for r in execute format('select ctid from public.%I where %I = $1', fk.tbl, fk.col) using p_drop loop
       begin
         execute format('update public.%I set %I = $1 where ctid = $2', fk.tbl, fk.col) using p_keep, r.ctid;

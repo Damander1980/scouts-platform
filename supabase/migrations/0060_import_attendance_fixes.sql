@@ -7,7 +7,7 @@
 -- * Name matching for imports: Scouts only, and a name shared by two Scouts is skipped as ambiguous
 --   (John Smith Sr. no longer gets John Jr.'s merit badge or camping nights).
 -- * One unreadable date no longer aborts a whole activity import; that row is skipped.
--- * Weekly meetings keep their local time across daylight saving (7pm stays 7pm in November).
+-- * Weekly meetings work again (uuid_generate_v4 isn't on the search path) and keep their local time across daylight saving (7pm stays 7pm in November).
 -- * Attendance totals use the unit's calendar days and skip unconfirmed QR check-ins.
 -- * QR check-in refuses canceled events and reports only people actually checked in.
 
@@ -72,7 +72,7 @@ begin
       if prid is not null then made_prog := made_prog || prid; end if;
     else
       aid := null;
-      -- Only a new record (or an in-progress one becoming complete) is the import's to undo.
+      -- Only a new record is the import's to undo; an in-progress one is marked complete and stays so.
       if not exists (select 1 from public.scout_advancement where person_id = pid and item_id = iid) then
         insert into public.scout_advancement (org_id, person_id, item_id, status, completed_at)
         values (p_org, pid, iid, 'completed', d) returning id into aid;
@@ -142,7 +142,7 @@ $$;
 
 create or replace function public.create_weekly_series(p_org uuid, p_title text, p_location text, p_first timestamptz, p_minutes int, p_until date)
 returns int language plpgsql security definer set search_path = public as $$
-declare s uuid := uuid_generate_v4(); tz text := public.unit_tz(p_org); local_t timestamp; t timestamptz; n int := 0;
+declare s uuid := gen_random_uuid(); tz text := public.unit_tz(p_org); local_t timestamp; t timestamptz; n int := 0;
 begin
   if not public.is_org_leader(p_org) then raise exception 'Not allowed'; end if;
   local_t := p_first at time zone tz;

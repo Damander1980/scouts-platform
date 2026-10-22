@@ -68,9 +68,11 @@ end;
 $$;
 
 -- Old adjustments without a plan: attach each to the latest plan of its unit created before it.
+alter table public.ledger_entries disable rule ledger_no_update;
 update public.ledger_entries l set dues_plan_id = (
     select d.id from public.dues_plans d where d.org_id = l.org_id and d.created_at <= l.created_at order by d.created_at desc limit 1)
   where l.type = 'credit' and l.description like 'Dues adjustment:%' and l.dues_plan_id is null;
+alter table public.ledger_entries enable rule ledger_no_update;
 
 create or replace function public.dues_status(p_plan uuid)
 returns table (person_id uuid, first_name text, last_name text, household_id uuid, household_name text,
