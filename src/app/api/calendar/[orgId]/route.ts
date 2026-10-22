@@ -29,6 +29,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ orgI
   }
   lines.push("END:VCALENDAR");
   return new Response(lines.join("\r\n"), {
-    headers: { "Content-Type": "text/calendar; charset=utf-8", "Content-Disposition": `inline; filename="${orgId}.ics"`, "Cache-Control": "public, max-age=900" },
+    headers: { "Content-Type": "text/calendar; charset=utf-8", "Content-Disposition": `inline; filename="${orgId}.ics"`, "Cache-Control": "private, max-age=900" },
   });
 }

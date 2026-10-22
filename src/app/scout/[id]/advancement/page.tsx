@@ -99,7 +99,7 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
     }, {}));
 
   return (
-    <AdvancementClient
+    <AdvancementClient key={id}
       scout={scout}
       orgId={orgId}
       items={items}
