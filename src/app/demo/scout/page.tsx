@@ -1,3 +1,4 @@
+import AppShell from "@/components/AppShell";
 import ScoutHome, { type ScoutEvent } from "../../dashboard/ScoutHome";
 
 // Sample data only: shows what a Scout sees when they sign in. Taps here don't save.
@@ -9,5 +10,9 @@ const events: ScoutEvent[] = [
 ];
 
 export default function DemoScout() {
-  return <div className="min-h-screen bg-canvas p-4 max-w-xl mx-auto"><ScoutHome personId="demo" firstName="Sam" events={events} rank={{ name: "Second Class", done: 9, total: 12, complete: false }} /></div>;
+  return (
+    <AppShell orgName="Troop 999" orgs={[{ id: "demo", label: "Troop 999" }]} currentOrgId="demo" initials="SL" isLeader={false} demo>
+      <div className="max-w-2xl"><ScoutHome personId="demo" firstName="Sam" events={events} rank={{ name: "Second Class", done: 9, total: 12, complete: false }} /></div>
+    </AppShell>
+  );
 }
