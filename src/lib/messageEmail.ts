@@ -89,14 +89,20 @@ export async function deliverMessage(messageId: string) {
   <p style="font-size:12px;color:#4B5568"><a href="${unsub}">Unsubscribe</a></p>
 </div>`;
 
-    const res = await resend({
+    // The send is claimed up front (never twice), so a passing hiccup gets retried here instead.
+    const send = () => resend({
       from: `${fromName} <${fromAddr}>`,
       to,
       subject: fullEmail ? (msg.subject || `Message from ${unit}`) : `New message in ${org.name}`,
       html,
       ...(fullEmail && senderEmail && !youthInvolved ? { reply_to: senderEmail } : {}),
       headers: { "List-Unsubscribe": `<${SITE_URL}/api/unsubscribe?p=${p.id}&t=${unsubscribeToken(p.id)}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
-    });
+    }).catch(() => ({ status: "failed" as const, id: undefined }));
+    let res = await send();
+    for (let i = 0; res.status === "failed" && i < 2; i++) {
+      await new Promise((ok) => setTimeout(ok, 800 * (i + 1)));
+      res = await send();
+    }
     await db.from("notification_log").insert({ person_id: p.id, channel: "email", category: "messages", status: res.status, provider_id: res.id ?? null });
     if (res.status === "sent") delivered++;
   }
