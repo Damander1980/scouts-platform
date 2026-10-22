@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ErrorBox } from "@/components/ui";
+import { checkSaved } from "@/lib/saved";
 
 export type Row = { id: string; name: string; type: string; ypt_expires: string | null; registration_expires: string | null; swim_class: string | null; uniform_size: string | null };
 const SIZES = ["", "YS", "YM", "YL", "YXL", "AS", "AM", "AL", "AXL", "A2XL", "A3XL"];
@@ -16,8 +17,8 @@ export default function BulkClient({ rows: initial, canEdit }: { rows: Row[]; ca
 
   async function patch(id: string, values: Partial<Row>) {
     setError("");
-    const { error } = await supabase.from("memberships").update(values).eq("id", id);
-    if (error) { setError(error.message); return; }
+    try { checkSaved(await supabase.from("memberships").update(values).eq("id", id).select("id")); }
+    catch (e: any) { setError(e.message); return; }
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...values } : r)));
     setSaved(id); setTimeout(() => setSaved((x) => (x === id ? null : x)), 1500);
   }

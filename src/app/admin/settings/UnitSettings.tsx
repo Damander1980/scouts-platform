@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ErrorBox, Field } from "@/components/ui";
+import { checkSaved } from "@/lib/saved";
 
 type Org = { id: string; name: string; unit_number: string | null; city: string | null; state: string | null; settings: Record<string, unknown>; second_approval_cents: number; slug: string };
 
@@ -28,12 +29,14 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
 
   async function save() {
     setOk(""); setError("");
-    const { error } = await supabase.from("organizations").update({
+    const { data, error } = await supabase.from("organizations").update({
       name: f.name, city: f.city, state: f.state || null, second_approval_cents: Math.round(parseFloat(f.second || "500") * 100),
       settings: { ...st, email_mode: f.email_mode, scout_rsvp: f.scout_rsvp, fundraising_leaderboard: f.leaderboard, contact_default: f.contact_default, payment_methods: f.payment_methods, card_fee_payer: f.card_fee_payer,
         block_owing_cents: f.block_owing.trim() === "" ? null : Math.round(parseFloat(f.block_owing) * 100) },
-    }).eq("id", org.id);
-    if (error) setError(error.message); else { setOk("Saved."); router.refresh(); }
+    }).eq("id", org.id).select("id");
+    if (error) setError(error.message);
+    else if (!data?.length) setError("That didn't save. Only unit admins can change these settings.");
+    else { setOk("Saved."); router.refresh(); }
   }
 
   // Same host as the Events page's "Add to my calendar" link, so admins and families see one URL.

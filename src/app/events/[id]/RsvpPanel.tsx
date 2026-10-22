@@ -27,7 +27,8 @@ export default function RsvpPanel({ eventId, canApprove = false, costCents, ques
     setBusy(row.person_id); setError("");
     try {
       if (status === "not_going" && row.status === "going" && costCents > 0 && confirm?.pid !== row.person_id) {
-        const { data } = await supabase.rpc("refund_preview", { p_event: eventId, p_person: row.person_id });
+        const { data, error: pErr } = await supabase.rpc("refund_preview", { p_event: eventId, p_person: row.person_id });
+        if (pErr) throw pErr; // never claim "no credit" when we couldn't work it out
         setConfirm({ pid: row.person_id, credit: (data as number) ?? 0 });
         setBusy(null);
         return;

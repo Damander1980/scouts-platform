@@ -198,23 +198,26 @@ export default function AdvancementClient({
 
   // Blue card: a Scout requests a merit badge; a unit leader approves it and assigns a counselor.
   const addBadge = (item: Item) => run(async () => {
+    let newId: string | undefined;
     const status: Tracked["status"] = isLeader ? "assigned" : item.kind === "badge" ? "requested" : "in_progress";
     const assigned_by = isLeader ? viewerPersonId : null;
     if (!demo) {
-      const { error } = await supabase!.from("scout_advancement").insert(
+      const { data: row, error } = await supabase!.from("scout_advancement").insert(
         { org_id: orgId, person_id: scout.id, item_id: item.id, status, assigned_by },
-      );
+      ).select("id").single();
       if (error) throw error;
+      newId = row.id;
     }
-    setTracked((t) => [...t, { item_id: item.id, status, assigned_by, counselor_id: null }]);
+    setTracked((t) => [...t, { id: newId, item_id: item.id, status, assigned_by, counselor_id: null }]);
     setPicker(false); setPickSearch(""); setOpen(item.id);
   });
 
   const removeBadge = (item: Item) => run(async () => {
     if (!demo) {
-      const { error } = await supabase!.from("scout_advancement").delete()
-        .eq("person_id", scout.id).eq("item_id", item.id);
+      const { data: gone, error } = await supabase!.from("scout_advancement").delete()
+        .eq("person_id", scout.id).eq("item_id", item.id).eq("org_id", orgId).select("id");
       if (error) throw error;
+      if (!gone?.length) throw new Error("Only a leader can remove a badge once it has started.");
     }
     setTracked((t) => t.filter((x) => x.item_id !== item.id));
     setOpen(null);
@@ -553,7 +556,7 @@ export default function AdvancementClient({
                           <span>{s.done} of {s.total || "?"} done · {s.approved} signed off</span>
                           <OfficialLink item={b} />
                         </span>
-                        {!s.completed && (
+                        {!s.completed && (isLeader || ["requested", "assigned", "declined"].includes(t?.status ?? "")) && (
                           <button onClick={() => removeBadge(b)} disabled={busy}
                             className="text-[12px] font-bold bg-transparent border-0 cursor-pointer"
                             style={{ color: "#C0392B", fontFamily: "inherit" }}>
@@ -572,7 +575,8 @@ export default function AdvancementClient({
                                 <button key={c.id} disabled={busy} className="text-[13px] font-bold px-3 py-1.5 rounded-full border cursor-pointer bg-white"
                                   style={{ borderColor: "#12355F", color: "#12355F", fontFamily: "inherit" }}
                                   onClick={() => run(async () => {
-                                    if (!demo && t.id) {
+                                    if (!demo) {
+                                      if (!t.id) throw new Error("Reload the page, then approve the start.");
                                       const { error } = await supabase!.rpc("approve_badge_start", { p_adv: t.id, p_counselor: c.id });
                                       if (error) throw error;
                                     }

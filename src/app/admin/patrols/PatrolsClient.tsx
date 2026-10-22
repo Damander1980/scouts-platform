@@ -66,8 +66,18 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
   const setRole = (pm: PM, role: string) => run(async () => {
     const { error } = await supabase.from("patrol_members").update({ role }).eq("id", pm.id);
     if (error) throw error;
-    const title = role === "patrol_leader" ? "Patrol Leader" : role === "assistant_patrol_leader" ? "Assistant Patrol Leader" : null;
-    if (title) await supabase.from("leadership_positions").insert({ org_id: orgId, person_id: pm.person_id, title, start_date: isoDay() });
+    const titleOf = (r: string) => r === "patrol_leader" ? "Patrol Leader" : r === "assistant_patrol_leader" ? "Assistant Patrol Leader" : null;
+    // Leadership time for rank: end the old position, start the new one.
+    const oldTitle = titleOf(pm.role), title = titleOf(role);
+    if (oldTitle && oldTitle !== title) {
+      const { error: e1 } = await supabase.from("leadership_positions").update({ end_date: isoDay() })
+        .eq("org_id", orgId).eq("person_id", pm.person_id).eq("title", oldTitle).is("end_date", null);
+      if (e1) throw e1;
+    }
+    if (title && title !== oldTitle) {
+      const { error: e2 } = await supabase.from("leadership_positions").insert({ org_id: orgId, person_id: pm.person_id, title, start_date: isoDay() });
+      if (e2) throw e2;
+    }
   });
 
   return (
@@ -137,7 +147,10 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
               ))}
               {canEdit && (
                 <button className="btn-ghost self-start text-[13px]" disabled={busy} onClick={() => run(async () => {
-                  for (const m of list) await supabase.from("patrol_members").update({ end_date: isoDay() }).eq("id", m.id);
+                  for (const m of list) {
+                    const { error: mErr } = await supabase.from("patrol_members").update({ end_date: isoDay() }).eq("id", m.id);
+                    if (mErr) throw mErr;
+                  }
                   const { error } = await supabase.from("patrols").update({ active: false }).eq("id", p.id);
                   if (error) throw error;
                 })}>Retire {groupWord.toLowerCase()}</button>

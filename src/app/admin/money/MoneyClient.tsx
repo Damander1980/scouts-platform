@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, Field, Stat, money, fmtDate } from "@/components/ui";
 import DuesTab, { type DuesPlan } from "./DuesTab";
+import { checkSaved } from "@/lib/saved";
 
 type Balance = { household_id: string; household_name: string; balance_cents: number; charges: number; paid: number; last_activity: string };
 type Household = { household_id: string; household_name: string; members: string };
@@ -181,8 +182,8 @@ function Expenses({ expenses, canAct, busy, myId, orgId, run }: { expenses: Expe
     if (status === "approved") patch.approved_by = myId;
     if (status === "second_approval") patch.second_approved_by = myId;
     if (status === "paid") patch.paid_at = new Date().toISOString();
-    const { error } = await supabase.from("expense_requests").update(patch).eq("id", e.id);
-    if (error) throw error;
+    // Only book the expense if this request really moved to paid now (not already paid, not blocked).
+    checkSaved(await supabase.from("expense_requests").update(patch).eq("id", e.id).neq("status", "paid").select("id"));
     if (status === "paid") {
       const { error: e2 } = await supabase.from("unit_transactions").insert({ org_id: orgId, kind: "expense", category: e.category, amount_cents: e.amount_cents, description: `Reimbursement: ${e.description}` });
       if (e2) throw e2;

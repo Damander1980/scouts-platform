@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, Field, fmtDate } from "@/components/ui";
+import { checkSaved } from "@/lib/saved";
 
 const ROLES = [
   "scout", "parent_guardian", "scoutmaster", "assistant_scoutmaster", "committee_chair",
@@ -81,8 +82,7 @@ Or enter join code ${String(joinCode ?? "").toUpperCase()} after you sign up. Ad
 
   const patch = (id: string, values: Partial<Member>) => run(async () => {
     if (!demo) {
-      const { error } = await supabase.from("memberships").update(values).eq("id", id);
-      if (error) throw error;
+      checkSaved(await supabase.from("memberships").update(values).eq("id", id).select("id"));
     }
     setMembers((ms) => ms.map((m) => (m.id === id ? { ...m, ...values } : m)));
   });

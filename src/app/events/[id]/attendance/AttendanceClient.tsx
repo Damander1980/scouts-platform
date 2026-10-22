@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox } from "@/components/ui";
@@ -27,9 +27,14 @@ export default function AttendanceClient({ orgId, eventId, people, initial, chec
   const readQueue = useCallback((): Op[] => { try { return JSON.parse(localStorage.getItem(key) ?? "[]"); } catch { return []; } }, [key]);
   const writeQueue = useCallback((q: Op[]) => { try { localStorage.setItem(key, JSON.stringify(q)); } catch { /* storage unavailable */ } setQueue(q); }, [key]);
 
+  // One save at a time; marks tapped while it runs stay queued for the next one.
+  const flushing = useRef(false);
   const flush = useCallback(async () => {
+    if (flushing.current) return;
     const q = readQueue();
     if (!q.length || !navigator.onLine) return;
+    flushing.current = true;
+    try {
     const latest = new Map<string, Op>();
     q.forEach((o) => latest.set(o.pid, o));
     const toSet = [...latest.values()].filter((o) => o.value !== null);
@@ -39,7 +44,12 @@ export default function AttendanceClient({ orgId, eventId, people, initial, chec
     })), { onConflict: "event_id,person_id" }) : { error: null };
     const r2 = toClear.length ? await supabase.from("attendance").delete().eq("event_id", eventId).in("person_id", toClear) : { error: null };
     if (r1.error || r2.error) { setError((r1.error || r2.error)!.message); return; }
-    writeQueue([]);
+    // Drop only what was just saved (newer taps arrived after q was read).
+    const sent = new Set(q.map((o) => `${o.pid}|${o.at}`));
+    const rest = readQueue().filter((o) => !sent.has(`${o.pid}|${o.at}`));
+    writeQueue(rest);
+    if (rest.length) setTimeout(() => flush(), 0);
+    } finally { flushing.current = false; }
   }, [eventId, orgId, readQueue, supabase, writeQueue]);
 
   useEffect(() => {

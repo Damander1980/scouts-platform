@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, money } from "@/components/ui";
@@ -30,13 +30,28 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
   const [draft, setDraft] = useState<Record<string, string>>({});
   const people = youthGoing + adultsGoing;
 
-  const save = async (next: Plan) => {
-    setPlan(next); setSaved(false); setError("");
-    if (!canEdit) return;
+  // Saves are debounced and run one at a time with only the newest plan, so a slow older save can
+  // never land last and undo typing.
+  const pending = useRef<Plan | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const running = useRef(false);
+  const push = async () => {
+    if (running.current || !pending.current) return;
+    running.current = true;
+    const next = pending.current; pending.current = null;
     const row: Partial<Plan> = { ...next };
     if (!dutiesEnabled) delete row.duties;
     const { error } = await supabase.from("trip_plans").upsert({ event_id: eventId, org_id: orgId, ...row, updated_at: new Date().toISOString() });
-    if (error) setError(error.message); else setSaved(true);
+    running.current = false;
+    if (error) setError(error.message);
+    if (pending.current) push(); else if (!error) setSaved(true);
+  };
+  const save = async (next: Plan) => {
+    setPlan(next); setSaved(false); setError("");
+    if (!canEdit) return;
+    pending.current = next;
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(push, 600);
   };
   const list = (k: keyof Plan) => plan[k] ?? [];
   const add = (k: keyof Plan, item: Partial<Item>) => save({ ...plan, [k]: [...list(k), { id: uid(), text: "", ...item }] });

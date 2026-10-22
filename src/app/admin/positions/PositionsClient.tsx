@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, Field, PageTitle, SectionLabel } from "@/components/ui";
+import { checkSaved } from "@/lib/saved";
 
 export type Position = { id: string; title: string; audience: "adult" | "youth"; permissions: string[]; sort: number };
 export type CatalogPerm = { key: string; label: string; description: string; adult_only: boolean; needs_ypt: boolean };
@@ -35,18 +36,18 @@ export default function PositionsClient({ orgId, isAdmin, positions, holders, ca
 
   const togglePerm = (p: Position, key: string) => run(async () => {
     const next = p.permissions.includes(key) ? p.permissions.filter((k) => k !== key) : [...p.permissions, key];
-    check(await supabase.from("unit_positions").update({ permissions: next }).eq("id", p.id));
+    checkSaved(await supabase.from("unit_positions").update({ permissions: next }).eq("id", p.id).select("id"));
   });
   const assign = (p: Position, personId: string) => run(async () => {
     check(await supabase.from("position_holders").insert({ org_id: orgId, position_id: p.id, person_id: personId }));
     setAdding((a) => ({ ...a, [p.id]: "" }));
   });
   const unassign = (p: Position, personId: string) => run(async () => {
-    check(await supabase.from("position_holders").delete().eq("position_id", p.id).eq("person_id", personId));
+    checkSaved(await supabase.from("position_holders").delete().eq("position_id", p.id).eq("person_id", personId).select("id"));
   });
   const remove = (p: Position) => {
     if (!confirm(`Delete the position "${p.title}"? Everyone holding it loses its access.`)) return;
-    run(async () => { check(await supabase.from("unit_positions").delete().eq("id", p.id)); });
+    run(async () => { checkSaved(await supabase.from("unit_positions").delete().eq("id", p.id).select("id")); });
   };
   const create = () => run(async () => {
     check(await supabase.from("unit_positions").insert({ org_id: orgId, title: draft.title, audience: draft.audience, permissions: [] }));

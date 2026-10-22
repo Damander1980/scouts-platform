@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, Field } from "@/components/ui";
+import { checkSaved } from "@/lib/saved";
 
 export type Project = {
   id: string; person_id: string; title: string; beneficiary: string | null; coach_id: string | null;
@@ -44,8 +45,8 @@ export default function EagleClient({ orgId, projects: initial, scouts, adults }
 
   async function patch(id: string, values: Partial<Project>) {
     setError("");
-    const { error } = await supabase.from("eagle_projects").update({ ...values, updated_at: new Date().toISOString() }).eq("id", id);
-    if (error) { setError(error.message); return; }
+    try { checkSaved(await supabase.from("eagle_projects").update({ ...values, updated_at: new Date().toISOString() }).eq("id", id).select("id")); }
+    catch (e: any) { setError(e.message); return; }
     setProjects((ps) => ps.map((p) => (p.id === id ? { ...p, ...values } : p)));
   }
 

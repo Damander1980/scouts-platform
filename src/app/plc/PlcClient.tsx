@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, Field, fmtDate, isoDay } from "@/components/ui";
+import { checkSaved } from "@/lib/saved";
 
 export type Meeting = { id: string; meeting_date: string; agenda: string | null; notes: string | null };
 export type Action = { id: string; text: string; owner_id: string | null; due_date: string | null; done_at: string | null };
@@ -23,15 +24,18 @@ export default function PlcClient({ orgId, myId, meetings, actions: initialActio
 
   async function run(fn: () => PromiseLike<{ error: { message: string } | null }>) {
     setError("");
-    const { error } = await fn();
-    if (error) setError(error.message); else router.refresh();
+    const r = await fn() as { error: { message: string } | null; data?: unknown };
+    // Updates that should change a row pass .select("id"); an empty result means nothing saved.
+    if (r.error) setError(r.error.message);
+    else if (Array.isArray(r.data) && r.data.length === 0) setError("That didn't save. Reload and try again.");
+    else router.refresh();
     return !error;
   }
 
   async function toggle(a: Action) {
     const done_at = a.done_at ? null : new Date().toISOString();
-    const { error } = await supabase.from("plc_actions").update({ done_at }).eq("id", a.id);
-    if (error) { setError(error.message); return; }
+    try { checkSaved(await supabase.from("plc_actions").update({ done_at }).eq("id", a.id).select("id")); }
+    catch (e: any) { setError(e.message); return; }
     setActions((xs) => xs.map((x) => (x.id === a.id ? { ...x, done_at } : x)));
   }
 
@@ -59,9 +63,9 @@ export default function PlcClient({ orgId, myId, meetings, actions: initialActio
               <div className="font-display font-extrabold text-[19px]">{fmtDate(m.meeting_date + "T12:00:00", { weekday: "long", month: "long", day: "numeric" })}</div>
               <div className="grid md:grid-cols-2 gap-3">
                 <Field label="Agenda"><textarea className="input py-3 min-h-[110px]" defaultValue={m.agenda ?? ""}
-                  onBlur={(e) => e.target.value !== (m.agenda ?? "") && run(() => supabase.from("plc_meetings").update({ agenda: e.target.value || null }).eq("id", m.id))} /></Field>
+                  onBlur={(e) => e.target.value !== (m.agenda ?? "") && run(() => supabase.from("plc_meetings").update({ agenda: e.target.value || null }).eq("id", m.id).select("id"))} /></Field>
                 <Field label="Notes and decisions"><textarea className="input py-3 min-h-[110px]" defaultValue={m.notes ?? ""}
-                  onBlur={(e) => e.target.value !== (m.notes ?? "") && run(() => supabase.from("plc_meetings").update({ notes: e.target.value || null }).eq("id", m.id))} /></Field>
+                  onBlur={(e) => e.target.value !== (m.notes ?? "") && run(() => supabase.from("plc_meetings").update({ notes: e.target.value || null }).eq("id", m.id).select("id"))} /></Field>
               </div>
             </div>
           ))}

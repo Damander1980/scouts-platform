@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import ScoutbookSync from "@/components/ScoutbookSync";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, Stat, fmtDate } from "@/components/ui";
+import { checkSaved } from "@/lib/saved";
 
 type Q = { progress_id: string; person_id: string; scout: string; item: string; item_kind: string; item_id: string; number: string; requirement: string; done_at: string; can_sign: boolean };
 type S = { person_id: string; first_name: string; last_name: string; birthdate: string | null; current_rank: string | null; rank_earned_at: string | null; badges_earned: number; eagle_groups: number; badges_in_progress: number; pending_signoffs: number };
@@ -29,14 +30,14 @@ export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitT
   const myId = async () => {
     if (me) return me;
     const { data: { user } } = await supabase.auth.getUser();
-    const { data } = await supabase.from("persons").select("id").eq("user_id", user!.id).single();
-    setMe(data!.id); return data!.id as string;
+    const { data } = user ? await supabase.from("persons").select("id").eq("user_id", user.id).maybeSingle() : { data: null };
+    if (!data) throw new Error("Sign in again, then try once more.");
+    setMe(data.id); return data.id as string;
   };
 
   const sign = (ids: string[]) => run(async () => {
     const pid = await myId();
-    const { error } = await supabase.from("requirement_progress").update({ approved_by: pid, approved_at: new Date().toISOString() }).in("id", ids);
-    if (error) throw error;
+    checkSaved(await supabase.from("requirement_progress").update({ approved_by: pid, approved_at: new Date().toISOString() }).in("id", ids).select("id"), ids.length);
   });
 
   const grouped = queue.reduce<Record<string, Q[]>>((a, q) => ({ ...a, [`${q.scout}|${q.item}`]: [...(a[`${q.scout}|${q.item}`] ?? []), q] }), {});
@@ -150,8 +151,7 @@ export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitT
             {awards.some((a) => !a.purchased_at) && (
               <button className="btn-secondary" disabled={busy} onClick={() => run(async () => {
                 const ids = awards.filter((a) => !a.purchased_at).map((a) => a.adv_id);
-                const { error } = await supabase.from("scout_advancement").update({ purchased_at: new Date().toISOString() }).in("id", ids);
-                if (error) throw error;
+                checkSaved(await supabase.from("scout_advancement").update({ purchased_at: new Date().toISOString() }).in("id", ids).select("id"), ids.length);
               })}>Mark all bought</button>
             )}
           </div>
@@ -163,9 +163,9 @@ export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitT
               <span className="text-[12px] text-smoke">earned {fmtDate(a.completed_at, { month: "short", day: "numeric", year: "numeric" })}</span>
               <div className="ml-auto flex gap-2">
                 {!a.purchased_at
-                  ? <button className="btn-secondary" disabled={busy} onClick={() => run(async () => { const { error } = await supabase.from("scout_advancement").update({ purchased_at: new Date().toISOString() }).eq("id", a.adv_id); if (error) throw error; })}>Mark bought</button>
+                  ? <button className="btn-secondary" disabled={busy} onClick={() => run(async () => { checkSaved(await supabase.from("scout_advancement").update({ purchased_at: new Date().toISOString() }).eq("id", a.adv_id).select("id")); })}>Mark bought</button>
                   : <Chip tone="green">Bought</Chip>}
-                <button className="btn-primary" disabled={busy} onClick={() => run(async () => { const { error } = await supabase.from("scout_advancement").update({ presented_at: new Date().toISOString() }).eq("id", a.adv_id); if (error) throw error; })}>Presented</button>
+                <button className="btn-primary" disabled={busy} onClick={() => run(async () => { checkSaved(await supabase.from("scout_advancement").update({ presented_at: new Date().toISOString() }).eq("id", a.adv_id).select("id")); })}>Presented</button>
               </div>
             </div>
           ))}

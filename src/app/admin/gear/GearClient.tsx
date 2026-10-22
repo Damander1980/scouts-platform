@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, Field, fmtDate } from "@/components/ui";
+import { checkSaved } from "@/lib/saved";
 
 type Item = { id: string; name: string; category: string | null; tag: string | null; condition: string; notes: string | null };
 type Out = { id: string; equipment_id: string; person_id: string; out_at: string; due_at: string | null; returned_at: string | null };
@@ -60,9 +61,9 @@ export default function GearClient({ orgId, items, outs, people, docs }: { orgId
                     {i.condition === "needs_repair" && <Chip tone="orange">Needs repair</Chip>}
                     {o ? <Chip tone={o.due_at && new Date(o.due_at) < new Date() ? "red" : "orange"}>Out with {nameOf[o.person_id] ?? "member"}{o.due_at ? `, due ${fmtDate(o.due_at, { month: "short", day: "numeric", year: "numeric" })}` : ""}</Chip> : <Chip tone="green">In</Chip>}
                     <div className="ml-auto flex gap-2">
-                      {o ? <button className="btn-secondary" disabled={busy} onClick={() => run(async () => { const { error } = await supabase.from("checkouts").update({ returned_at: new Date().toISOString() }).eq("id", o.id); if (error) throw error; })}>Returned</button>
+                      {o ? <button className="btn-secondary" disabled={busy} onClick={() => run(async () => { checkSaved(await supabase.from("checkouts").update({ returned_at: new Date().toISOString() }).eq("id", o.id).select("id")); })}>Returned</button>
                         : i.condition !== "retired" && <button className="btn-secondary" onClick={() => setLending({ id: i.id, person: "", due: "" })}>Lend</button>}
-                      <select className="input h-10 min-h-0 text-[13px]" value={i.condition} onChange={(e) => run(async () => { const { error } = await supabase.from("equipment").update({ condition: e.target.value }).eq("id", i.id); if (error) throw error; })}>
+                      <select className="input h-10 min-h-0 text-[13px]" value={i.condition} onChange={(e) => run(async () => { checkSaved(await supabase.from("equipment").update({ condition: e.target.value }).eq("id", i.id).select("id")); })}>
                         <option value="good">Good</option><option value="needs_repair">Needs repair</option><option value="retired">Retired</option>
                       </select>
                     </div>

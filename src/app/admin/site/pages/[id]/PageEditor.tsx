@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, Field, fmtDate, fmtStamp } from "@/components/ui";
 import { BLOCK_LABELS, RenderBlocks, type Block, type BlockData } from "@/components/SiteBlocks";
+import { checkSaved } from "@/lib/saved";
 
 // One list of allowed image types; the extension comes from the type, not the file name.
 const IMAGE_EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
@@ -49,8 +50,8 @@ export default function PageEditor({ orgId, unitSlug, page, versions, albums, pr
     setBusy(false);
   };
   const saveDraft = async () => {
-    const { error } = await supabase.from("web_pages").update({ draft: blocks, title: meta.title.trim(), visibility: meta.visibility, show_in_menu: meta.show_in_menu, sort: meta.sort, updated_at: new Date().toISOString() }).eq("id", page.id);
-    if (error) throw error; setDirty(false);
+    const { data, error } = await supabase.from("web_pages").update({ draft: blocks, title: meta.title.trim(), visibility: meta.visibility, show_in_menu: meta.show_in_menu, sort: meta.sort, updated_at: new Date().toISOString() }).eq("id", page.id).select("id");
+    checkSaved({ data, error }); setDirty(false);
   };
 
   const upload = async (file: File) => {
