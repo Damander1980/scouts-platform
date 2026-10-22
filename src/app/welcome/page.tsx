@@ -26,7 +26,10 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
   }
 
   const needsProfile = !ctx.person || !ctx.householdId;
-  const initialStep = needsProfile ? "name" : step === "troop" || code ? "troop" : "family";
+  // An invite link goes to the troop step, unless the family has no Scouts listed yet: then "add your
+  // kids" first (the join page promises it), so the request covers them too. The code is kept either way.
+  const hasYouth = family.some((p) => p.type === "youth");
+  const initialStep = needsProfile ? "name" : step === "troop" || (code && hasYouth) ? "troop" : "family";
 
   return (
     <WelcomeClient
