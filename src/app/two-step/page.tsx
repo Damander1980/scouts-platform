@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { safeNext } from "@/lib/safeNext";
 
 // Two-step verification for admins, leaders and treasurers (SPEC: Trust and data protection).
 // First visit: scan a QR code with an authenticator app. Later visits: enter the 6-digit code.
@@ -15,7 +16,7 @@ export default function TwoStepPage() {
   const [busy, setBusy] = useState(true);
 
   const raw = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("next") ?? "/admin" : "/admin";
-  const next = raw.startsWith("/") && !raw.startsWith("//") ? raw : "/admin";
+  const next = safeNext(raw, "/admin");
 
   useEffect(() => {
     (async () => {

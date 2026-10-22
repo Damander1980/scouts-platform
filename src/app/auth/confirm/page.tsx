@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { safeNext } from "@/lib/safeNext";
 
 // Landing page for emailed sign-in links. Handles the implicit flow (tokens in the URL
 // hash, works in any browser) and the token_hash flow (if the email template uses it).
@@ -14,7 +15,7 @@ export default function ConfirmPage() {
     const supabase = createClient();
     const url = new URL(window.location.href);
     const rawNext = url.searchParams.get("next") || "/home";
-    const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/home";
+    const next = safeNext(rawNext, "/home");
     const tokenHash = url.searchParams.get("token_hash");
     const type = (url.searchParams.get("type") || "email") as "email" | "magiclink" | "signup" | "recovery";
     const hash = new URLSearchParams(window.location.hash.slice(1));

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient, createEmailLinkClient } from "@/lib/supabase/client";
 import Mark from "@/components/Mark";
+import { safeNext } from "@/lib/safeNext";
 
 type Mode = "signin" | "signup" | "forgot";
 
@@ -18,7 +19,7 @@ export default function LoginPage() {
 
   // Only same-site paths, so a crafted link can't bounce someone to another site after sign-in.
   const rawNext = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("next") ?? "/home" : "/home";
-  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.startsWith("/\\") ? rawNext : "/home";
+  const next = safeNext(rawNext, "/home");
 
   function switchMode(m: Mode) { setMode(m); setError(""); setNotice(""); }
 
