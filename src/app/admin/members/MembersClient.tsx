@@ -8,7 +8,7 @@ import { Chip, ErrorBox, Field } from "@/components/ui";
 const ROLES = [
   "scout", "parent_guardian", "scoutmaster", "assistant_scoutmaster", "committee_chair",
   "committee_member", "treasurer", "advancement_chair", "chartered_org_rep",
-  "den_leader", "cubmaster", "crew_advisor", "skipper", "merit_badge_counselor",
+  "merit_badge_counselor",
 ];
 const ROLE_LABEL: Record<string, string> = {
   scout: "Scout", parent_guardian: "Parent/Guardian", scoutmaster: "Scoutmaster",

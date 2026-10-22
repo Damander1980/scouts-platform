@@ -131,7 +131,7 @@ export default function LandingPage() {
           {["Month calendar and calendar feeds", "Printable rosters and reports", "Update-all grid", "Eagle project tracker", "Patrol Leaders' Council space",
             "Patrol pages", "Trip plans, meals and duty rosters", "Copy last year's events", "Attendance with QR check-in", "Nights, miles and service hours tallied",
             "Court of Honor shopping list", "Recharter checklist", "Merit badge counselors", "Gear checkout and documents", "Volunteer shifts and polls",
-            "Fundraising goals and QR donations", "Treasurer reports and budget", "Linked troops and packs", "Discussion boards", "Public troop website"].map((x) => (
+            "Fundraising goals and QR donations", "Treasurer reports and budget", "Linked boys' and girls' troops", "Discussion boards", "Public troop website"].map((x) => (
             <li key={x} className="px-4 py-2 rounded-full bg-white text-[14px] font-bold" style={FLOAT}>{x}</li>
           ))}
         </ul>

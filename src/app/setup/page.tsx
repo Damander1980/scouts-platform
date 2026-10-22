@@ -7,18 +7,6 @@ import { createClient } from "@/lib/supabase/client";
 const UNIT_TYPES = [
   { id: "scouts_bsa", name: "Scouts BSA", sub: "Ages 11–17", word: "Troop", hasScoutbook: true, ready: true,
     icon: "M2 20 12 4l10 16zM12 4v16" },
-  { id: "cubs", name: "Cub Scouts", sub: "Grades K–5", word: "Pack", hasScoutbook: true,
-    icon: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.2 6.5 20.2l1-6.2L3 9.6l6.2-.9z" },
-  { id: "venturing", name: "Venturing crew", sub: "Ages 14–20", word: "Crew", hasScoutbook: true,
-    icon: "M3 20l6-10 4 6 3-4 5 8z" },
-  { id: "sea", name: "Sea Scouts", sub: "Ages 14–20", word: "Ship", hasScoutbook: true,
-    icon: "M12 3a2 2 0 100 4 2 2 0 000-4zM12 7v14M5 13a7 7 0 0014 0M8 11h8" },
-  { id: "trail_life", name: "Trail Life USA", sub: "Faith-based alternative", word: "Troop", hasScoutbook: false,
-    icon: "M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11zM12 12a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" },
-  { id: "ahg", name: "American Heritage Girls", sub: "Christ-centered program for girls", word: "Troop", hasScoutbook: false,
-    icon: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.2 6.5 20.2l1-6.2L3 9.6l6.2-.9z" },
-  { id: "other", name: "Other youth group", sub: "Clubs, teams, any program", word: "Group", hasScoutbook: false,
-    icon: "M9 11a3 3 0 100-6 3 3 0 000 6zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 11a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM16 14c3 0 5 1.7 5 5" },
 ];
 
 function makeSlug(word: string, number: string, city: string) {
@@ -28,7 +16,8 @@ function makeSlug(word: string, number: string, city: string) {
 export default function SetupPage() {
   const router = useRouter();
   const supabase = createClient();
-  const [step, setStep] = useState(1);
+  // Scouts BSA only for now, so setup starts at naming the troop.
+  const [step, setStep] = useState(2);
   const [unitId, setUnitId] = useState("scouts_bsa");
   const [number, setNumber] = useState("");
   const [city, setCity] = useState("");
@@ -92,7 +81,7 @@ export default function SetupPage() {
       {/* Header */}
       <div className="bg-forest text-white px-5 pt-6 pb-6 flex flex-col gap-2">
         <span className="text-xs font-bold tracking-widest uppercase text-mist-dark">
-          Step {step} of 3
+          Step {step - 1} of 2
         </span>
         <h1 className="font-display font-extrabold text-[30px] leading-tight">
           {headings[step]}
@@ -237,7 +226,7 @@ export default function SetupPage() {
 
       {/* Footer */}
       <div className="bg-white border-t border-border px-4 sm:px-6 pt-3 pb-5 flex gap-3">
-        {step > 1 && (
+        {step > 2 && (
           <button
             type="button"
             onClick={() => setStep((s) => s - 1)}

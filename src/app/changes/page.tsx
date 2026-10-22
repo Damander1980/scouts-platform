@@ -10,7 +10,7 @@ const ENTRIES: { date: string; items: string[] }[] = [
     "Month calendar, copy an event (trip plan included), Directions and Add to my calendar on every event.",
     "Scoutbook: the app counts finished advancement that isn't uploaded yet and gives you a changes-only file.",
     "Scouts' paid sign-ups wait for a parent's OK; parents get a note and approve from home.",
-    "Linked troops and packs: families can sign up for each other's shared events.",
+    "Linked troops (for example a boys' and a girls' troop): families can sign up for each other's shared events.",
     "Eagle project tracker, Patrol Leaders' Council space, patrol pages and duty rosters.",
     "Printable reports (YPT aging, patrol rosters, swim tests, participation and more) and an Update all grid.",
     "Treasurer: choose card, cash or both and who pays the card fee; message families who owe; block sign-ups over a balance.",

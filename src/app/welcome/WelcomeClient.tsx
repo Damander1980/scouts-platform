@@ -151,7 +151,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
                 <Field label="First name"><input className="input" value={kidFirst} onChange={(e) => setKidFirst(e.target.value)} required /></Field>
                 <Field label="Last name"><input className="input" value={kidLast} onChange={(e) => setKidLast(e.target.value)} required /></Field>
               </div>
-              <Field label="Birthday" hint="Used for rank age rules and Cub Scout grade.">
+              <Field label="Birthday" hint="Used for rank age rules.">
                 <input className="input" type="date" value={kidBirth} onChange={(e) => setKidBirth(e.target.value)} />
               </Field>
               <button className="btn-secondary" disabled={busy}>Add child</button>
@@ -233,7 +233,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
 
             {!requested && (
               <div className="card flex flex-col gap-2">
-                <div className="font-bold text-[17px]">Starting a new troop or pack?</div>
+                <div className="font-bold text-[17px]">Starting a new troop?</div>
                 <p className="text-[14px] text-smoke m-0">Set it up in about five minutes. You become its first admin.</p>
                 <a href="/setup" className="btn-secondary no-underline">Start a troop</a>
               </div>

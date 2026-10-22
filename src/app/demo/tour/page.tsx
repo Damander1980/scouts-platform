@@ -15,7 +15,7 @@ const GROUPS: { title: string; sub: string; screens: [string, string, string][] 
     screens: [
       ["/demo/leader", "Leader overview", "Quick actions, the next campout, Scoutbook status and what needs attention."],
       ["/demo/admin", "Members", "The roster, invites, join requests and Update all."],
-      ["/demo/calendar", "Calendar", "The month at a glance, including events shared by a linked pack."],
+      ["/demo/calendar", "Calendar", "The month at a glance, including events shared by a linked sister troop."],
       ["/demo/advancement", "Advancement", "Rank trail, next steps and merit badge progress for one Scout."],
       ["/demo/trip-sheet", "Trip sheet", "Printable campout list: who's going, drivers, health forms, YPT. Opens offline."],
       ["/demo/recharter", "Recharter helper", "The yearly renewal checklist."],

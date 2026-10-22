@@ -26,7 +26,7 @@ export default function LinkedUnits({ orgId, joinCode, links, isAdmin }: { orgId
       <div>
         <div className="font-bold text-[16px]">Linked units</div>
         <p className="text-[13px] text-smoke m-0 mt-1">
-          Link with a sister unit, such as a girls&apos; troop or your pack, to share events on each other&apos;s calendars.
+          Link with a sister unit, such as your sister girls&apos; or boys&apos; troop, to share events on each other&apos;s calendars.
           Rosters, money and sign-ups stay separate. Your join code for them to use: <b>{joinCode}</b>
         </p>
       </div>
