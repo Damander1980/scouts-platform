@@ -142,6 +142,52 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="max-w-6xl mx-auto px-5 pb-20 flex flex-wrap gap-12 items-center">
+        <div className="flex flex-col gap-5" style={{ flex: "1 1 380px" }}>
+          <span className="text-[13px] font-bold uppercase tracking-[0.14em] text-forest">What a parent sees</span>
+          <h2 className="font-display font-extrabold text-[40px] leading-tight m-0">A text arrives. A minute later, they&apos;re signed up and paid.</h2>
+          <ol className="m-0 p-0 list-none flex flex-col gap-4">
+            {[["Tap the link", "It opens the trip: dates, cost, deadline and the refund rule, in plain words."],
+              ["Pick who's going", "Their Scouts are already listed, and parents who can drive offer seats right there."],
+              ["Pay or OK it", "Apple Pay, card, or cash to a leader. If a Scout signed up, the parent just approves."]].map(([t, b], i) => (
+              <li key={t} className="flex gap-4 items-start">
+                <span className="w-9 h-9 rounded-full flex items-center justify-center font-display font-extrabold text-white flex-none" style={{ background: "#12355F" }}>{i + 1}</span>
+                <span className="flex flex-col"><span className="font-bold text-[17px]">{t}</span><span className="text-[15px] text-smoke">{b}</span></span>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <div className="flex justify-center" style={{ flex: "1 1 320px" }} role="img" aria-label="Example of the sign-up screen on a phone">
+          <div className="rounded-[40px] p-3" style={{ background: "#101B2D", width: 300, ...HERO_SHADOW }}>
+            <div className="rounded-[30px] overflow-hidden flex flex-col" style={{ background: "#E9E3D6", minHeight: 560 }}>
+              <div className="px-5 pt-6 pb-5 text-white flex flex-col gap-1" style={{ background: "#12355F" }}>
+                <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>Fri, Oct 30 – Sun, Nov 1</span>
+                <span className="font-display font-extrabold text-[20px] leading-tight">Caprock Canyons campout</span>
+                <span className="text-[11px] font-bold mt-1 px-2 py-0.5 rounded-full self-start" style={{ background: "#F5B700", color: "#101B2D" }}>$45.00 per person</span>
+              </div>
+              <div className="p-3 flex flex-col gap-2.5">
+                <div className="bg-white rounded-2xl p-3 flex flex-col gap-2" style={FLOAT}>
+                  <span className="font-display font-extrabold text-[15px]">Who is going?</span>
+                  {[["Jake", true], ["Maya", true], ["Tom (driving, 3 seats)", false]].map(([n, on]) => (
+                    <div key={String(n)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-bold"
+                      style={{ background: "#F8F5EE", boxShadow: on ? "inset 0 0 0 2px #12355F" : "inset 0 0 0 1px #DDD6C5" }}>
+                      <span className="w-4 h-4 rounded flex-none" style={{ background: on ? "#12355F" : "#FFFFFF", border: on ? "none" : "2px solid #AEB9C9" }} />
+                      <span className="flex-1">{n}</span>{on && <span className="text-smoke font-normal">$45</span>}
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-white rounded-2xl p-3 flex flex-col gap-2" style={FLOAT}>
+                  <div className="flex justify-between items-baseline"><span className="font-bold text-[13px]">Total</span><span className="font-display font-extrabold text-[22px]">$90.00</span></div>
+                  <span className="rounded-full text-center text-white font-bold text-[13px] py-2.5" style={{ background: "#101B2D" }}>Pay with Apple Pay</span>
+                  <span className="rounded-full text-center font-bold text-[13px] py-2.5" style={{ background: "#F5B700", color: "#101B2D" }}>Pay with card</span>
+                  <span className="text-[10px] text-smoke text-center">Full refund until Oct 27, then half.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="max-w-6xl mx-auto px-5 pb-16 flex flex-col gap-4">
         <h2 className="font-display font-extrabold text-[26px] m-0">And everything else a troop runs on</h2>
         <ul className="m-0 p-0 list-none flex flex-wrap gap-2">
