@@ -31,7 +31,8 @@ export type Org = {
 export type Membership = { id: string; role: string; status: string; is_admin: boolean; is_designated_leader: boolean; org: Org };
 
 export function unitWord(type: string) {
-  return type === "cubs" ? "Pack" : type === "venturing" ? "Crew" : type === "sea" ? "Ship" : "Troop";
+  void type; // Scouts BSA troops only for now
+  return "Troop";
 }
 
 export const ORG_COOKIE = "sp_org";

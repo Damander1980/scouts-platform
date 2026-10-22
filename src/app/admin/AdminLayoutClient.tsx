@@ -90,7 +90,7 @@ export default function AdminLayoutClient({
   const DEMO_ACTIVE: Record<string, string> = { "/demo/leader": "/admin", "/demo/admin": "/admin/members", "/demo/calendar": "/events", "/demo/advancement": "/admin/advancement" };
   const pathname = demo ? DEMO_ACTIVE[rawPath] ?? rawPath : rawPath;
   const supabase = createClient();
-  const unitWord = org.type === "cubs" ? "Pack" : org.type === "venturing" ? "Crew" : org.type === "sea" ? "Ship" : "Troop";
+  const unitWord = "Troop";
   const isActive = (path: string) => (path === "/admin" ? pathname === "/admin" : pathname.startsWith(path));
   const byPath = Object.fromEntries(nav.map((n) => [n.path, n]));
   const groups = GROUPS.map((g) => ({ ...g, items: g.paths.filter((p) => byPath[p]).map((p) => ({ ...byPath[p], label: g.sub?.[p] ?? byPath[p].label })) }))

@@ -49,8 +49,6 @@ const RANK_PDFS: Record<string, string> = {
 };
 
 function officialUrl(item: Item) {
-  if (item.kind === "adventure") return `https://www.scouting.org/cub-scout-adventures/${item.source_slug}/`;
-  if (item.program === "cubs") return `https://www.scouting.org/programs/cub-scouts/adventures/${item.code.replace(/^cub_/, "").replace(/_/g, "-")}/`;
   if (item.kind === "rank") return `https://www.scouting.org/wp-content/uploads/2025/12/${RANK_PDFS[item.code] ?? "Scouts-BSA-Rank-Requirements.pdf"}`;
   return `https://www.scouting.org/merit-badges/${item.code.replace(/_/g, "-")}/`;
 }
@@ -89,9 +87,8 @@ function SegmentBar({ total, done, approved }: { total: number; done: number; ap
 
 export default function AdvancementClient({
   scout, orgId, items, tracked: initialTracked, progress: initialProgress,
-  isLeader, viewerPersonId, demo = false, program = "scouts_bsa", counselorBadgeIds = [], extras,
+  isLeader, viewerPersonId, demo = false, counselorBadgeIds = [], extras,
 }: {
-  program?: Program;
   counselorBadgeIds?: string[];
   extras?: Extras;
   scout: { id: string; first_name: string; last_name: string };
@@ -115,8 +112,6 @@ export default function AdvancementClient({
   const [cubRankCode, setCubRankCode] = useState<string | null>(null);
 
   const ranks = items.filter((i) => i.kind === "rank" && i.program === "scouts_bsa").sort((a, b) => a.sort - b.sort);
-  const cubRanks = items.filter((i) => i.kind === "rank" && i.program === "cubs").sort((a, b) => a.sort - b.sort);
-  const adventures = items.filter((i) => i.kind === "adventure");
   const badges = items.filter((i) => i.kind === "badge");
   const trackedMap = Object.fromEntries(tracked.map((t) => [t.item_id, t]));
   const counselorSet = new Set(counselorBadgeIds);
@@ -289,141 +284,6 @@ export default function AdvancementClient({
     .filter((b) => !pickSearch || b.name.toLowerCase().includes(pickSearch.toLowerCase()))
     .sort((a, b) => Number(b.eagle_required) - Number(a.eagle_required) || a.name.localeCompare(b.name));
 
-  if (program === "cubs") {
-    const cubRankStats = (rank: Item) => {
-      const list = adventures.filter((a) => a.rank_code === rank.code);
-      const required = list.filter((a) => a.required);
-      const electives = list.filter((a) => !a.required);
-      const reqDone = required.filter((a) => stats(a).completed).length;
-      const elecDone = electives.filter((a) => stats(a).completed).length;
-      const need = rank.electives_needed ?? 2;
-      const completed = reqDone === required.length && required.length > 0 && elecDone >= need;
-      const pct = Math.round(((reqDone + Math.min(elecDone, need)) / (required.length + need)) * 100);
-      return { required, electives, reqDone, elecDone, need, completed, pct };
-    };
-    const firstOpen = cubRanks.find((r) => !cubRankStats(r).completed) ?? cubRanks[cubRanks.length - 1];
-    const rank = cubRanks.find((r) => r.code === cubRankCode) ?? firstOpen;
-    if (!rank) return null;
-    const rs = cubRankStats(rank);
-
-    const AdventureRow = ({ a }: { a: Item }) => {
-      const s = stats(a);
-      const isOpen = open === a.id;
-      return (
-        <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: isOpen ? "#12355F" : "#DDD6C5" }}>
-          <button onClick={() => setOpen(isOpen ? null : a.id)} aria-expanded={isOpen}
-            className="w-full flex items-center gap-3 p-4 bg-transparent border-0 cursor-pointer text-left"
-            style={{ fontFamily: "inherit", color: "#101B2D" }}>
-            <div className="w-10 h-10 rounded-full flex items-center justify-center flex-none"
-              style={{ background: s.completed ? "#12355F" : "#EEE8D9", color: s.completed ? "white" : "#12355F" }}>
-              {s.completed
-                ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                : <Icon code={a.code} size={18} />}
-            </div>
-            <div className="flex-1 flex flex-col gap-1.5 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-[15px] truncate">{a.name}</span>
-                {s.completed && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-none" style={{ background: "#12355F", color: "white" }}>Complete</span>}
-                <span className="ml-auto font-display font-bold text-[15px] flex-none">{s.pct}%</span>
-              </div>
-              <SegmentBar total={s.total} done={s.done} approved={s.approved} />
-            </div>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B5568" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-              className="flex-none" style={{ transform: isOpen ? "rotate(180deg)" : "none" }} aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-          </button>
-          {isOpen && (
-            <div className="px-4 pb-4 border-t border-[#EEE8D9]">
-              <div className="flex items-center gap-3 pt-3 text-[13px] font-bold flex-wrap" style={{ color: "#4B5568" }}>
-                <span>{s.done} of {s.total} done · {s.approved} signed off</span>
-                <OfficialLink item={a} />
-              </div>
-              <RequirementList item={a} />
-            </div>
-          )}
-        </div>
-      );
-    };
-
-    return (
-      <div className="min-h-screen bg-canvas" style={{ color: "#101B2D", fontFamily: "'DM Sans', sans-serif" }}>
-        <header className="bg-forest text-white px-4 sm:px-8 pt-6 pb-8">
-          <div className="max-w-4xl mx-auto flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full flex items-center justify-center flex-none font-display font-extrabold text-[18px]"
-              style={{ background: "#F5B700", color: "#101B2D" }}>
-              {scout.first_name[0]}{scout.last_name[0]}
-            </div>
-            <div>
-              <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#AEB9C9" }}>Cub Scout Adventures</div>
-              <h1 className="font-display font-extrabold text-[28px] leading-tight m-0">{scout.first_name} {scout.last_name}</h1>
-              <div className="text-[14px]" style={{ color: "#D7E0EE" }}>
-                Working on {rank.name}{rank.grade ? ` (${rank.grade})` : ""}
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div className="max-w-4xl mx-auto px-4 sm:px-8 -mt-5 pb-16 flex flex-col gap-6">
-          <div className="bg-white rounded-[18px] shadow-float p-3 overflow-x-auto">
-            <div className="flex gap-2 min-w-[520px]">
-              {cubRanks.map((r) => {
-                const st = cubRankStats(r);
-                const active = r.code === rank.code;
-                return (
-                  <button key={r.id} onClick={() => { setCubRankCode(r.code); setOpen(null); }}
-                    className="flex-1 rounded-xl px-2 py-2.5 border cursor-pointer flex flex-col items-center gap-0.5"
-                    style={{
-                      fontFamily: "inherit",
-                      background: active ? "#12355F" : st.completed ? "#EEE8D9" : "white",
-                      color: active ? "white" : "#101B2D",
-                      borderColor: active ? "#12355F" : "#DDD6C5",
-                    }}>
-                    <span className="font-bold text-[13px]">{r.name}</span>
-                    <span className="text-[11px]" style={{ color: active ? "#D7E0EE" : "#4B5568" }}>
-                      {st.completed ? "Earned" : `${st.pct}%`}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: "Required", value: `${rs.reqDone} / ${rs.required.length}` },
-              { label: "Electives", value: `${Math.min(rs.elecDone, rs.need)} / ${rs.need}` },
-              { label: `${rank.name} badge`, value: rs.completed ? "Earned" : `${rs.pct}%` },
-            ].map((s) => (
-              <div key={s.label} className="bg-white rounded-2xl p-4 border border-[#DDD6C5]">
-                <div className="text-[11px] font-bold tracking-widest uppercase" style={{ color: "#4B5568" }}>{s.label}</div>
-                <div className="font-display font-extrabold text-[22px] mt-1">{s.value}</div>
-              </div>
-            ))}
-          </div>
-
-          {error && <div className="rounded-xl px-4 py-3 text-[14px] font-bold" style={{ background: "#FFF6D6", color: "#5E4400" }}>{error}</div>}
-
-          <section className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <h2 className="font-bold text-[13px] tracking-widest uppercase m-0" style={{ color: "#4B5568" }}>Required adventures</h2>
-              <OfficialLink item={rank} />
-            </div>
-            {rs.required.map((a) => <AdventureRow key={a.id} a={a} />)}
-          </section>
-
-          <section className="flex flex-col gap-2">
-            <h2 className="font-bold text-[13px] tracking-widest uppercase m-0" style={{ color: "#4B5568" }}>
-              Electives <span className="normal-case tracking-normal font-normal">· complete at least {rs.need}</span>
-            </h2>
-            {rs.electives.map((a) => <AdventureRow key={a.id} a={a} />)}
-          </section>
-
-          <p className="text-[12px] m-0" style={{ color: "#AEB9C9" }}>
-            Requirements follow the official adventure numbering in plain-language summaries. Tap &ldquo;Official requirements&rdquo; for Scouting America&apos;s exact wording and activity ideas.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-canvas" style={{ color: "#101B2D", fontFamily: "'DM Sans', sans-serif" }}>

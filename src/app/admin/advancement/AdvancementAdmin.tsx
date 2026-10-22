@@ -118,7 +118,7 @@ export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitT
         <div className="card p-0 overflow-x-auto">
           <table className="w-full text-[14px]">
             <thead><tr className="text-left text-[11px] uppercase text-smoke">
-              <th className="px-3 py-2">Scout</th><th className="px-2">Age</th><th className="px-2">{unitType === "cubs" ? "Adventures" : "Rank"}</th><th className="px-2">Since</th>
+              <th className="px-3 py-2">Scout</th><th className="px-2">Age</th><th className="px-2">Rank</th><th className="px-2">Since</th>
               <th className="px-2">Merit badges</th><th className="px-2">Eagle req.</th><th className="px-2">In progress</th><th className="px-2">To sign</th>
             </tr></thead>
             <tbody>

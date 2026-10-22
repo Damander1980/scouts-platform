@@ -32,11 +32,11 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
   const supabase = createClient();
   const router = useRouter();
   const [newName, setNewName] = useState("");
-  const [newKind, setNewKind] = useState(unitType === "cubs" ? "den" : "patrol");
+  const [newKind, setNewKind] = useState("patrol");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [pos, setPos] = useState({ person: "", title: POR[0], start: new Date().toISOString().slice(0, 10) });
-  const groupWord = unitType === "cubs" ? "Den" : "Patrol";
+  const groupWord = "Patrol";
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true); setError("");
@@ -85,10 +85,10 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
           if (error) throw error;
           setNewName("");
         }); }}>
-          <Field label={`New ${groupWord.toLowerCase()} name`}><input className="input" value={newName} onChange={(e) => setNewName(e.target.value)} required placeholder={unitType === "cubs" ? "Den 3 (Wolves)" : "Flaming Arrows"} /></Field>
+          <Field label={`New ${groupWord.toLowerCase()} name`}><input className="input" value={newName} onChange={(e) => setNewName(e.target.value)} required placeholder="Flaming Arrows" /></Field>
           <Field label="Type">
             <select className="input" value={newKind} onChange={(e) => setNewKind(e.target.value)}>
-              {unitType === "cubs" ? <option value="den">Den</option> : <><option value="patrol">Patrol</option><option value="new_scout">New-Scout patrol</option></>}
+              <option value="patrol">Patrol</option><option value="new_scout">New-Scout patrol</option>
             </select>
           </Field>
           <button className="btn-primary" disabled={busy}>Add</button>

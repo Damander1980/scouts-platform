@@ -107,7 +107,6 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
       progress={progress}
       isLeader={isLeader}
       viewerPersonId={viewer.id}
-      program={orgType === "cubs" ? "cubs" : "scouts_bsa"}
       counselorBadgeIds={counselorBadgeIds}
       extras={{ birthdate: who?.birthdate ?? null, rankEarned, positions: positions ?? [], credits, serviceEvents, counselors: counselorList, eagle }}
     />

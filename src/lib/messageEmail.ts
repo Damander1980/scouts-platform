@@ -57,7 +57,7 @@ export async function deliverMessage(messageId: string) {
   const { data: prefs } = await db.from("notification_prefs").select("person_id, email_on, categories").in("person_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
   const prefOf = Object.fromEntries((prefs ?? []).map((p) => [p.person_id, p]));
 
-  const word = org.type === "cubs" ? "Pack" : org.type === "venturing" ? "Crew" : org.type === "sea" ? "Ship" : "Troop";
+  const word = "Troop";
   const unit = `${word} ${org.unit_number ?? ""}`.trim();
   const fromName = `${unit} - ${sender.first_name} ${sender.last_name}`.replace(/["<>]/g, "");
   const fromAddr = process.env.EMAIL_FROM_ADDRESS || "mail@scoutplatform.app";
