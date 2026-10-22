@@ -122,7 +122,8 @@ returns int language plpgsql security definer set search_path = public as $$
 declare e record; pid uuid; n int := 0; added int;
 begin
   select * into e from public.events where id = p_event;
-  if e is null or e.checkin_code <> p_code then raise exception 'That check-in code is not valid'; end if;
+  -- An event without a code has no self check-in (a null code used to accept anything).
+  if e is null or e.checkin_code is null or e.checkin_code is distinct from p_code then raise exception 'That check-in code is not valid'; end if;
   if e.canceled then raise exception 'This event was canceled'; end if;
   if now() < e.start_at - interval '2 hours' or now() > coalesce(e.end_at, e.start_at) + interval '6 hours' then
     raise exception 'Check-in is open from 2 hours before the event until it ends';

@@ -27,6 +27,9 @@ begin
     raise exception 'Both records have their own login; ask one person to stop using theirs first';
   end if;
 
+  -- Lets the identity freeze (0063) allow this deliberate move of patrol/position rows, for this transaction only.
+  perform set_config('app.merging', 'on', true);
+
   -- Money can't be moved (ledger and Scout-account rows are permanent), so a duplicate with money on it
   -- isn't merged; the treasurer moves the balance with offsetting entries first.
   if exists (select 1 from public.ledger_entries where person_id = p_drop)

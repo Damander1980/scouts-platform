@@ -50,7 +50,8 @@ begin
   if p_audience = 'troop' then
     insert into _rcpt select m.person_id, 'direct' from public.memberships m where m.org_id = p_org and m.status = 'active';
   elsif p_audience = 'patrol' then
-    insert into _rcpt select pm.person_id, 'direct' from public.patrol_members pm where pm.patrol_id = p_ref and pm.end_date is null;
+    insert into _rcpt select pm.person_id, 'direct' from public.patrol_members pm where pm.patrol_id = p_ref and pm.end_date is null
+      and pm.org_id = p_org and public.person_in_org(pm.person_id, p_org);
   elsif p_audience = 'event' then
     insert into _rcpt select r.person_id, 'direct' from public.rsvps r where r.event_id = p_ref and r.status in ('going','waitlisted');
   elsif p_audience = 'nonresponders' then

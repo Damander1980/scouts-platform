@@ -13,9 +13,9 @@ Build order (Floyd, 2026-10-19): **PC web platform first, then the app, iOS last
 - [ ] **Sign in:** `node scripts/set-password.mjs fdkobler@gmail.com` (you type the password).
 - [ ] **Sample troop to click around in:** `node scripts/seed-demo.mjs fdkobler@gmail.com`
       (fake families, events, sign-ups, forms, balances; `--remove` deletes it).
-- [ ] **Push migrations 0042-0062** (`npx supabase db push`): 0042 admins need current YPT and
+- [ ] **Push migrations 0042-0063** (`npx supabase db push`): 0042 admins need current YPT and
       private kid data needs a two-step session; 0043 Scoutbook upload tracking; 0044 linked-unit
-      sign-ups; 0045 encrypted Scoutbook login storage (UI stays hidden until NEXT_PUBLIC_SCOUTBOOK_SYNC=on); 0046 Eagle project tracker; 0047 Patrol Leaders' Council space; 0048 trip duty rosters; 0049 message families who owe; 0050 merge duplicate people; 0051 Scoutbook activity log import; 0052 database hardening; 0053 sign-up/waitlist fixes; 0054 notices sent once; 0055 cross-troop security guards (important); 0056 message guards; 0057-0058 money fixes; 0059 public site guards; 0060 import/attendance fixes; 0061 Eagle/PLC guards; 0062 advancement sign-off guards (important).
+      sign-ups; 0045 encrypted Scoutbook login storage (UI stays hidden until NEXT_PUBLIC_SCOUTBOOK_SYNC=on); 0046 Eagle project tracker; 0047 Patrol Leaders' Council space; 0048 trip duty rosters; 0049 message families who owe; 0050 merge duplicate people; 0051 Scoutbook activity log import; 0052 database hardening; 0053 sign-up/waitlist fixes; 0054 notices sent once; 0055 cross-troop security guards (important); 0056 message guards; 0057-0058 money fixes; 0059 public site guards; 0060 import/attendance fixes; 0061 Eagle/PLC guards; 0062 advancement sign-off guards (important); 0063 memberships can't be repointed (important), patrol guard, new phone needs new SMS consent.
       Until pushed, those features stay hidden or fall back to the old behavior.
 - [ ] First time in Leader tools you'll set up two-step sign-in with an authenticator app.
 
@@ -73,6 +73,11 @@ Build order (Floyd, 2026-10-19): **PC web platform first, then the app, iOS last
 - [ ] **Album photos live in a public storage bucket.** The site hides photos of Scouts without photo
       consent, but anyone with the file's address can still open it. Fix is a private bucket with signed
       links (moderate work); say if you want it before Troop 999 uploads photos.
+- [ ] **Two-step sign-in protects pages, not the database.** Someone with a stolen admin password (no
+      authenticator code) could still change roles or money by calling the database directly. Fix: require
+      a two-step session in the admin/money database rules. Needs testing with a real login; say go.
+- [ ] **Anyone can start unlimited units for free.** That's what makes cross-troop attacks cheap. A cap
+      per person (or troop type = Scouts BSA only, card on file after the trial) would help.
 - [ ] Two checkout tabs (or both parents paying at once) can overpay; the extra becomes a family credit.
       Fine to leave, or block a second open checkout per family?
 

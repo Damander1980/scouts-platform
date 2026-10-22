@@ -2,6 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AdvancementClient, { type Progress, type Tracked } from "@/components/AdvancementClient";
 import { loadCatalog } from "@/lib/advancement";
+import { cookies } from "next/headers";
+import { ORG_COOKIE } from "@/lib/context";
 
 export default async function ScoutAdvancementPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,8 +17,11 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
   const { data: scout } = await supabase.from("persons").select("id, first_name, last_name").eq("id", id).single();
   if (!scout) notFound();
 
-  const { data: scoutMembership } = await supabase
-    .from("memberships").select("org_id, organizations(type)").eq("person_id", id).eq("status", "active").single();
+  // A Scout can be active in two units (linked troops, transfers): use the one the viewer is in now.
+  const { data: scoutMs } = await supabase
+    .from("memberships").select("org_id, organizations(type)").eq("person_id", id).eq("status", "active");
+  const wanted = (await cookies()).get(ORG_COOKIE)?.value;
+  const scoutMembership = (scoutMs ?? []).find((m) => m.org_id === wanted) ?? scoutMs?.[0];
   if (!scoutMembership) notFound();
   const orgId = scoutMembership.org_id;
   const orgType = (scoutMembership.organizations as unknown as { type: string } | null)?.type;
