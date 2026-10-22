@@ -60,3 +60,13 @@
 @keyframes hero-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 .hero-float { animation: hero-float 6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .hero-float { animation: none; } }
+
+/* Clickable cards lift a little on hover; buttons press in. Off for reduced motion. */
+a.card, button.card { transition: transform 160ms ease, box-shadow 160ms ease; }
+a.card:hover, button.card:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(16, 27, 45, 0.08), 0 16px 36px rgba(16, 27, 45, 0.16); }
+.btn-primary, .btn-secondary { transition: transform 120ms ease, opacity 120ms ease; }
+.btn-primary:active, .btn-secondary:active { transform: scale(0.98); }
+@media (prefers-reduced-motion: reduce) {
+  a.card, button.card, .btn-primary, .btn-secondary { transition: none; }
+  a.card:hover, button.card:hover { transform: none; }
+}
