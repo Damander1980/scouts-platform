@@ -13,9 +13,9 @@ Build order (Floyd, 2026-10-19): **PC web platform first, then the app, iOS last
 - [ ] **Sign in:** `node scripts/set-password.mjs fdkobler@gmail.com` (you type the password).
 - [ ] **Sample troop to click around in:** `node scripts/seed-demo.mjs fdkobler@gmail.com`
       (fake families, events, sign-ups, forms, balances; `--remove` deletes it).
-- [ ] **Push migrations 0042-0051** (`npx supabase db push`): 0042 admins need current YPT and
+- [ ] **Push migrations 0042-0058** (`npx supabase db push`): 0042 admins need current YPT and
       private kid data needs a two-step session; 0043 Scoutbook upload tracking; 0044 linked-unit
-      sign-ups; 0045 encrypted Scoutbook login storage (UI stays hidden until NEXT_PUBLIC_SCOUTBOOK_SYNC=on); 0046 Eagle project tracker; 0047 Patrol Leaders' Council space; 0048 trip duty rosters; 0049 message families who owe; 0050 merge duplicate people; 0051 Scoutbook activity log import.
+      sign-ups; 0045 encrypted Scoutbook login storage (UI stays hidden until NEXT_PUBLIC_SCOUTBOOK_SYNC=on); 0046 Eagle project tracker; 0047 Patrol Leaders' Council space; 0048 trip duty rosters; 0049 message families who owe; 0050 merge duplicate people; 0051 Scoutbook activity log import; 0052 database hardening; 0053 sign-up/waitlist fixes; 0054 notices sent once; 0055 cross-troop security guards (important); 0056 message guards; 0057-0058 money fixes.
       Until pushed, those features stay hidden or fall back to the old behavior.
 - [ ] First time in Leader tools you'll set up two-step sign-in with an authenticator app.
 
@@ -65,6 +65,13 @@ Build order (Floyd, 2026-10-19): **PC web platform first, then the app, iOS last
 - [ ] Troop 999: a real Scoutbook export file to test the import with, and
       confirm the import findings with their leaders.
 - [ ] Lawyer review: message deletion vs. children's privacy.
+- [ ] **Deletion requests are recorded but never carried out** (found 2026-10-22). Parents are told
+      deletion is scheduled; nothing runs it. Needs a call: what happens to the permanent message log
+      and forum posts when a family is deleted (remove names? keep a sealed copy for youth protection?).
+- [ ] **YPT dates are self-reported.** An admin with lapsed YPT can type a new date on their own
+      membership. Options: only another admin can change it, or import it from Scoutbook. Your call.
+- [ ] Two checkout tabs (or both parents paying at once) can overpay; the extra becomes a family credit.
+      Fine to leave, or block a second open checkout per family?
 
 ---
 
