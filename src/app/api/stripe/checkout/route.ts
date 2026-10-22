@@ -20,8 +20,10 @@ export async function POST(request: Request) {
   if (!org?.stripe_account_id) return NextResponse.json({ error: "Your unit hasn't connected a bank account yet. Pay the treasurer directly for now." }, { status: 409 });
 
   const balance = await householdBalance(ctx.supabase, ctx.householdId, org.id);
-  const amount = Math.min(Math.max(Math.round(Number(amountCents) || balance), 50), Math.max(balance, 50));
   if (balance <= 0) return NextResponse.json({ error: "You don't owe anything right now." }, { status: 400 });
+  // Card payments must be at least 50 cents (Stripe's minimum), and never more than what's owed.
+  if (balance < 50) return NextResponse.json({ error: "Balances under 50 cents can't go on a card. Pay the treasurer in person." }, { status: 400 });
+  const amount = Math.min(Math.max(Math.round(Number(amountCents) || balance), 50), balance);
   const fee = familyFee(amount, prefs);
 
   const session = await s.checkout.sessions.create({

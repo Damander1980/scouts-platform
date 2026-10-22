@@ -16,8 +16,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   ]);
   const patrolOf = Object.fromEntries((patrols ?? []).map((p) => [p.person_id, (p.patrols as unknown as { name: string })?.name ?? ""]));
   const formOk = (pid: string, t: string) => {
-    const f = (forms ?? []).find((x) => x.person_id === pid && x.type === t);
-    return f && (!f.expires_at || new Date(f.expires_at) > new Date()) ? "yes" : "NO";
+    const ok = (forms ?? []).some((x) => x.person_id === pid && x.type === t && (!x.expires_at || new Date(x.expires_at) > new Date()));
+    return ok ? "yes" : "NO";
   };
 
   const rows = (rsvps ?? []).map((r) => {

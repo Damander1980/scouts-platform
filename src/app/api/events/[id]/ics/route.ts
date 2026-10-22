@@ -19,7 +19,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     `SUMMARY:${esc((e.canceled ? "CANCELED: " : "") + e.title)}`,
     ...(e.location ? [`LOCATION:${esc(e.location)}`] : []),
     `DESCRIPTION:${esc(`${e.description ?? ""}\n\nDetails and sign-up: ${site}/events/${e.id}`)}`,
-    `URL:${site}/events/${e.id}`, "END:VEVENT", "END:VCALENDAR",
+    `URL:${site}/events/${e.id}`, `STATUS:${e.canceled ? "CANCELLED" : "CONFIRMED"}`, "END:VEVENT", "END:VCALENDAR",
   ].join("\r\n");
   const file = e.title.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "event";
   return new Response(body, { headers: { "Content-Type": "text/calendar; charset=utf-8", "Content-Disposition": `attachment; filename="${file}.ics"` } });

@@ -17,8 +17,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "bad signature" }, { status: 400 });
   }
 
-  if (event.type === "checkout.session.completed") {
+  // Bank payments finish later: "completed" arrives unpaid, then "async_payment_succeeded".
+  if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
     const session = event.data.object as Stripe.Checkout.Session;
+    if (session.payment_status !== "paid") return NextResponse.json({ ok: true, pending: true });
     const m = session.metadata ?? {};
     const pi = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id ?? session.id;
 
@@ -50,13 +52,17 @@ export async function POST(request: Request) {
     const charge = event.data.object as Stripe.Charge;
     const pi = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
     if (pi) {
-      const { data: orig } = await db.from("ledger_entries").select("org_id, household_id").eq("stripe_pi_id", pi).eq("type", "payment").maybeSingle();
-      const refundId = charge.refunds?.data?.[0]?.id ?? `${pi}-refund`;
-      const { data: exists } = await db.from("ledger_entries").select("id").eq("stripe_refund_id", refundId).limit(1);
-      if (orig && !exists?.length) {
+      const { data: orig } = await db.from("ledger_entries").select("org_id, household_id, amount_cents").eq("stripe_pi_id", pi).eq("type", "payment").maybeSingle();
+      // amount_refunded is the running total for the charge, so record only what's new since the
+      // refunds already on the ledger (partial refunds arrive as separate events).
+      const { data: prior } = await db.from("ledger_entries").select("amount_cents").eq("stripe_pi_id", pi).eq("type", "refund");
+      const already = (prior ?? []).reduce((t, r) => t + r.amount_cents, 0);
+      // Capped at the payment itself: a refunded card fee was never on the family's balance.
+      const delta = orig ? Math.min(charge.amount_refunded, -orig.amount_cents) - already : 0;
+      if (orig && delta > 0) {
         await db.from("ledger_entries").insert({
-          org_id: orig.org_id, household_id: orig.household_id, amount_cents: charge.amount_refunded, type: "refund",
-          description: "Card refund", stripe_pi_id: pi, stripe_refund_id: refundId, method: "stripe",
+          org_id: orig.org_id, household_id: orig.household_id, amount_cents: delta, type: "refund",
+          description: "Card refund", stripe_pi_id: pi, stripe_refund_id: `${pi}-refund-${charge.amount_refunded}`, method: "stripe",
         });
       }
     }

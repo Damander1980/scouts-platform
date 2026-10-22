@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/admin";
 import { notifyPeople } from "@/lib/notify";
+import { fmtDate } from "@/components/ui";
 
 // Runs daily (see vercel.json). Protected by CRON_SECRET.
 //  1) RSVP deadline reminders, only to families who haven't responded.
@@ -42,7 +43,7 @@ export async function GET(request: Request) {
     }
     const ids = [...guardianIds];
     if (ids.length) {
-      await notifyPeople(ids, "deadlines", `Please RSVP for ${ev.title} by ${new Date(ev.rsvp_deadline!).toLocaleDateString("en-US", { month: "short", day: "numeric" })}.`, `/events/${ev.id}`);
+      await notifyPeople(ids, "deadlines", `Please RSVP for ${ev.title} by ${fmtDate(ev.rsvp_deadline!, { month: "short", day: "numeric" })}.`, `/events/${ev.id}`);
       reminders += ids.length;
     }
     await db.from("notification_log").insert({ category: `deadline:${ev.id}`, channel: "system", status: "done" });
@@ -113,7 +114,7 @@ export async function GET(request: Request) {
     const owed = (ledger ?? []).reduce((t, l) => t + l.amount_cents, 0);
     if (!evs?.length && owed <= 0) continue;
     const parts: string[] = [];
-    if (evs?.length) parts.push(`This week: ${evs.map((e) => `${e.title} (${new Date(e.start_at).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })})`).join("; ")}.`);
+    if (evs?.length) parts.push(`This week: ${evs.map((e) => `${e.title} (${fmtDate(e.start_at, { weekday: "short", month: "short", day: "numeric" })})`).join("; ")}.`);
     if (owed > 0) parts.push(`Your family owes $${(owed / 100).toFixed(2)}.`);
     await notifyPeople([pid], "digest", parts.join(" "), owed > 0 && !evs?.length ? "/pay" : "/dashboard");
     digests++;

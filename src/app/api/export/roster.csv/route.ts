@@ -17,7 +17,8 @@ export async function GET() {
   const { data: priv } = await supabase.rpc("person_private", { p_org: orgId, p_ids: (ms ?? []).map((m) => m.person_id) });
   const born = Object.fromEntries(((priv ?? []) as { id: string; birthdate: string | null }[]).map((r) => [r.id, r.birthdate]));
   const pat = Object.fromEntries((patrols ?? []).map((p) => [p.person_id, p]));
-  const exp = (pid: string, t: string) => (forms ?? []).find((f) => f.person_id === pid && f.type === t)?.expires_at?.slice(0, 10) ?? "";
+  const exp = (pid: string, t: string) => (forms ?? []).filter((f) => f.person_id === pid && f.type === t)
+    .map((f) => f.expires_at?.slice(0, 10) ?? "").sort().pop() ?? "";
 
   const rows = (ms ?? []).map((m) => {
     const p = m.persons as unknown as { first_name: string; last_name: string; type: string };

@@ -45,6 +45,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ kind: st
   }
 
   if (kind === "ledger.csv") {
+    if (!ctx.can("money.view")) return new Response("Forbidden", { status: 403 });
     const { data } = await supabase.from("ledger_entries").select("created_at, household_id, households(name), type, amount_cents, description, method, manual, stripe_pi_id, events(title)").eq("org_id", orgId).order("created_at");
     return csv((data ?? []).map((l) => ({
       Date: l.created_at.slice(0, 10), Family: (l.households as unknown as { name: string })?.name ?? "", Type: l.type,
@@ -55,11 +56,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ kind: st
 
   if (kind === "attendance.csv") {
     const n = await names(supabase, orgId);
-    const [{ data: att }, { data: credits }] = await Promise.all([
-      supabase.from("attendance").select("person_id, present, events(title, start_at, overnight_nights, service_hours, miles)").eq("org_id", orgId),
-      supabase.from("activity_credits").select("*").eq("org_id", orgId),
-    ]);
-    void credits;
+    const { data: att } = await supabase.from("attendance").select("person_id, present, events(title, start_at, overnight_nights, service_hours, miles)").eq("org_id", orgId);
     return csv((att ?? []).map((a) => {
       const e = a.events as unknown as { title: string; start_at: string; overnight_nights: number; service_hours: number; miles: number };
       return { "First Name": n[a.person_id]?.first_name, "Last Name": n[a.person_id]?.last_name, Event: e.title, Date: e.start_at.slice(0, 10), Present: a.present ? "yes" : "no", Nights: a.present ? e.overnight_nights : 0, "Service hours": a.present ? e.service_hours : 0, Miles: a.present ? e.miles : 0 };
@@ -67,6 +64,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ kind: st
   }
 
   if (kind === "all") {
+    if (!ctx.isAdmin) return new Response("Only unit admins can download everything", { status: 403 });
     const tables = ["memberships", "patrols", "patrol_members", "leadership_positions", "events", "attendance", "forms",
       "scout_advancement", "requirement_progress", "scout_certifications", "ledger_entries", "message_log", "join_requests"] as const;
     const out: Record<string, unknown> = { exported_at: new Date().toISOString(), unit: ctx.current.org };
