@@ -54,11 +54,14 @@ export default function SetupPage() {
 
       // Admins need current YPT to see kids' private details, so record it now if given.
       if (ypt) {
-        const { data: me2 } = await supabase.from("persons").select("id").eq("user_id", user.id).single();
-        if (me2) await supabase.from("memberships").update({ ypt_expires: ypt }).eq("org_id", orgId).eq("person_id", me2.id);
+        const { data: me2, error: meErr } = await supabase.from("persons").select("id").eq("user_id", user.id).single();
+        if (meErr) throw meErr;
+        const { error: yErr } = await supabase.from("memberships").update({ ypt_expires: ypt }).eq("org_id", orgId).eq("person_id", me2.id);
+        if (yErr) throw yErr;
       }
 
-      await fetch("/api/switch-org", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orgId }) });
+      const sw = await fetch("/api/switch-org", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orgId }) });
+      if (!sw.ok) throw new Error("Your troop was created, but we couldn't open it. Reload the page and pick it from the troop menu.");
       router.push(nextAction === "import" ? "/admin/import" : "/dashboard");
       router.refresh();
     } catch (e: unknown) {

@@ -119,6 +119,7 @@ Or enter join code ${String(joinCode ?? "").toUpperCase()} after you sign up. Ad
   });
 
   const shown = members.filter((m) => {
+    if (!m.persons) return false; // a person row the viewer can't read shouldn't take down the whole list
     const name = `${m.persons.first_name} ${m.persons.last_name}`.toLowerCase();
     if (search && !name.includes(search.toLowerCase())) return false;
     if (filter === "active") return m.status === "active";

@@ -103,17 +103,22 @@ export default function EventForm({ orgId, initial, copyFrom }: { orgId: string;
           ...((row.location ?? "") !== (initial.location ?? "") ? ["location"] : []),
         ];
         // A raised (or removed) cap opens spots: move people up from the waitlist.
-        if (row.cap !== initial.cap) await supabase.rpc("promote_waitlist", { p_event: initial.id });
+        if (row.cap !== initial.cap) {
+          const { error: pe } = await supabase.rpc("promote_waitlist", { p_event: initial.id });
+          if (pe && pe.code !== "PGRST202") throw pe; // PGRST202: database not yet updated (migration 0053)
+        }
         if (changed.length) await fetch("/api/notify/change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId: initial.id, changed }) }).catch(() => {});
       }
       // Copying an event brings its trip plan along, with every checkbox cleared for the new trip.
       if (!initial?.id && copyFrom) {
-        const { data: plan } = await supabase.from("trip_plans").select("*").eq("event_id", copyFrom).maybeSingle();
+        const { data: plan, error: pErr } = await supabase.from("trip_plans").select("*").eq("event_id", copyFrom).maybeSingle();
+        if (pErr) throw pErr;
         if (plan) {
           const clear = (xs: unknown) => (Array.isArray(xs) ? xs.map((x) => ({ ...x, done: false })) : xs);
           const { event_id: _e, updated_at: _u, ...rest } = plan as Record<string, unknown>;
           void _e; void _u;
-          await supabase.from("trip_plans").insert({ ...rest, event_id: data.id, org_id: orgId, tasks: clear(rest.tasks), permits: clear(rest.permits) });
+          const { error: cErr } = await supabase.from("trip_plans").insert({ ...rest, event_id: data.id, org_id: orgId, tasks: clear(rest.tasks), permits: clear(rest.permits) });
+          if (cErr) throw new Error(`The event was created, but its trip plan didn't copy: ${cErr.message}`);
         }
       }
       router.push(`/events/${data.id}`);

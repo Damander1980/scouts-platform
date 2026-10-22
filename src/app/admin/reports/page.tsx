@@ -19,7 +19,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const orgId = current.org.id;
   const { data: ms } = await supabase.from("memberships").select("person_id, role, position, ypt_expires, registration_expires, swim_class, uniform_size, persons(first_name, last_name, type)").eq("org_id", orgId).eq("status", "active");
   type M = { person_id: string; role: string; position: string | null; ypt_expires: string | null; registration_expires: string | null; swim_class: string | null; uniform_size: string | null; persons: { first_name: string; last_name: string; type: string } };
-  const members = ((ms ?? []) as unknown as M[]).sort((a, b) => a.persons.last_name.localeCompare(b.persons.last_name) || a.persons.first_name.localeCompare(b.persons.first_name));
+  const members = ((ms ?? []) as unknown as M[]).filter((m) => m.persons).sort((a, b) => a.persons.last_name.localeCompare(b.persons.last_name) || a.persons.first_name.localeCompare(b.persons.first_name));
   const name = (m: M) => `${m.persons.last_name}, ${m.persons.first_name}`;
   const nameOf = Object.fromEntries(members.map((m) => [m.person_id, name(m)]));
   const leaders = members.filter((m) => m.persons.type === "adult" && !["parent_guardian"].includes(m.role));

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { money, fmtDate } from "@/components/ui";
+import { money, fmtDate, fmtTime, isoDay } from "@/components/ui";
 
 // What a Scout sees when they sign in: every upcoming event as one big card with two
 // huge buttons. Built for 11-year-olds: one tap to answer, plain words, no forms.
@@ -25,9 +25,9 @@ const DEFAULT = { yes: "I'm coming", no: "I can't come", going: "You're coming" 
 
 function when(e: ScoutEvent) {
   const s = new Date(e.start_at);
-  const day = s.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
-  const time = s.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  if (e.end_at && new Date(e.end_at).toDateString() !== s.toDateString()) {
+  const day = fmtDate(e.start_at, { weekday: "long", month: "long", day: "numeric" });
+  const time = fmtTime(e.start_at);
+  if (e.end_at && isoDay(new Date(e.end_at)) !== isoDay(s)) {
     return `${day} to ${fmtDate(e.end_at, { weekday: "long", month: "long", day: "numeric" })}`;
   }
   return `${day} at ${time}`;

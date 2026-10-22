@@ -38,7 +38,10 @@ export default function ChildLogin({ personId, name, age, email, linked }: { per
   }
   if (email) {
     return <div className="text-[13px]">Waiting for {name} to sign in with <b>{email}</b>. They open the sign-in page, choose Create an account with that email, and pick their own password.{" "}
-      <button className="btn-ghost text-[13px] min-h-0 px-0" onClick={async () => { await supabase.rpc("revoke_child_login", { p_person: personId }); router.refresh(); }}>Cancel</button></div>;
+      <button className="btn-ghost text-[13px] min-h-0 px-0" disabled={busy} onClick={async () => {
+        setBusy(true); const { error } = await supabase.rpc("revoke_child_login", { p_person: personId });
+        if (error) setError(error.message); else router.refresh(); setBusy(false);
+      }}>Cancel</button>{error && <span className="block text-[13px] font-bold" style={{ color: "#A52A1C" }}>{error}</span>}</div>;
   }
   return (
     <div className="flex flex-col gap-2">

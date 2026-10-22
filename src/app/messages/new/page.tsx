@@ -36,6 +36,7 @@ export default async function NewMessagePage({ searchParams }: { searchParams: P
         patrols={allowedPatrols}
         events={(events ?? []) as { id: string; title: string; start_at: string }[]}
         members={((members ?? []) as unknown as { person_id: string; persons: { first_name: string; last_name: string; type: string } }[])
+          .filter((m) => m.persons)
           .map((m) => ({ id: m.person_id, name: `${m.persons.first_name} ${m.persons.last_name}`, type: m.persons.type }))
           .sort((a, b) => a.name.localeCompare(b.name))}
         initialAudience={audience ?? (isLeader ? "troop" : "leaders")}

@@ -11,6 +11,7 @@ export default async function BulkPage() {
     .select("id, ypt_expires, registration_expires, swim_class, uniform_size, persons(first_name, last_name, type)")
     .eq("org_id", current.org.id).eq("status", "active");
   const rows = ((data ?? []) as unknown as (Omit<Row, "name" | "type"> & { persons: { first_name: string; last_name: string; type: string } })[])
+    .filter((m) => m.persons)
     .map((m) => ({ id: m.id, ypt_expires: m.ypt_expires, registration_expires: m.registration_expires, swim_class: m.swim_class, uniform_size: m.uniform_size,
       name: `${m.persons.last_name}, ${m.persons.first_name}`, type: m.persons.type }))
     .sort((a, b) => a.name.localeCompare(b.name));
