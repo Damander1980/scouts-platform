@@ -152,6 +152,8 @@ export default function AdvancementClient({
 
   const toggleDone = (req: Requirement) => run(async () => {
     const cur = progress[req.id];
+    // A signed-off requirement stays signed; unchecking it here would quietly undo a leader's approval.
+    if (cur?.approved_by) throw new Error("This one is signed off. Ask a leader if it needs to change.");
     const nextDone = cur?.completed_at ? null : new Date().toISOString();
     if (!demo) {
       const { error } = await supabase!.from("requirement_progress").upsert(
