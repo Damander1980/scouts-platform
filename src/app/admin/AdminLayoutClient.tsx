@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Mark from "@/components/Mark";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -105,7 +106,7 @@ export default function AdminLayoutClient({
     <div className="min-h-screen bg-canvas text-ink flex flex-col">
       <header className="hidden md:flex print:hidden bg-forest text-white sticky top-0 z-30 h-16 items-center gap-3 px-6">
         <Link href={to("/dashboard")} aria-label="Home" className="flex items-center gap-2.5 no-underline text-white">
-          <span className="w-9 h-9 rounded-[10px] flex items-center justify-center font-display font-extrabold text-[16px]" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
+          <Mark size={36} />
           <span className="font-display font-extrabold text-[19px]">ScoutPlatform</span>
         </Link>
         <span className="ml-4 min-h-[40px] px-4 rounded-full font-bold text-[14px] flex items-center" style={{ background: "#F5B700", color: "#101B2D" }}>{unitWord} {org.unit_number}</span>

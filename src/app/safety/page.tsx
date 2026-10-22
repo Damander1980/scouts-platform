@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Mark from "@/components/Mark";
 
 export const metadata = { title: "Safety and privacy" };
 
@@ -63,7 +64,7 @@ export default function SafetyPage() {
       <header className="bg-forest text-white">
         <div className="max-w-4xl mx-auto px-5 h-16 flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2.5 no-underline text-white flex-1">
-            <span className="w-9 h-9 rounded-[10px] flex items-center justify-center font-display font-extrabold" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
+            <Mark size={36} />
             <span className="hidden sm:inline font-display font-extrabold text-[19px]">ScoutPlatform</span>
           </Link>
           <Link href="/login" className="text-white font-bold text-[15px] no-underline min-h-[44px] flex items-center whitespace-nowrap">Sign in</Link>

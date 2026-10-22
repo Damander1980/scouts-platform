@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient, createEmailLinkClient } from "@/lib/supabase/client";
+import Mark from "@/components/Mark";
 
 type Mode = "signin" | "signup" | "forgot";
 
@@ -66,7 +67,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-wrap" style={{ background: "#E9E3D6" }}>
       <div className="bg-forest text-white flex flex-col justify-between gap-10 px-10 py-12" style={{ flex: "1 1 420px" }}>
         <a href="/" className="flex items-center gap-3 no-underline text-white">
-          <div className="w-10 h-10 rounded-[10px] flex items-center justify-center font-display font-extrabold" style={{ background: "#F5B700", color: "#101B2D" }}>S</div>
+          <Mark size={40} />
           <span className="font-display font-extrabold text-[20px]">ScoutPlatform</span>
         </a>
         <div className="flex flex-col gap-4 max-w-md">

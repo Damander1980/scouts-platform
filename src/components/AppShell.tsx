@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Mark from "@/components/Mark";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
@@ -71,7 +72,7 @@ export default function AppShell({
       <header className="bg-forest text-white sticky top-0 z-30">
         <div className="px-4 md:px-6 h-16 flex items-center gap-3">
           <Link href={to("/dashboard")} aria-label="Home" className="flex items-center gap-2.5 no-underline text-white flex-none">
-            <span className="w-9 h-9 rounded-[10px] flex items-center justify-center font-display font-extrabold text-[16px]" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
+            <Mark size={36} />
             <span className="hidden md:inline font-display font-extrabold text-[19px]">ScoutPlatform</span>
           </Link>
           <button onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label="Switch unit"

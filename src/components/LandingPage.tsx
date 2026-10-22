@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Mark from "@/components/Mark";
 
 // Public marketing page. Every claim about other products is sourced (public help pages and
 // unit-leader forum posts, Oct 2026); keep it that way. No invented testimonials.
@@ -33,7 +34,7 @@ export default function LandingPage() {
       <header className="bg-forest text-white sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2.5 no-underline text-white flex-1">
-            <span className="w-9 h-9 rounded-[10px] flex items-center justify-center font-display font-extrabold" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
+            <Mark size={36} />
             <span className="hidden sm:inline font-display font-extrabold text-[19px]">ScoutPlatform</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-[15px] font-bold">
@@ -79,7 +80,7 @@ export default function LandingPage() {
 
         <div className="rounded-[20px] overflow-hidden bg-white hero-float" style={{ flex: "1 1 460px", ...HERO_SHADOW }} aria-label="Example of the leader dashboard" role="img">
           <div className="bg-forest px-4 h-11 flex items-center gap-2">
-            <span className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-extrabold" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
+            <Mark size={24} />
             <span className="text-white text-[13px] font-bold">Troop 999 · Leader tools</span>
           </div>
           <div className="flex">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Mark from "@/components/Mark";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ErrorBox, Field } from "@/components/ui";
@@ -107,7 +108,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
       <div className="w-full max-w-xl mx-auto bg-forest text-white px-6 pt-10 pb-7 sm:rounded-[20px]"
         style={{ boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
         <div className="flex items-center gap-2.5 mb-5">
-          <span className="w-8 h-8 rounded-[9px] flex items-center justify-center font-display font-extrabold text-[14px]" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
+          <Mark size={32} />
           <span className="font-display font-extrabold text-[17px]">ScoutPlatform</span>
         </div>
         <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#F5B700" }}>{header.kicker}</div>

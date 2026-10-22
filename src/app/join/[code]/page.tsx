@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Mark from "@/components/Mark";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function JoinLanding({ params }: { params: Promise<{ code: string }> }) {
@@ -17,7 +18,7 @@ export default async function JoinLanding({ params }: { params: Promise<{ code: 
       <div className="w-full max-w-xl mx-auto bg-white sm:rounded-[20px] overflow-hidden" style={{ boxShadow: "0 1px 2px rgba(16,27,45,.06), 0 14px 36px rgba(16,27,45,.12)" }}>
         <div className="bg-forest text-white px-7 pt-8 pb-7">
           <div className="flex items-center gap-2.5 mb-5">
-            <span className="w-8 h-8 rounded-[9px] flex items-center justify-center font-display font-extrabold text-[14px]" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
+            <Mark size={32} />
             <span className="font-display font-extrabold text-[17px]">ScoutPlatform</span>
           </div>
           <div className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#F5B700" }}>You&apos;re invited</div>

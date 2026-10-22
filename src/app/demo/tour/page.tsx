@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Mark from "@/components/Mark";
 
 // Public tour linked from the landing page. Every screen behind it uses made-up data and saves nothing.
 const GROUPS: { title: string; sub: string; screens: [string, string, string][] }[] = [
@@ -29,7 +30,7 @@ export default function Tour() {
       <header className="bg-forest text-white">
         <div className="max-w-5xl mx-auto px-5 h-16 flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2.5 no-underline text-white flex-1">
-            <span className="w-9 h-9 rounded-[10px] flex items-center justify-center font-display font-extrabold" style={{ background: "#F5B700", color: "#101B2D" }}>S</span>
+            <Mark size={36} />
             <span className="hidden sm:inline font-display font-extrabold text-[19px]">ScoutPlatform</span>
           </Link>
           <Link href="/login?next=/setup" className="min-h-[44px] px-5 rounded-full font-bold text-[15px] flex items-center no-underline whitespace-nowrap" style={{ background: "#F5B700", color: "#101B2D" }}>Start free</Link>
