@@ -4,6 +4,7 @@ import Shell from "@/components/Shell";
 import { Chip, fmtDate, fmtTime, money } from "@/components/ui";
 import { householdBalance, loadFamily } from "@/lib/family";
 import ScoutHome, { type ScoutEvent } from "./ScoutHome";
+import { nextRankSummary } from "@/lib/advancement";
 
 export default async function DashboardPage() {
   const ctx = await requireOrg();
@@ -23,8 +24,8 @@ export default async function DashboardPage() {
       const r = byEvent[e.id];
       return { ...e, mine: r ? { status: r.status, notes: r.notes, dietary: r.dietary, answers: (r.answers ?? {}) as Record<string, string>, pending: r.rsvp_approval_status === "pending" } : null };
     });
-    const { data: plc } = await supabase.rpc("is_plc_member", { org: orgId });
-    return <Shell ctx={ctx}><ScoutHome personId={person.id} firstName={person.first_name} events={scoutEvents} plc={!!plc} /></Shell>;
+    const [{ data: plc }, rank] = await Promise.all([supabase.rpc("is_plc_member", { org: orgId }), nextRankSummary(supabase, person.id)]);
+    return <Shell ctx={ctx}><ScoutHome personId={person.id} firstName={person.first_name} events={scoutEvents} plc={!!plc} rank={rank} /></Shell>;
   }
 
   const family = await loadFamily(supabase, orgId);

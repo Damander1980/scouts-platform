@@ -33,7 +33,7 @@ function when(e: ScoutEvent) {
   return `${day} at ${time}`;
 }
 
-export default function ScoutHome({ personId, firstName, events: initial, plc = false }: { personId: string; firstName: string; events: ScoutEvent[]; plc?: boolean }) {
+export default function ScoutHome({ personId, firstName, events: initial, plc = false, rank = null }: { personId: string; firstName: string; events: ScoutEvent[]; plc?: boolean; rank?: { name: string; done: number; total: number; complete: boolean } | null }) {
   const supabase = createClient();
   const router = useRouter();
   const [events, setEvents] = useState(initial);
@@ -77,8 +77,15 @@ export default function ScoutHome({ personId, firstName, events: initial, plc = 
           style={{ background: "#12355F", boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
           <div className="flex-1 flex flex-col gap-0.5">
             <span className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "#F5B700" }}>My advancement</span>
-            <span className="font-display font-extrabold text-[22px] leading-tight">See what&apos;s next for your rank</span>
-            <span className="text-[15px]" style={{ color: "#D7E0EE" }}>Mark requirements done and ask a leader to sign off.</span>
+            <span className="font-display font-extrabold text-[22px] leading-tight">
+              {rank ? (rank.complete ? "Eagle Scout. Amazing work!" : `${rank.name}: ${rank.done} of ${rank.total} done`) : "See what's next for your rank"}
+            </span>
+            {rank && !rank.complete && rank.total > 0 && (
+              <span className="block h-2 rounded-full mt-1" style={{ background: "rgba(255,255,255,.18)" }}>
+                <span className="block h-2 rounded-full" style={{ width: `${Math.round((rank.done / rank.total) * 100)}%`, background: "#F5B700" }} />
+              </span>
+            )}
+            <span className="text-[15px]" style={{ color: "#D7E0EE" }}>{rank && !rank.complete ? `${rank.total - rank.done} to go. Mark them done and ask a leader to sign off.` : "Mark requirements done and ask a leader to sign off."}</span>
           </div>
           <span className="min-h-[48px] px-5 rounded-full font-bold text-[16px] flex items-center" style={{ background: "#F5B700", color: "#101B2D" }}>Open</span>
         </a>

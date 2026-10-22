@@ -29,3 +29,25 @@ export async function loadCatalog(supabase: SupabaseClient): Promise<Item[]> {
   for (const r of reqs) (byItem[r.item_id] ??= []).push({ id: r.id, number: r.number, text: r.text, sort: r.sort });
   return (items ?? []).map((i) => ({ ...i, requirements: byItem[i.id] ?? [] })) as Item[];
 }
+
+const RANK_ORDER = ["scout", "tenderfoot", "second_class", "first_class", "star", "life", "eagle"];
+
+/** A Scout's next rank and how many of its requirements are signed off (light query for home screens). */
+export async function nextRankSummary(supabase: SupabaseClient, personId: string) {
+  const { data: ranks } = await supabase.from("advancement_items").select("id, code, name").eq("kind", "rank").eq("program", "scouts_bsa");
+  if (!ranks?.length) return null;
+  const ordered = [...ranks].sort((a, b) => RANK_ORDER.indexOf(a.code) - RANK_ORDER.indexOf(b.code));
+  const [{ data: earned }, { data: reqs }, { data: done }] = await Promise.all([
+    supabase.from("scout_advancement").select("item_id").eq("person_id", personId).eq("status", "completed").in("item_id", ordered.map((r) => r.id)),
+    supabase.from("advancement_requirements").select("id, item_id").in("item_id", ordered.map((r) => r.id)),
+    supabase.from("requirement_progress").select("requirement_id").eq("person_id", personId).not("approved_by", "is", null),
+  ]);
+  const earnedIds = new Set((earned ?? []).map((e) => e.item_id));
+  const doneIds = new Set((done ?? []).map((d) => d.requirement_id));
+  const reqsOf = (id: string) => (reqs ?? []).filter((r) => r.item_id === id);
+  const allDone = (id: string) => { const rs = reqsOf(id); return rs.length > 0 && rs.every((r) => doneIds.has(r.id)); };
+  const next = ordered.find((r) => !earnedIds.has(r.id) && !allDone(r.id));
+  if (!next) return { name: "Eagle Scout", done: 1, total: 1, complete: true };
+  const rs = reqsOf(next.id);
+  return { name: next.name, done: rs.filter((r) => doneIds.has(r.id)).length, total: rs.length, complete: false };
+}
