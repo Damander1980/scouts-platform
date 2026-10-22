@@ -31,7 +31,7 @@ function Icon({ d }: { d: string }) {
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-canvas text-ink">
-      <header className="bg-forest text-white sticky top-0 z-50">
+      <header className="text-white sticky top-0 z-50" style={{ background: "linear-gradient(90deg, #0C2442 0%, #12355F 60%, #17437A 100%)", boxShadow: "inset 0 -3px 0 #F5B700" }}>
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2.5 no-underline text-white flex-1">
             <Mark size={36} />
@@ -64,9 +64,9 @@ export default function LandingPage() {
       </svg>
       <section className="relative max-w-6xl mx-auto px-5 pt-14 pb-16 flex flex-wrap gap-12 items-center">
         <div className="flex flex-col gap-6" style={{ flex: "1 1 440px" }}>
-          <span className="text-[13px] font-bold uppercase tracking-[0.14em] text-forest">For Scouts BSA troops</span>
+          <span className="eyebrow text-forest flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#12355F" strokeWidth="2"/><path d="M12 4l2.5 8L12 20l-2.5-8z" fill="#F5B700"/></svg>For Scouts BSA troops</span>
           <h1 className="font-display font-extrabold leading-[1.02] m-0" style={{ fontSize: "clamp(42px, 6vw, 66px)" }}>
-            Less paperwork.<br /><span className="text-forest">More Scouting.</span>
+            Less paperwork.<br /><span className="text-forest relative inline-block">More Scouting.<svg aria-hidden="true" viewBox="0 0 300 18" preserveAspectRatio="none" className="absolute left-0 -bottom-2 w-full h-[14px]"><path d="M3 12 C60 4 120 15 170 8 S260 4 297 9" fill="none" stroke="#F5B700" strokeWidth="5" strokeLinecap="round"/></svg></span>
           </h1>
           <p className="text-[19px] leading-relaxed text-smoke m-0 max-w-[520px]">
             One place for sign-ups, payments, health form status, advancement and messages. A real dashboard for leaders at the computer, and a simple page parents finish on their phone in a minute.
@@ -90,7 +90,7 @@ export default function LandingPage() {
               ))}
             </div>
             <div className="flex-1 p-4 flex flex-col gap-3" style={{ background: "#E9E3D6" }}>
-              <div className="rounded-xl p-3.5 text-white" style={{ background: "#12355F" }}>
+              <div className="patch !rounded-xl !p-3.5">
                 <div className="eyebrow" style={{ color: "#F5B700" }}>Next up · Fri, Oct 23</div>
                 <div className="font-display font-extrabold text-[17px]">Caprock Canyons campout</div>
                 <div className="text-[12px]" style={{ color: "#D7E0EE" }}>24 going · 7 haven&apos;t answered · 2-deep covered</div>
@@ -118,23 +118,30 @@ export default function LandingPage() {
       </section>
       </div>
 
-      <section className="bg-forest text-white">
+      <section className="text-white" style={{ background: "var(--topo-dark), #0C2442", backgroundSize: "520px 520px", borderTop: "3px solid #F5B700", borderBottom: "3px solid #F5B700" }}>
         <div className="max-w-6xl mx-auto px-5 py-8 grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
           {[["Every message logged", "and copied to parents and leaders"], ["No medical forms stored", "status and expiry only"], ["Money to your troop", "straight into its own bank account"], ["Your data is yours", "download everything any time"]].map(([a, b]) => (
-            <div key={a}><div className="font-display font-extrabold text-[22px]" style={{ color: "#F5B700" }}>{a}</div><div className="text-[15px]" style={{ color: "#D7E0EE" }}>{b}</div></div>
+            <div key={a} className="pl-4 border-l-2 border-dashed" style={{ borderColor: "rgba(245,183,0,.5)" }}><div className="font-display font-extrabold text-[22px]" style={{ color: "#F5B700" }}>{a}</div><div className="text-[15px]" style={{ color: "#D7E0EE" }}>{b}</div></div>
           ))}
         </div>
       </section>
 
       <section id="tools" className="max-w-6xl mx-auto px-5 py-20 flex flex-col gap-10">
         <div className="flex flex-col gap-2 max-w-2xl">
-          <span className="text-[13px] font-bold uppercase tracking-[0.14em] text-forest">Leader power tools</span>
+          <span className="eyebrow text-forest">Leader power tools</span>
           <h2 className="font-display font-extrabold text-[40px] leading-tight m-0">Built for a Scoutmaster&apos;s Thursday night.</h2>
         </div>
         <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
-          {TOOLS.map((t) => (
-            <div key={t.title} className="bg-white rounded-[20px] p-6 flex flex-col gap-3" style={FLOAT}>
-              <span className="w-11 h-11 rounded-xl flex items-center justify-center text-forest" style={{ background: "#EEE8D9" }}><Icon d={t.icon} /></span>
+          {TOOLS.map((t, i) => (
+            <div key={t.title} className="card !rounded-[20px] !p-6 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                {/* Merit-badge style: round navy patch with a stitched gold ring. */}
+                <span className="w-14 h-14 rounded-full flex items-center justify-center text-white relative" style={{ background: "#12355F", boxShadow: "0 0 0 3px #F5B700, 0 6px 14px rgba(12,36,66,.3)" }}>
+                  <span aria-hidden="true" className="absolute inset-[5px] rounded-full border border-dashed" style={{ borderColor: "rgba(245,183,0,.6)" }} />
+                  <Icon d={t.icon} />
+                </span>
+                <span className="eyebrow text-sage">{String(i + 1).padStart(2, "0")}</span>
+              </div>
               <span className="font-bold text-[19px]">{t.title}</span>
               <span className="text-[15px] leading-relaxed text-smoke">{t.body}</span>
             </div>
@@ -144,7 +151,7 @@ export default function LandingPage() {
 
       <section className="max-w-6xl mx-auto px-5 pb-20 flex flex-wrap gap-12 items-center">
         <div className="flex flex-col gap-5" style={{ flex: "1 1 380px" }}>
-          <span className="text-[13px] font-bold uppercase tracking-[0.14em] text-forest">What a parent sees</span>
+          <span className="eyebrow text-forest">What a parent sees</span>
           <h2 className="font-display font-extrabold text-[40px] leading-tight m-0">A text arrives. A minute later, they&apos;re signed up and paid.</h2>
           <ol className="m-0 p-0 list-none flex flex-col gap-4">
             {[["Tap the link", "It opens the trip: dates, cost, deadline and the refund rule, in plain words."],
@@ -203,7 +210,7 @@ export default function LandingPage() {
       <section id="compare" style={{ background: "#EEE8D9" }}>
         <div className="max-w-6xl mx-auto px-5 py-20 flex flex-col gap-8">
           <div className="flex flex-col gap-2 max-w-2xl">
-            <span className="text-[13px] font-bold uppercase tracking-[0.14em] text-forest">Compare</span>
+            <span className="eyebrow text-forest">Compare</span>
             <h2 className="font-display font-extrabold text-[40px] leading-tight m-0">Switching from TroopWebHost? Here&apos;s what changes.</h2>
           </div>
           <div className="bg-white rounded-[20px] overflow-x-auto" style={FLOAT}>
@@ -231,8 +238,8 @@ export default function LandingPage() {
       </section>
 
       <section id="pricing" className="max-w-6xl mx-auto px-5 py-20 flex flex-wrap gap-10 items-center">
-        <div className="rounded-[24px] p-9 flex flex-col gap-5 text-white" style={{ flex: "1 1 360px", maxWidth: 460, background: "#12355F", ...HERO_SHADOW }}>
-          <span className="text-[13px] font-bold uppercase tracking-[0.14em]" style={{ color: "#D7E0EE" }}>One troop, one price</span>
+        <div className="patch !rounded-[24px] !p-9 flex flex-col gap-5" style={{ flex: "1 1 360px", maxWidth: 460 }}>
+          <span className="eyebrow" style={{ color: "#F5B700" }}>One troop, one price</span>
           <div className="flex items-baseline gap-2"><span className="font-display font-extrabold text-[64px] leading-none">$125</span><span className="text-[18px]" style={{ color: "#D7E0EE" }}>a year</span></div>
           <ul className="m-0 p-0 list-none flex flex-col gap-2 text-[15px]">
             {["Unlimited members, families always free", "Payments, messaging, advancement and forms", "Your troop's own web address", "Download all your data any time", "First 30 days free, no credit card"].map((x) => (
@@ -255,7 +262,7 @@ export default function LandingPage() {
       </section>
 
       <section className="max-w-6xl mx-auto px-5 pb-20">
-        <div className="bg-white rounded-[24px] p-8 md:p-10 flex flex-wrap gap-6 items-center" style={FLOAT}>
+        <div className="card !rounded-[24px] !p-8 md:!p-10 flex flex-wrap gap-6 items-center">
           <div className="flex flex-col gap-2" style={{ flex: "1 1 420px" }}>
             <h2 className="font-display font-extrabold text-[30px] leading-tight m-0">Bring your troop over by file.</h2>
             <p className="text-[16px] text-smoke m-0">Upload your Scoutbook roster and advancement exports, or any roster spreadsheet. You see a preview before anything is saved, and an import can be undone. Run both systems side by side until you&apos;re ready.</p>
