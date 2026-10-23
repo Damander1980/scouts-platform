@@ -24,7 +24,7 @@ export default function ComposeClient({ orgId, isLeader, weekBroadcasts = 0, can
   const [error, setError] = useState("");
 
   const options = [
-    ...(isLeader ? [["troop", "Everyone active in the unit"], ["event", "Everyone going to an event"], ["nonresponders", "Families who haven't replied to an event"], ["people", "Pick people"]] : []),
+    ...(isLeader ? [["troop", "Everyone active in the unit"], ["scouts", "All Scouts (parents and leaders get a copy)"], ["parents", "All parents and guardians"], ["adults", "All adults"], ["event", "Everyone going to an event"], ["nonresponders", "Families who haven't replied to an event"], ["people", "Pick people"]] : []),
     ...(isLeader || canMoney ? [["owing", "Families who owe money (parents only)"]] : []),
     ...(patrols.length ? [["patrol", "A patrol"]] : []),
     ["leaders", "My leaders"],
@@ -84,7 +84,7 @@ export default function ComposeClient({ orgId, isLeader, weekBroadcasts = 0, can
         </div>
         </div>
       )}
-      {isLeader && ["troop", "nonresponders", "event"].includes(audience) && weekBroadcasts > 0 && (
+      {isLeader && ["troop", "scouts", "parents", "adults", "nonresponders", "event"].includes(audience) && weekBroadcasts > 0 && (
         <p className="text-[13px] m-0 rounded-xl px-3 py-2" style={weekBroadcasts >= 3 ? { background: "#FFF6D6", color: "#5E4400", fontWeight: 700 } : { background: "#F8F5EE", color: "#4B5568" }}>
           {weekBroadcasts} group message{weekBroadcasts === 1 ? " has" : "s have"} gone out in the last 7 days.{weekBroadcasts >= 3 ? " Families tune out when there are too many; could this go in the weekly digest instead?" : ""}
         </p>

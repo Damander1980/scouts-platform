@@ -18,7 +18,7 @@ export default async function NewMessagePage({ searchParams }: { searchParams: P
 
   // SPEC: leaders see a warning before a broadcast that would pile on in one week.
   const { count: weekBroadcasts } = isLeader
-    ? await supabase.from("message_log").select("*", { count: "exact", head: true }).eq("org_id", orgId).in("audience", ["troop", "nonresponders", "event"])
+    ? await supabase.from("message_log").select("*", { count: "exact", head: true }).eq("org_id", orgId).in("audience", ["troop", "scouts", "parents", "adults", "nonresponders", "event"])
         .gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString())
     : { count: 0 };
 
