@@ -22,7 +22,7 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
   const [editing, setEditing] = useState<{ pid: string; type: string } | null>(null);
   const [date, setDate] = useState(isoDay());
   const [view, setView] = useState<"forms" | "certs">("forms");
-  const [filter, setFilter] = useState<"all" | "missing">("all");
+  const [filter, setFilter] = useState<"all" | "missing" | "expired" | "d30" | "d60" | "d90">("all");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -68,7 +68,26 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
   }
 
   const missingAny = (p: Person) => FORM_TYPES.slice(0, 1).some(([t]) => status(p.id, t).tone !== "green");
-  const shown = people.filter((p) => filter === "all" || missingAny(p));
+  // Days until the soonest expiry among a person's health forms (null when nothing is on file with a date).
+  const soonestExpiry = (p: Person) => {
+    const days = FORM_TYPES.slice(0, 2).map(([t]) => forms.find((f) => f.person_id === p.id && f.type === t)?.expires_at).filter(Boolean)
+      .map((d) => Math.ceil((new Date(String(d).slice(0, 10)).getTime() - new Date(isoDay()).getTime()) / 86400000));
+    return days.length ? Math.min(...days) : null;
+  };
+  const matches = (p: Person) => {
+    if (filter === "all") return true;
+    if (filter === "missing") return missingAny(p);
+    const d = soonestExpiry(p);
+    if (d === null) return false;
+    if (filter === "expired") return d < 0;
+    return d >= 0 && d <= Number(filter.slice(1));
+  };
+  const shown = people.filter(matches);
+  const counts = {
+    missing: people.filter(missingAny).length,
+    expired: people.filter((p) => (soonestExpiry(p) ?? 1) < 0).length,
+    d30: people.filter((p) => { const d = soonestExpiry(p); return d !== null && d >= 0 && d <= 30; }).length,
+  };
   const leaders = people.filter((p) => p.type === "adult" && !["parent_guardian", "scout"].includes(p.role));
 
   return (
@@ -89,11 +108,17 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
             {v === "forms" ? "Health & permission" : "Skill cards"}
           </button>
         ))}
-        {view === "forms" && (
-          <label className="flex items-center gap-2 text-[14px] ml-2">
-            <input type="checkbox" checked={filter === "missing"} onChange={(e) => setFilter(e.target.checked ? "missing" : "all")} /> Only show missing
-          </label>
-        )}
+        {view === "forms" && (<>
+          <select aria-label="Show" className="input w-auto h-10 min-h-0 ml-2" value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)}>
+            <option value="all">Everyone ({people.length})</option>
+            <option value="missing">Missing ({counts.missing})</option>
+            <option value="expired">Expired ({counts.expired})</option>
+            <option value="d30">Expiring within 30 days ({counts.d30})</option>
+            <option value="d60">Expiring within 60 days</option>
+            <option value="d90">Expiring within 90 days</option>
+          </select>
+          <button className="btn-ghost" onClick={() => window.print()}>Print</button>
+        </>)}
         <a href="/api/export/roster.csv" className="ml-auto btn-ghost no-underline">Printable list (CSV)</a>
       </div>
 
@@ -104,6 +129,7 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-bold text-[15px] flex-1 min-w-[140px]">{p.name}</span>
                 {p.type === "adult" && <Chip>Adult</Chip>}
+                {p.swim && <Chip tone={p.swim === "swimmer" ? "green" : "gray"}>{p.swim === "swimmer" ? "Swimmer" : p.swim === "beginner" ? "Beginner" : "Non-swimmer"}</Chip>}
                 {FORM_TYPES.map(([t, label]) => {
                   const s = status(p.id, t);
                   return (

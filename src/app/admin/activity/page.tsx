@@ -40,17 +40,25 @@ function detail(r: Row) {
   return "";
 }
 
-export default async function ActivityPage({ searchParams }: { searchParams: Promise<{ only?: string }> }) {
-  const { only } = await searchParams;
+export default async function ActivityPage({ searchParams }: { searchParams: Promise<{ only?: string; from?: string; to?: string; kind?: string; who?: string }> }) {
+  const { only, from, to, kind, who } = await searchParams;
   const { supabase, current, isAdmin } = await requireStaff();
   if (!isAdmin) redirect("/admin");
+  const day = /^\d{4}-\d{2}-\d{2}$/;
   let q = supabase.from("audit_log").select("id, actor_id, action, target_type, payload, created_at").eq("org_id", current.org.id).order("created_at", { ascending: false }).limit(300);
   if (only === "sensitive") q = q.in("action", [...SENSITIVE]);
+  if (from && day.test(from)) q = q.gte("created_at", `${from}T00:00:00`);
+  if (to && day.test(to)) q = q.lte("created_at", `${to}T23:59:59`);
+  // "kind" is the first part of an action name, e.g. membership, rsvp, event, form.
+  if (kind && /^[a-z_]+$/.test(kind)) q = q.like("action", `${kind}.%`);
   const { data } = await q;
-  const rows = (data ?? []) as Row[];
+  let rows = (data ?? []) as Row[];
   const ids = [...new Set(rows.map((r) => r.actor_id).filter(Boolean))] as string[];
   const { data: names } = ids.length ? await supabase.rpc("person_names", { p_ids: ids }) : { data: [] };
   const nameOf = Object.fromEntries(((names ?? []) as { id: string; first_name: string; last_name: string }[]).map((n) => [n.id, `${n.first_name} ${n.last_name}`]));
+  if (who?.trim()) rows = rows.filter((r) => (r.actor_id ? nameOf[r.actor_id] ?? "" : "system").toLowerCase().includes(who.trim().toLowerCase()));
+  const kinds = [...new Set((data ?? []).map((r) => String(r.action).split(".")[0]))].sort();
+  const filtered = !!(from || to || kind || who?.trim());
 
   return (
     <div className="flex flex-col gap-5">
@@ -64,7 +72,21 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           <a href="/admin/activity?only=sensitive" className="text-forest min-h-[44px] flex items-center" style={{ textDecoration: only ? "underline" : "none" }}>Privacy and access only</a>
         </div>
       </div>
-      {rows.length === 0 && <div className="card text-smoke">Nothing recorded yet.</div>}
+      <form method="get" className="card flex items-end gap-3 flex-wrap">
+        {only && <input type="hidden" name="only" value={only} />}
+        <label className="flex flex-col gap-1 text-[13px] font-bold">From<input type="date" name="from" defaultValue={from ?? ""} className="input h-10 min-h-0" /></label>
+        <label className="flex flex-col gap-1 text-[13px] font-bold">To<input type="date" name="to" defaultValue={to ?? ""} className="input h-10 min-h-0" /></label>
+        <label className="flex flex-col gap-1 text-[13px] font-bold">Type
+          <select name="kind" defaultValue={kind ?? ""} className="input h-10 min-h-0 w-auto">
+            <option value="">Everything</option>
+            {kinds.map((k) => <option key={k} value={k}>{k.replace(/_/g, " ")}</option>)}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-[13px] font-bold flex-1 min-w-[160px]">Who<input name="who" defaultValue={who ?? ""} placeholder="Name" className="input h-10 min-h-0" /></label>
+        <button className="btn-primary">Filter</button>
+        {filtered && <a href="/admin/activity" className="btn-ghost no-underline">Clear</a>}
+      </form>
+      {rows.length === 0 && <div className="card text-smoke">{filtered ? "Nothing matches those filters." : "Nothing recorded yet."}</div>}
       {rows.length > 0 && (
         <div className="card p-0 overflow-hidden">
           {rows.map((r) => (
