@@ -245,7 +245,7 @@ Or enter join code ${String(joinCode ?? "").toUpperCase()} after you sign up. Ad
                     <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-[13px] flex-none"
                       style={{ background: m.persons.type === "youth" ? "#12355F" : "#4B5568" }}>{m.persons.first_name[0]}{m.persons.last_name[0]}</div>
                     <div className="flex-1 min-w-[160px]">
-                      <div className="font-bold text-[15px]">{m.persons.first_name} {m.persons.last_name}</div>
+                      <div className="font-bold text-[15px]">{demo ? <>{m.persons.first_name} {m.persons.last_name}</> : <a href={`/scout/${m.persons.id}`} className="text-ink no-underline hover:underline">{m.persons.first_name} {m.persons.last_name}</a>}</div>
                       <div className="text-[13px] text-smoke">
                         {ROLE_LABEL[m.role] ?? m.role}{m.position ? ` · ${m.position}` : ""}{patrolOf[m.persons.id] ? ` · ${patrolOf[m.persons.id]}` : ""}
                         {m.persons.type === "youth" && a !== null ? ` · age ${a}` : ""}
