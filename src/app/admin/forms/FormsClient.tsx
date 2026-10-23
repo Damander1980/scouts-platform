@@ -10,7 +10,7 @@ type Form = { person_id: string; type: string; exam_date: string | null; expires
 type Cert = { id: string; code: string; name: string };
 type ScoutCert = { id: string; person_id: string; cert_id: string; status: string; earned_at: string; note: string | null };
 
-const FORM_TYPES: [string, string][] = [["health_ab", "Health A+B"], ["health_c", "Health C"], ["permission", "Permission"]];
+const FORM_TYPES: [string, string][] = [["health_ab", "Health A+B"], ["health_c", "Health C"], ["permission", "Permission"], ["tetanus", "Tetanus"], ["swim_check", "Swim check"]];
 
 export default function FormsClient({ orgId, canMark, people, forms: initialForms, certs, scoutCerts: initialCerts }: {
   orgId: string; canMark: boolean; people: Person[]; forms: Form[]; certs: Cert[]; scoutCerts: ScoutCert[];
@@ -41,7 +41,7 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
     const { error } = await supabase.rpc("mark_form", { p_org: orgId, p_person: pid, p_type: type, p_date: date, p_received: received });
     if (error) setError(error.message);
     else {
-      const exp = new Date(new Date(date).getFullYear(), new Date(date).getMonth() + 13, 0).toISOString();
+      const exp = new Date(new Date(date).getFullYear(), new Date(date).getMonth() + (type === "tetanus" ? 121 : 13), 0).toISOString();
       setForms((fs) => [...fs.filter((f) => !(f.person_id === pid && f.type === type)), ...(received ? [{ person_id: pid, type, exam_date: date, expires_at: exp }] : [])]);
       setEditing(null);
     }
