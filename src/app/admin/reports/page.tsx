@@ -9,7 +9,7 @@ import { fmtDate } from "@/components/ui";
 const REPORTS: [string, string][] = [
   ["ypt", "YPT aging"], ["patrols", "Patrol rosters"], ["leaders", "Leaders by position"], ["swim", "Swim test results"],
   ["counselors", "Merit badge counselors by badge"], ["sizes", "Shirt sizes"], ["dietary", "Allergies and dietary needs"],
-  ["registrations", "Registration renewals"], ["families", "Scout and parent cross reference"], ["participation", "Participation (last 12 months)"], ["positions", "Youth positions"],
+  ["registrations", "Registration renewals"], ["families", "Scout and parent cross reference"], ["reach", "Who we can't reach"], ["participation", "Participation (last 12 months)"], ["positions", "Youth positions"],
 ];
 const SWIM: Record<string, string> = { swimmer: "Swimmer", beginner: "Beginner", nonswimmer: "Non-swimmer" };
 
@@ -87,6 +87,34 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     body = <Table head={["Family", "Scouts", "Parents and guardians"]} rows={Object.values(byHh).filter((h) => h.scouts.length).sort((a, b) => a.name.localeCompare(b.name)).map((h) => [h.name, h.scouts.join("; "), h.parents.join("; ")])} />;
   }
 
+
+  if (r === "reach") {
+    // Roster-level only: whether a Scout has any parent or guardian with a login, and which adults never signed up.
+    const [{ data: hm }, { data: acct }] = await Promise.all([
+      supabase.from("household_members").select("household_id, person_id, is_guardian, households!inner(org_id)").eq("households.org_id", orgId),
+      supabase.from("persons").select("id, user_id").in("id", members.map((m) => m.person_id)),
+    ]);
+    const hasLogin = new Set(((acct ?? []) as { id: string; user_id: string | null }[]).filter((x) => x.user_id).map((x) => x.id));
+    const links = (hm ?? []) as unknown as { household_id: string; person_id: string; is_guardian: boolean }[];
+    const reachable = new Set<string>();
+    for (const l of links.filter((x) => !x.is_guardian)) {
+      if (links.some((g) => g.household_id === l.household_id && g.is_guardian && hasLogin.has(g.person_id))) reachable.add(l.person_id);
+    }
+    const scouts = youth.filter((m) => !reachable.has(m.person_id) && !hasLogin.has(m.person_id));
+    const adults = members.filter((m) => m.persons.type === "adult" && !hasLogin.has(m.person_id));
+    body = (
+      <div className="flex flex-col gap-5">
+        <div className="break-inside-avoid">
+          <h2 className="font-bold text-[16px] m-0 mb-1">Scouts with no parent or guardian signed up ({scouts.length})</h2>
+          <Table head={["Scout", "Why"]} rows={scouts.map((m) => [name(m), links.some((l) => l.person_id === m.person_id) ? "Parent has no login yet" : "No family linked"])} />
+        </div>
+        <div className="break-inside-avoid">
+          <h2 className="font-bold text-[16px] m-0 mb-1">Adults who haven&apos;t created an account ({adults.length})</h2>
+          <Table head={["Adult", "Position"]} rows={adults.map((m) => [name(m), ROLE_LABELS[m.role] ?? m.role])} />
+        </div>
+      </div>
+    );
+  }
   if (r === "participation") {
     const since = new Date(Date.now() - 365 * 86400000).toISOString();
     const { data: att } = await supabase.from("attendance").select("person_id, present, events!inner(start_at, overnight_nights, service_hours, canceled)")
