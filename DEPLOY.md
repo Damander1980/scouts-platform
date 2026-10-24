@@ -60,7 +60,7 @@ One-time Codemagic setup:
 4. codemagic.io → sign up with GitHub → add the `scouts-platform` repository.
 5. Team settings → Integrations → Developer Portal → connect: name it exactly `ASC key`, enter the Issuer ID,
    Key ID and upload the .p8.
-6. In the app's workflow settings → Environment variables: add `APP_STORE_APPLE_ID` = the number from step 2.
+6. (Done: the app's Apple ID 6826603321 is in codemagic.yaml.)
 
 Each test build:
 7. Codemagic → Start new build → workflow **iOS → TestFlight**. About 20 minutes, then Apple processes it

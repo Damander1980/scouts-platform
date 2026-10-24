@@ -18,6 +18,7 @@ workflows:
       vars:
         XCODE_PROJECT: ios/App/App.xcodeproj
         XCODE_SCHEME: App
+        APP_STORE_APPLE_ID: 6826603321 # Our Troop Manager in App Store Connect (not a secret)
       node: 22
       xcode: latest
     scripts:
@@ -39,8 +40,6 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-    # APP_STORE_APPLE_ID: the app's numeric Apple ID from App Store Connect → App Information.
-    # Add it under this workflow's Environment variables in Codemagic.
 
   android-test:
     name: Android → install file
