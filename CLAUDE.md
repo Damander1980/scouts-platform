@@ -4,7 +4,7 @@ Web-first multi-troop platform for Scouting units, competing with TroopWebHost. 
 
 - Read SPEC.md first. It is the source of truth (roles, communication/youth protection, finance on Stripe, SMS rules, roster visibility, fundraising goals, roadmap).
 - prototype/ holds the design prototype (.dc.html screens, sample data only). Palette: ink #14211B, forest #1F5F4A, orange #FF6A1A, mist #EAF0ED, paper #F4F6F5; fonts Bricolage Grotesque + DM Sans. Minimum 44px touch targets.
-- Proposed stack: Next.js + Postgres/Supabase (row-level security per organization), Stripe Connect + Billing, Resend/Twilio, Vercel, installable PWA. No native app.
+- Proposed stack: Next.js + Postgres/Supabase (row-level security per organization), Stripe Connect + Billing, Resend/Twilio, Cloudflare Workers, installable PWA, plus native iOS and Android apps (Capacitor shell around the live site, adding push notifications) (Floyd, 2026-10-24).
 
 Decisions made (Floyd): flat $125/year per unit; two-way Scoutbook sync wanted (2026-10-21): server signs in with a leader's stored Scoutbook login, encrypted, opt-in per leader, revocable; Scouting America terms still to confirm; all messages to Scouts logged and copied to leaders AND parents; only parents can request message deletion, no lawyer gate (Floyd 2026-10-21); roster visible to all members, contact details opt-in per family; everyone can download blank medical forms, nobody uploads, leaders mark received (status only); every Scout has their own account (under-13 created with parent consent); Scouts 13+ do most things themselves; online payments go through Stripe, and cash or checks are always allowed (treasurer records them, no fee).
 
