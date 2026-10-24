@@ -24,7 +24,6 @@ export default function SetupPage() {
   const [number, setNumber] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("TX");
-  const [ypt, setYpt] = useState("");
   const [nextAction, setNextAction] = useState<"import" | "dashboard">("dashboard");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -63,15 +62,10 @@ export default function SetupPage() {
         setCreatedOrg(orgId);
       }
 
-      // Admins need current YPT to see kids' private details, so record it now if given.
-      if (ypt) {
-        const { error: yErr } = await supabase.from("memberships").update({ ypt_expires: ypt }).eq("org_id", orgId).eq("person_id", personId);
-        if (yErr) throw yErr;
-      }
-
       const sw = await fetch("/api/switch-org", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orgId }) });
       if (!sw.ok) throw new Error("Your troop was created, but we couldn't open it. Reload the page and pick it from the troop menu.");
-      router.push(nextAction === "import" ? "/admin/import" : "/dashboard");
+      // The person who starts a troop is its admin: they land in Leader tools, where the setup checklist is.
+      router.push(nextAction === "import" ? "/admin/import" : "/admin");
       router.refresh();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Something went wrong");
@@ -166,11 +160,6 @@ export default function SetupPage() {
             <div className="flex flex-col gap-1.5">
               <label htmlFor="state" className="font-bold text-sm">State</label>
               <StateSelect id="state" value={state} onChange={setState} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="ypt" className="font-bold text-sm">Your Youth Protection Training expires</label>
-              <input id="ypt" type="date" value={ypt} onChange={(e) => setYpt(e.target.value)} className="input w-full" />
-              <span className="text-xs text-smoke">On your my.scouting.org profile. Leaders need current YPT to see Scouts&apos; private details. You can add it later on the Members page.</span>
             </div>
             {(number || city) && (
               <div className="card flex flex-col gap-1.5">
