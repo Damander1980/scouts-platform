@@ -24,10 +24,15 @@ export default function GiveClient({ campaign: c, thanks, booth, source }: { cam
 
   async function give() {
     setBusy(true); setError("");
-    const cents = custom ? Math.round(parseFloat(custom) * 100) : amount;
-    const res = await fetch("/api/stripe/donate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campaign: c.slug, amountCents: cents, source, coverFee: cover }) });
-    const body = await res.json().catch(() => ({}));
-    if (body.url) { await openOutside(body.url); setBusy(false); } else { setError(body.error ?? "Couldn't start checkout"); setBusy(false); }
+    try {
+      // Charge exactly the amount shown on the page.
+      const res = await fetch("/api/stripe/donate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campaign: c.slug, amountCents: gift, source, coverFee: cover }) });
+      const body = await res.json().catch(() => ({}));
+      if (body.url) await openOutside(body.url); else setError(body.error ?? "Couldn't start checkout");
+    } catch {
+      setError("Couldn't reach the server. Check your connection and try again.");
+    }
+    setBusy(false);
   }
 
   if (booth && qr) {

@@ -204,7 +204,7 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
         {canEdit && (
           <div className="flex gap-2">
             <input aria-label="Add an item" className="input flex-1 h-10 min-h-0" value={draft.packing ?? ""} onChange={(e) => setDraft({ ...draft, packing: e.target.value })} placeholder="Add an item" />
-            <button className="btn-secondary min-h-[40px]" disabled={!draft.packing} onClick={() => { add("packing", { text: draft.packing }); setDraft({ ...draft, packing: "" }); }}>Add</button>
+            <button className="btn-secondary min-h-[44px]" disabled={!draft.packing} onClick={() => { add("packing", { text: draft.packing }); setDraft({ ...draft, packing: "" }); }}>Add</button>
           </div>
         )}
       </section>
@@ -239,7 +239,7 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
         {canEdit && (
           <div className="flex gap-2">
             <input aria-label="e.g. State park campsite reservation #" className="input flex-1 h-10 min-h-0" value={draft.permit ?? ""} onChange={(e) => setDraft({ ...draft, permit: e.target.value })} placeholder="e.g. State park campsite reservation #" />
-            <button className="btn-secondary min-h-[40px]" disabled={!draft.permit} onClick={() => { add("permits", { text: draft.permit }); setDraft({ ...draft, permit: "" }); }}>Add</button>
+            <button className="btn-secondary min-h-[44px]" disabled={!draft.permit} onClick={() => { add("permits", { text: draft.permit }); setDraft({ ...draft, permit: "" }); }}>Add</button>
           </div>
         )}
       </section>

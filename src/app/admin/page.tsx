@@ -9,13 +9,15 @@ export default async function AdminOverview() {
   const now = new Date();
   const in60 = new Date(Date.now() + 60 * 86400000).toISOString();
 
-  const [{ data: members }, { count: events }, { count: joins }, { count: signoffs }, { data: forms }, { data: ledger }] = await Promise.all([
+  // Only current health forms (a whole troop's history can pass the 1000-row read limit), and balances
+  // summed in the database for the same reason.
+  const [{ data: members }, { count: events }, { count: joins }, { count: signoffs }, { data: forms }, { data: balances }] = await Promise.all([
     supabase.from("memberships").select("person_id, role, ypt_expires, is_admin, is_designated_leader, persons(first_name, last_name, type)").eq("org_id", orgId).eq("status", "active"),
     supabase.from("events").select("*", { count: "exact", head: true }).eq("org_id", orgId).gte("start_at", now.toISOString()).eq("canceled", false),
     supabase.from("join_requests").select("*", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "pending"),
     supabase.from("requirement_progress").select("*", { count: "exact", head: true }).eq("org_id", orgId).not("completed_at", "is", null).is("approved_by", null),
-    supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId).eq("type", "health_ab"),
-    supabase.from("ledger_entries").select("household_id, amount_cents").eq("org_id", orgId),
+    supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId).eq("type", "health_ab").or(`expires_at.is.null,expires_at.gt.${now.toISOString().slice(0, 10)}`),
+    supabase.rpc("unit_balances", { p_org: orgId }),
   ]);
 
   const { data: nextEvents } = await supabase.from("events").select("id, title, start_at, end_at, location")
@@ -28,13 +30,13 @@ export default async function AdminOverview() {
   const going = (nextRsvps ?? []).filter((r) => r.status === "yes" || r.status === "going").length;
 
   type M = { person_id: string; role: string; ypt_expires: string | null; is_admin: boolean; is_designated_leader: boolean; persons: { first_name: string; last_name: string; type: string } };
-  const ms = (members ?? []) as unknown as M[];
+  // A person row the viewer can't read comes back null; skip it rather than crash the page.
+  const ms = ((members ?? []) as unknown as M[]).filter((m) => m.persons);
   const youth = ms.filter((m) => m.persons.type === "youth");
   const leaders = ms.filter((m) => LEADER_ROLES.includes(m.role));
   const yptIssues = leaders.filter((m) => !m.ypt_expires || m.ypt_expires < in60);
   const noHealth = ms.filter((m) => !(forms ?? []).some((f) => f.person_id === m.person_id && (!f.expires_at || new Date(f.expires_at) > now)));
-  const owed = Object.values((ledger ?? []).reduce<Record<string, number>>((a, r) => ({ ...a, [r.household_id]: (a[r.household_id] ?? 0) + r.amount_cents }), {}))
-    .filter((v) => v > 0).reduce((s, v) => s + v, 0);
+  const owed = ((balances ?? []) as { balance_cents: number | string }[]).map((b) => Number(b.balance_cents)).filter((v) => v > 0).reduce((s, v) => s + v, 0);
   const designated = ms.filter((m) => m.is_designated_leader).length;
   const admins = ms.filter((m) => m.is_admin).length;
 

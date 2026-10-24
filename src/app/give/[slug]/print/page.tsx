@@ -6,8 +6,10 @@ export default async function PrintFlyer({ params }: { params: Promise<{ slug: s
   const { slug } = await params;
   const supabase = await createClient();
   const { data } = await supabase.rpc("public_campaign", { p_slug: slug });
-  const c = (data as { title: string; description: string | null; org_name: string }[] | null)?.[0];
+  const c = (data as { title: string; description: string | null; org_name: string; active: boolean }[] | null)?.[0];
   if (!c) return <div className="p-8">Not found</div>;
+  // A closed campaign gets no new flyers: its QR codes would lead donors to a page that can't take gifts.
+  if (!c.active) return <div className="p-8">This campaign is closed, so there are no flyers to print. Reopen it to print new ones.</div>;
   const h = await headers();
   const origin = process.env.NEXT_PUBLIC_SITE_URL || `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
   const [flyer, tent, sticker] = await Promise.all(["flyer", "tent", "sticker"].map((src) => QRCode.toDataURL(`${origin}/give/${slug}?src=${src}`, { width: 600, margin: 1 })));

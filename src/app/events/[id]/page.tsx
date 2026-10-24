@@ -51,7 +51,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const guests = (guestRows ?? []) as { person_id: string; first_name: string; last_name: string; type: string; unit_name: string; status: string; driver_seats: number; dietary: string | null }[];
   const over21 = new Set(((ageFlags ?? []) as { person_id: string; adult_21: boolean }[]).filter((a) => a.adult_21).map((a) => a.person_id));
 
-  const people = (roster ?? []) as unknown as Roster[];
+  // A person row the viewer can't read comes back null; skip it rather than crash the page.
+  const people = ((roster ?? []) as unknown as Roster[]).filter((p) => p.persons);
   const patrolOf = Object.fromEntries((patrolRows ?? []).map((p) => [p.person_id, (p.patrols as unknown as { name: string })?.name]));
   const priv = Object.fromEntries(privRows.map((r) => [r.person_id, r]));
   const byPerson = Object.fromEntries((rsvps ?? []).map((r) => [r.person_id, { ...r, notes: priv[r.person_id]?.notes ?? null, dietary: priv[r.person_id]?.dietary ?? null, answers: priv[r.person_id]?.answers ?? {} }]));
@@ -65,12 +66,14 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   // Youth protection (Scouting America): two registered adults 21 or older on every youth activity,
   // every adult with current Youth Protection Training. Ages come as a yes/no flag so nobody's
   // birthdate leaves the database (an adult with no birthdate on file counts as 21+, as before).
+  // YPT is good through its expiry date (same rule as the trip sheet).
+  const endAt = new Date(ev.end_at ?? ev.start_at);
+  const yptOk = (d: string | null) => !!d && new Date(d + "T23:59:59") >= endAt;
   const adultsGoing = going.filter((p) => p.persons.type === "adult" && over21.has(p.person_id));
-  const trainedLeaders = adultsGoing.filter((p) => p.ypt_expires && new Date(p.ypt_expires) > new Date(ev.end_at ?? ev.start_at));
+  const trainedLeaders = adultsGoing.filter((p) => yptOk(p.ypt_expires));
 
   // Health record: Parts A and B for every activity; Part C (physician exam) for events over 72 hours
   // or high adventure. Forms must be valid through the end of the event.
-  const endAt = new Date(ev.end_at ?? ev.start_at);
   const needsC = (ev.end_at && endAt.getTime() - new Date(ev.start_at).getTime() > 72 * 3600000) || ev.kind === "high_adventure";
   const formValid = (pid: string, t: string) => (orgForms ?? []).some((f) => f.person_id === pid && f.type === t && (!f.expires_at || new Date(f.expires_at) >= endAt));
   const readiness = going.map((p) => ({
@@ -79,7 +82,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       !formValid(p.person_id, "health_ab") && "Health A+B",
       needsC && !formValid(p.person_id, "health_c") && "Health C",
       ev.needs_permission && p.persons.type === "youth" && !formValid(p.person_id, "permission") && "Permission",
-      p.persons.type === "adult" && !(p.ypt_expires && new Date(p.ypt_expires) > endAt) && "YPT",
+      p.persons.type === "adult" && !yptOk(p.ypt_expires) && "YPT",
     ].filter(Boolean) as string[],
   })).filter((r) => r.missing.length);
   const youthGoing = going.filter((p) => p.persons.type === "youth");
@@ -91,7 +94,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   // Carry each family member's latest allergy/dietary note into a new sign-up so nobody retypes it.
   const needNote = myFamily.filter((f) => !byPerson[f.id]?.dietary).map((f) => f.id);
   const { data: priorNotes } = needNote.length
-    ? { data: (await rsvpPrivate(supabase, { persons: needNote })).filter((r) => r.dietary).slice(0, 50) }
+    ? { data: (await rsvpPrivate(supabase, { persons: needNote })).filter((r) => r.dietary) }
     : { data: [] as { person_id: string; dietary: string | null }[] };
   const lastNote = new Map<string, string>();
   for (const r of priorNotes ?? []) if (r.dietary?.trim() && !lastNote.has(r.person_id)) lastNote.set(r.person_id, r.dietary.trim());
@@ -142,7 +145,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
   return (
     <Shell ctx={ctx}>
-      <Link href="/events" className="text-[14px] font-bold text-forest no-underline min-h-[32px] flex items-center">← Events</Link>
+      <Link href="/events" className="text-[14px] font-bold text-forest no-underline min-h-[44px] flex items-center">← Events</Link>
       <div className="patch md:p-7 flex flex-col gap-3">
         <span className="eyebrow" style={{ color: "#F5B700" }}>
           {multi ? `${fmtDate(ev.start_at, { weekday: "short", month: "short", day: "numeric" })} – ${fmtDate(ev.end_at, { weekday: "short", month: "short", day: "numeric" })}`

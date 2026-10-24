@@ -27,8 +27,8 @@ export default function ScoutbookConnect({ orgId, canConnect, connection }: {
 
   async function testConnection() {
     setBusy(true); setTest(""); setError("");
-    const res = await fetch("/api/scoutbook/test", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orgId }) });
-    const body = await res.json().catch(() => ({}));
+    const res = await fetch("/api/scoutbook/test", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orgId }) }).catch(() => null);
+    const body = res ? await res.json().catch(() => ({})) : { error: "Couldn't reach the server. Check your connection and try again." };
     if (body.ok) setTest(`Connected. Scoutbook answered and listed ${body.ranks} ranks.`); else setError(body.error ?? "Couldn't reach Scoutbook.");
     setBusy(false);
     router.refresh();

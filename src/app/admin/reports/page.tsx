@@ -127,8 +127,14 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   }
   if (r === "participation") {
     const since = new Date(Date.now() - 365 * 86400000).toISOString();
-    const { data: att } = await supabase.from("attendance").select("person_id, present, events!inner(start_at, overnight_nights, service_hours, canceled)")
-      .eq("org_id", orgId).eq("present", true).gte("events.start_at", since);
+    // A year of attendance easily passes the 1000-row read limit, so read it page by page.
+    const att: unknown[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data } = await supabase.from("attendance").select("person_id, present, events!inner(start_at, overnight_nights, service_hours, canceled)")
+        .eq("org_id", orgId).eq("present", true).gte("events.start_at", since).order("event_id").order("person_id").range(from, from + 999);
+      att.push(...(data ?? []));
+      if ((data ?? []).length < 1000) break;
+    }
     type A = { person_id: string; events: { overnight_nights: number; service_hours: number; canceled: boolean } };
     const tally = new Map<string, { n: number; nights: number; hours: number }>();
     for (const a of (att ?? []) as unknown as A[]) {
@@ -168,7 +174,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       </div>
       <nav aria-label="Reports" className="flex gap-x-5 gap-y-1 flex-wrap print:hidden">
         {REPORTS.map(([k, l]) => (
-          <Link key={k} href={`/admin/reports?r=${k}`} className="min-h-[40px] flex items-center text-[14px] no-underline"
+          <Link key={k} href={`/admin/reports?r=${k}`} className="min-h-[44px] flex items-center text-[14px] no-underline"
             style={{ color: k === r ? "#101B2D" : "#4B5568", fontWeight: k === r ? 700 : 500, borderBottom: k === r ? "3px solid #F5B700" : "3px solid transparent" }}>{l}</Link>
         ))}
       </nav>

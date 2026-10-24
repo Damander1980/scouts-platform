@@ -26,7 +26,8 @@ export default function RsvpPanel({ eventId, canApprove = false, costCents, ques
   async function save(row: RsvpRow, status: "going" | "not_going") {
     setBusy(row.person_id); setError("");
     try {
-      if (status === "not_going" && row.status === "going" && costCents > 0 && confirm?.pid !== row.person_id) {
+      // A sign-up still waiting for a parent's OK was never charged, so there is no credit to preview.
+      if (status === "not_going" && row.status === "going" && !row.pending && costCents > 0 && confirm?.pid !== row.person_id) {
         const { data, error: pErr } = await supabase.rpc("refund_preview", { p_event: eventId, p_person: row.person_id });
         if (pErr) throw pErr; // never claim "no credit" when we couldn't work it out
         setConfirm({ pid: row.person_id, credit: (data as number) ?? 0 });
