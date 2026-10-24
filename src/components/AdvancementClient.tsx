@@ -131,7 +131,9 @@ export default function AdvancementClient({
   const eagleGroupsEarned = new Set(
     earnedBadges.filter((b) => b.eagle_required).map((b) => b.eagle_group ?? b.code)
   ).size;
-  const currentRankIdx = ranks.reduce((acc, r, i) => (stats(r).completed && acc === i - 1 ? i : acc), -1);
+  // Ranks are earned in order, so the highest rank on record counts the earlier ones as earned
+  // (same rule as Trail to First Class; an import may record only the latest rank).
+  const currentRankIdx = ranks.reduce((acc, r, i) => (stats(r).completed ? i : acc), -1);
   const currentRank = currentRankIdx >= 0 ? ranks[currentRankIdx] : null;
   const nextRank = ranks[currentRankIdx + 1] ?? null;
 
@@ -192,8 +194,10 @@ export default function AdvancementClient({
       if (error) throw error;
     }
     setTracked((t) => {
+      const prev = t.find((x) => x.item_id === item.id);
       const others = t.filter((x) => x.item_id !== item.id);
-      return [...others, { item_id: item.id, status, assigned_by: trackedMap[item.id]?.assigned_by ?? null }];
+      // Keep the row id and counselor; dropping them hides the counselor and breaks later approvals.
+      return [...others, { ...prev, item_id: item.id, status, assigned_by: prev?.assigned_by ?? null }];
     });
   };
 
@@ -242,7 +246,8 @@ export default function AdvancementClient({
         const p = progress[r.id];
         const done = !!p?.completed_at;
         const signed = !!p?.approved_by;
-        const canToggle = !signed || canSign(item);
+        // A signed-off requirement can't be unchecked here by anyone (toggleDone refuses it too).
+        const canToggle = !signed;
         return (
           <div key={r.id} className="flex items-start gap-3 rounded-xl px-3 py-2.5"
             style={{ background: signed ? "#EEE8D9" : done ? "#F8F5EE" : "#FFFFFF", border: "1px solid #EAE4D6" }}>
@@ -387,7 +392,7 @@ export default function AdvancementClient({
           <div className="bg-white rounded-[18px] shadow-float p-4 overflow-x-auto">
             <div className="flex items-start min-w-[560px]">
               {ranks.map((r, i) => {
-                const s = stats(r);
+                const s = { ...stats(r), completed: i <= currentRankIdx };
                 const isCurrent = i === currentRankIdx + 1;
                 return (
                   <div key={r.id} className="flex-1 flex flex-col items-center relative">

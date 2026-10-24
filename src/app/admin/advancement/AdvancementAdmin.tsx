@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ScoutbookSync from "@/components/ScoutbookSync";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Stat, fmtDate } from "@/components/ui";
+import { Chip, ErrorBox, Stat, fmtDate, ageFrom } from "@/components/ui";
 import { checkSaved } from "@/lib/saved";
 
 type Q = { progress_id: string; person_id: string; scout: string; item: string; item_kind: string; item_id: string; number: string; requirement: string; done_at: string; can_sign: boolean };
@@ -13,7 +13,7 @@ type S = { person_id: string; first_name: string; last_name: string; birthdate: 
 type A = { adv_id: string; scout: string; item: string; kind: string; completed_at: string; purchased_at: string | null; presented_at: string | null };
 type R = { id: string; person_id: string; scout: string; badge: string; at: string };
 
-const age = (b: string | null) => (b ? Math.floor((Date.now() - new Date(b).getTime()) / (365.25 * 86400000)) : null);
+const age = ageFrom;
 
 export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitType, queue, summary, awards, requests }: { orgId: string; scoutbookPending?: number | null; unitType: string; queue: Q[]; summary: S[]; awards: A[]; requests: R[] }) {
   const supabase = createClient();

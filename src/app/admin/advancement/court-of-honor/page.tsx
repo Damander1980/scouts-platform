@@ -13,9 +13,11 @@ const order = (k: string) => (k === "rank" ? 0 : k === "badge" ? 1 : 2);
 
 export default async function CourtOfHonor() {
   const { supabase, current } = await requireLeader();
-  const { data } = await supabase.rpc("awards_to_buy", { p_org: current.org.id });
+  const [{ data }, sb] = await Promise.all([
+    supabase.rpc("awards_to_buy", { p_org: current.org.id }),
+    supabase.rpc("scoutbook_pending", { p_org: current.org.id }),
+  ]);
   const awards = (data ?? []) as A[];
-  const sb = await supabase.rpc("scoutbook_pending", { p_org: current.org.id });
 
   const toBuy = awards.filter((a) => !a.purchased_at);
   const shop: Record<string, Record<string, number>> = {};

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, Field, fmtDate, isoDay } from "@/components/ui";
+import { checkSaved } from "@/lib/saved";
 
 type Patrol = { id: string; name: string; kind: string; active: boolean };
 type PM = { id: string; patrol_id: string; person_id: string; role: string; start_date: string };
@@ -21,10 +22,16 @@ const ROLE_LABEL: Record<string, string> = {
   troop_guide: "Troop Guide", adult_advisor: "Adult advisor", den_leader: "Den Leader", den_chief: "Den Chief",
 };
 
+// Whole months between two calendar dates (YYYY-MM-DD), by date parts: new Date("YYYY-MM-DD") is UTC
+// midnight, the evening before in US time zones, which would count a month a day early.
 const months = (a: string, b: string | null) => {
-  const s = new Date(a), e = b ? new Date(b) : new Date();
-  return Math.max(0, (e.getFullYear() - s.getFullYear()) * 12 + e.getMonth() - s.getMonth() - (e.getDate() < s.getDate() ? 1 : 0));
+  const [sy, sm, sd] = a.slice(0, 10).split("-").map(Number);
+  const [ey, em, ed] = (b ?? isoDay()).slice(0, 10).split("-").map(Number);
+  return Math.max(0, (ey - sy) * 12 + em - sm - (ed < sd ? 1 : 0));
 };
+
+// Patrol roles that are also positions of responsibility (leadership time for rank).
+const titleOf = (r: string) => r === "patrol_leader" ? "Patrol Leader" : r === "assistant_patrol_leader" ? "Assistant Patrol Leader" : null;
 
 export default function PatrolsClient({ orgId, unitType, canEdit, patrols, memberships, people, positions }: {
   orgId: string; unitType: string; canEdit: boolean; patrols: Patrol[]; memberships: PM[]; people: Person[]; positions: Position[];
@@ -49,13 +56,22 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
   const unassigned = youth.filter((p) => !patrolOf(p.id));
   const nameOf = Object.fromEntries(people.map((p) => [p.id, p.name]));
 
+  // Leaving a patrol ends any Patrol Leader / APL time that came with it.
+  const endPatrolPosition = async (pm: PM) => {
+    const title = titleOf(pm.role);
+    if (!title) return;
+    const { error } = await supabase.from("leadership_positions").update({ end_date: isoDay() })
+      .eq("org_id", orgId).eq("person_id", pm.person_id).eq("title", title).is("end_date", null);
+    if (error) throw error;
+  };
+
   const assign = (personId: string, patrolId: string) => run(async () => {
     const cur = patrolOf(personId);
     const today = isoDay();
     if (cur) {
       if (cur.patrol_id === patrolId) return;
-      const { error } = await supabase.from("patrol_members").update({ end_date: today }).eq("id", cur.id);
-      if (error) throw error;
+      checkSaved(await supabase.from("patrol_members").update({ end_date: today }).eq("id", cur.id).select("id"));
+      await endPatrolPosition(cur);
     }
     if (patrolId) {
       const { error } = await supabase.from("patrol_members").insert({ org_id: orgId, patrol_id: patrolId, person_id: personId, role: "member", start_date: today });
@@ -64,9 +80,8 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
   });
 
   const setRole = (pm: PM, role: string) => run(async () => {
-    const { error } = await supabase.from("patrol_members").update({ role }).eq("id", pm.id);
-    if (error) throw error;
-    const titleOf = (r: string) => r === "patrol_leader" ? "Patrol Leader" : r === "assistant_patrol_leader" ? "Assistant Patrol Leader" : null;
+    // Check the role actually saved before recording leadership time for it.
+    checkSaved(await supabase.from("patrol_members").update({ role }).eq("id", pm.id).select("id"));
     // Leadership time for rank: end the old position, start the new one.
     const oldTitle = titleOf(pm.role), title = titleOf(role);
     if (oldTitle && oldTitle !== title) {
@@ -75,7 +90,7 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
       if (e1) throw e1;
     }
     if (title && title !== oldTitle) {
-      const { error: e2 } = await supabase.from("leadership_positions").insert({ org_id: orgId, person_id: pm.person_id, title, start_date: isoDay() });
+      const { error: e2 } = await supabase.from("leadership_positions").insert({ org_id: orgId, person_id: pm.person_id, title, start_date: isoDay(), counts_for_rank: title !== "Assistant Patrol Leader" });
       if (e2) throw e2;
     }
   });
@@ -147,9 +162,9 @@ export default function PatrolsClient({ orgId, unitType, canEdit, patrols, membe
               ))}
               {canEdit && (
                 <button className="btn-ghost self-start text-[13px]" disabled={busy} onClick={() => run(async () => {
-                  for (const m of list) {
-                    const { error: mErr } = await supabase.from("patrol_members").update({ end_date: isoDay() }).eq("id", m.id);
-                    if (mErr) throw mErr;
+                  if (list.length) {
+                    checkSaved(await supabase.from("patrol_members").update({ end_date: isoDay() }).in("id", list.map((m) => m.id)).select("id"), list.length);
+                    for (const m of list) await endPatrolPosition(m);
                   }
                   const { error } = await supabase.from("patrols").update({ active: false }).eq("id", p.id);
                   if (error) throw error;

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Field, fmtDate, ageFrom } from "@/components/ui";
+import { Chip, ErrorBox, Field, fmtDate, ageFrom, isoDay } from "@/components/ui";
 import { checkSaved } from "@/lib/saved";
 
 const ROLES = [
@@ -125,7 +125,8 @@ Or enter join code ${String(joinCode ?? "").toUpperCase()} after you sign up. Ad
     return true;
   }).sort((a, b) => a.persons.last_name.localeCompare(b.persons.last_name) || a.persons.first_name.localeCompare(b.persons.first_name));
 
-  const expired = (d?: string | null) => !!d && new Date(d) < new Date();
+  // Valid through the expiry date in the unit's time zone (same rule as Positions & access).
+  const expired = (d?: string | null) => !!d && d.slice(0, 10) < isoDay();
 
   return (
     <div className="flex flex-col gap-5">
@@ -280,10 +281,10 @@ Or enter join code ${String(joinCode ?? "").toUpperCase()} after you sign up. Ad
                       {m.persons.type === "adult" && (
                         <>
                           <Field label="Youth Protection Training expires">
-                            <input className="input" type="date" defaultValue={m.ypt_expires ?? ""} onBlur={(e) => patch(m.id, { ypt_expires: e.target.value || null })} />
+                            <input className="input" type="date" defaultValue={m.ypt_expires ?? ""} onBlur={(e) => e.target.value !== (m.ypt_expires ?? "") && patch(m.id, { ypt_expires: e.target.value || null })} />
                           </Field>
                           <Field label="Registration expires">
-                            <input className="input" type="date" defaultValue={m.registration_expires ?? ""} onBlur={(e) => patch(m.id, { registration_expires: e.target.value || null })} />
+                            <input className="input" type="date" defaultValue={m.registration_expires ?? ""} onBlur={(e) => e.target.value !== (m.registration_expires ?? "") && patch(m.id, { registration_expires: e.target.value || null })} />
                           </Field>
                           <label className="flex items-center gap-3 text-[15px]">
                             <input type="checkbox" className="w-5 h-5" checked={!!m.is_admin} disabled={busy}
@@ -344,7 +345,7 @@ Or enter join code ${String(joinCode ?? "").toUpperCase()} after you sign up. Ad
                               value={mergeFrom?.keep === m.persons.id ? mergeFrom.drop : ""}
                               onChange={(e) => setMergeFrom(e.target.value ? { keep: m.persons.id, drop: e.target.value } : null)}>
                               <option value="">Merge a duplicate into {m.persons.first_name}…</option>
-                              {members.filter((x) => x.persons.id !== m.persons.id && x.persons.type === m.persons.type)
+                              {members.filter((x) => x.persons && x.persons.id !== m.persons.id && x.persons.type === m.persons.type)
                                 .map((x) => <option key={x.persons.id} value={x.persons.id}>{x.persons.first_name} {x.persons.last_name}</option>)}
                             </select>
                             {mergeFrom?.keep === m.persons.id && (

@@ -6,11 +6,9 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
   const { supabase, current, isAdmin, person } = await requirePerm("leader", "members.manage", "members.private");
   const orgId = current.org.id;
 
-  const [{ data: hhList }, { data: hhOf }] = await Promise.all([
+  const [{ data: hhList }, { data: hhOf }, { data: members }, { data: badges }, { data: counselorAssignments }, { data: reqs }, { data: patrols }] = await Promise.all([
     supabase.rpc("unit_households", { p_org: orgId }),
     supabase.rpc("person_households", { p_org: orgId }),
-  ]);
-  const [{ data: members }, { data: badges }, { data: counselorAssignments }, { data: reqs }, { data: patrols }] = await Promise.all([
     supabase.from("memberships")
       .select("id, role, status, joined_at, ypt_expires, is_admin, is_designated_leader, position, registration_expires, persons(id, first_name, last_name, type, user_id)")
       .eq("org_id", orgId).order("joined_at", { ascending: false }),
@@ -21,16 +19,18 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
   ]);
 
   // Birthdates only for people allowed to see private details (adults with current YPT).
-  const { data: priv } = (members ?? []).length
-    ? await supabase.rpc("person_private", { p_org: orgId, p_ids: (members ?? []).map((m) => (m.persons as unknown as { id: string }).id) })
-    : { data: [] };
+  const [{ data: priv }, { data: reqNames }] = await Promise.all([
+    (members ?? []).length
+      ? supabase.rpc("person_private", { p_org: orgId, p_ids: (members ?? []).map((m) => (m.persons as unknown as { id: string } | null)?.id).filter(Boolean) })
+      : Promise.resolve({ data: [] }),
+    (reqs ?? []).length ? supabase.rpc("join_request_people", { p_org: orgId }) : Promise.resolve({ data: [] }),
+  ]);
   const born = Object.fromEntries(((priv ?? []) as { id: string; birthdate: string | null }[]).map((r) => [r.id, r.birthdate]));
   const withBirth = (members ?? []).map((m) => {
-    const p = m.persons as unknown as { id: string };
-    return { ...m, persons: { ...p, birthdate: born[p.id] ?? null } };
+    const p = m.persons as unknown as { id: string } | null;
+    return p ? { ...m, persons: { ...p, birthdate: born[p.id] ?? null } } : m;
   });
 
-  const { data: reqNames } = (reqs ?? []).length ? await supabase.rpc("join_request_people", { p_org: orgId }) : { data: [] };
   const nameOf = Object.fromEntries(((reqNames ?? []) as { person_id: string; first_name: string; last_name: string; type: string; birthdate: string | null }[])
     .map((p) => [p.person_id, { id: p.person_id, ...p }]));
   const joinRequests: JoinRequest[] = (reqs ?? []).map((r) => ({
