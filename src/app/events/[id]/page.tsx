@@ -36,6 +36,10 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
     seesForms ? supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId) : Promise.resolve({ data: [] as { person_id: string; type: string; expires_at: string | null }[] }),
     supabase.rpc("member_age_flags", { p_org: orgId, p_on: isoDay(new Date(ev.start_at)) }),
   ]);
+  // What actually happened, once a leader has taken attendance (unconfirmed QR check-ins don't count yet).
+  const { data: attRows } = !guest && isLeader
+    ? await supabase.from("attendance").select("person_id, present, confirmed, method").eq("event_id", id)
+    : { data: [] as { person_id: string; present: boolean; confirmed: boolean | null; method: string | null }[] };
   const { data: guestRows } = !guest && isLeader ? await supabase.rpc("event_guests", { p_event: id }) : { data: [] };
   const guests = (guestRows ?? []) as { person_id: string; first_name: string; last_name: string; type: string; unit_name: string; status: string; driver_seats: number; dietary: string | null }[];
   const over21 = new Set(((ageFlags ?? []) as { person_id: string; adult_21: boolean }[]).filter((a) => a.adult_21).map((a) => a.person_id));
@@ -90,6 +94,18 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
     driver_seats: byPerson[f.id]?.driver_seats ?? 0, answers: (byPerson[f.id]?.answers ?? {}) as Record<string, string>,
     pending: byPerson[f.id]?.rsvp_approval_status === "pending",
   }));
+
+  const marked = (attRows ?? []).filter((a) => !a.present || a.confirmed !== false || (a.method ?? "") !== "qr");
+  const attended = new Set(marked.filter((a) => a.present).map((a) => a.person_id));
+  const absent = new Set(marked.filter((a) => !a.present).map((a) => a.person_id));
+  const rsvpOf = (pid: string) => byPerson[pid]?.status as string | undefined;
+  const actual = {
+    asPlanned: going.filter((p) => attended.has(p.person_id)),
+    noShows: going.filter((p) => absent.has(p.person_id)),
+    unmarked: going.filter((p) => !attended.has(p.person_id) && !absent.has(p.person_id)),
+    walkIns: people.filter((p) => attended.has(p.person_id) && !rsvpOf(p.person_id)),
+    cameAnyway: people.filter((p) => attended.has(p.person_id) && rsvpOf(p.person_id) === "not_going"),
+  };
 
   const List = ({ title, list, tone }: { title: string; list: Roster[]; tone: "green" | "gray" | "orange" }) => (
     <div className="card flex flex-col gap-2">
@@ -212,6 +228,26 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
               {r.missing.map((m) => <Chip key={m} tone="orange">Needs {m}</Chip>)}
             </div>
           ))}
+        </section>
+      )}
+
+      {!guest && isLeader && marked.length > 0 && new Date(ev.start_at) <= new Date() && (
+        <section className="card flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <span className="font-bold text-[15px]">RSVP vs who came</span>
+            <Chip tone="green">{attended.size} attended · {going.length} said going</Chip>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[14px]">
+            <div><div className="font-display font-extrabold text-[24px]">{actual.asPlanned.length}</div>Came as planned</div>
+            <div><div className="font-display font-extrabold text-[24px]" style={{ color: actual.noShows.length ? "#8A1F1F" : undefined }}>{actual.noShows.length}</div>No-shows</div>
+            <div><div className="font-display font-extrabold text-[24px]">{actual.walkIns.length}</div>Walk-ins</div>
+            <div><div className="font-display font-extrabold text-[24px]">{actual.cameAnyway.length}</div>Came anyway</div>
+          </div>
+          {actual.unmarked.length > 0 && <div className="text-[13px] text-smoke">{actual.unmarked.length} who said going {actual.unmarked.length === 1 ? "hasn't" : "haven't"} been marked yet.</div>}
+          {([["No-shows", actual.noShows], ["Walk-ins", actual.walkIns], ["Came anyway", actual.cameAnyway]] as const).filter(([, l]) => l.length).map(([label, l]) => (
+            <div key={label} className="text-[14px]"><b>{label}:</b> {l.map((p) => `${p.persons.first_name} ${p.persons.last_name}`).join(", ")}</div>
+          ))}
+          <div className="text-[12px] text-smoke">Charges and sign-ups aren&apos;t changed by attendance.</div>
         </section>
       )}
 

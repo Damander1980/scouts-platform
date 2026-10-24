@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { adminClient, SITE_URL } from "./admin";
+import { heldAddresses } from "./notify";
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -65,13 +66,14 @@ export async function deliverMessage(messageId: string) {
   const link = `${SITE_URL}/messages/${messageId}`;
   const directNames = all.filter((r) => r.copy_reason === "direct").map((r) => `${r.persons.first_name} ${r.persons.last_name}`).sort();
 
+  const held = await heldAddresses(db, all.map((r) => r.persons.email || r.persons.users?.email));
   let delivered = 0, skipped = 0;
   for (const r of all) {
     const p = r.persons;
     if (p.type === "youth") { skipped++; continue; } // youth are reached through their parents' copies
     const to = p.email || p.users?.email;
     const pref = prefOf[r.person_id];
-    if (!to || pref?.email_on === false || pref?.categories?.messages === false) { skipped++; continue; }
+    if (!to || held.has(to.toLowerCase()) || pref?.email_on === false || pref?.categories?.messages === false) { skipped++; continue; }
     const unsub = `${SITE_URL}/unsubscribe?p=${p.id}&t=${unsubscribeToken(p.id)}`;
 
     const html = fullEmail ? `

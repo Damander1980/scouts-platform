@@ -94,6 +94,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       supabase.from("household_members").select("household_id, person_id, is_guardian, households!inner(org_id)").eq("households.org_id", orgId),
       supabase.from("persons").select("id, user_id").in("id", members.map((m) => m.person_id)),
     ]);
+    // Addresses our email provider reported as dead or as spam (names only; empty if you lack private-detail access).
+    const { data: held } = await supabase.rpc("unit_suppressed_people", { p_org: orgId });
+    const heldRows = ((held ?? []) as { person_id: string; reason: string; since: string }[]);
     const hasLogin = new Set(((acct ?? []) as { id: string; user_id: string | null }[]).filter((x) => x.user_id).map((x) => x.id));
     const links = (hm ?? []) as unknown as { household_id: string; person_id: string; is_guardian: boolean }[];
     const reachable = new Set<string>();
@@ -112,6 +115,12 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           <h2 className="font-bold text-[16px] m-0 mb-1">Adults who haven&apos;t created an account ({adults.length})</h2>
           <Table head={["Adult", "Position"]} rows={adults.map((m) => [name(m), ROLE_LABELS[m.role] ?? m.role])} />
         </div>
+        {heldRows.length > 0 && (
+          <div className="break-inside-avoid">
+            <h2 className="font-bold text-[16px] m-0 mb-1">Emails not going through ({heldRows.length})</h2>
+            <Table head={["Person", "Why", "Since"]} rows={heldRows.map((h) => [nameOf[h.person_id] ?? "A member", h.reason === "complaint" ? "Marked our email as spam. Leave it alone." : "Address doesn't work. Get a new one and update their profile.", fmtDate(h.since, { month: "short", day: "numeric", year: "numeric" })])} />
+          </div>
+        )}
       </div>
     );
   }

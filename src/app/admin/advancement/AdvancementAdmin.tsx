@@ -148,6 +148,7 @@ export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitT
           <div className="flex gap-2">
             <a className="btn-secondary no-underline" href="/api/export/advancement.csv">Advancement report for the Scout Shop (CSV)</a>
             <a className="btn-secondary no-underline" href="/admin/advancement/court-of-honor">Print shopping list and program</a>
+            <a className="btn-secondary no-underline" href="/admin/advancement/labels">Print award labels</a>
             {awards.some((a) => !a.purchased_at) && (
               <button className="btn-secondary" disabled={busy} onClick={() => run(async () => {
                 const ids = awards.filter((a) => !a.purchased_at).map((a) => a.adv_id);

@@ -42,6 +42,14 @@ export async function claimOnce(db: NonNullable<ReturnType<typeof adminClient>>,
   throw new Error(`Could not record notice ${key}: ${error.message}`); // a real failure must not look like "already sent"
 }
 
+// Addresses on hold (permanent bounce or spam complaint): mailing them again only hurts delivery for everyone.
+export async function heldAddresses(db: NonNullable<ReturnType<typeof adminClient>>, emails: (string | null | undefined)[]) {
+  const list = [...new Set(emails.filter((e): e is string => !!e).map((e) => e.toLowerCase()))];
+  if (!list.length) return new Set<string>();
+  const { data } = await db.from("email_suppressions").select("email").in("email", list);
+  return new Set((data ?? []).map((r) => r.email as string));
+}
+
 const esc = (t: string) => t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 // Notices never include message content: just that something is waiting, with a link.
@@ -53,6 +61,7 @@ export async function notifyPeople(personIds: string[], category: Category, subj
   const { data: prefs } = await db.from("notification_prefs").select("*").in("person_id", personIds);
   const prefOf = Object.fromEntries((prefs ?? []).map((p) => [p.person_id, p]));
   let delivered = 0;
+  const held = await heldAddresses(db, (people ?? []).map((p) => (p.users as unknown as { email: string } | null)?.email));
 
   for (const p of people ?? []) {
     const pref = prefOf[p.id] ?? { email_on: true, sms_on: false, categories: {}, quiet_start: "21:00", quiet_end: "08:00", timezone: "America/Chicago" };
@@ -61,7 +70,7 @@ export async function notifyPeople(personIds: string[], category: Category, subj
     const link = `${SITE_URL}${path}`;
     const email = (p.users as unknown as { email: string } | null)?.email;
 
-    if (pref.email_on && email && (!quiet || category === "urgent")) {
+    if (pref.email_on && email && !held.has(email.toLowerCase()) && (!quiet || category === "urgent")) {
       const r = await sendEmail(email, subject,
         `<div style="font-family:Arial,sans-serif;max-width:480px;padding:20px;color:#101B2D"><p style="font-size:16px">${esc(subject)}</p>
          <p><a href="${link}" style="background:#F5B700;color:#101B2D;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold">Open in ScoutPlatform</a></p>
