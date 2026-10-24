@@ -6,7 +6,8 @@ export default async function MessageLogPage({ searchParams }: { searchParams: P
   const { q } = await searchParams;
   const { supabase, current, isAdmin } = await requireStaff();
   const orgId = current.org.id;
-  if (isAdmin) await supabase.rpc("log_message_view", { p_org: orgId });
+  // Every leader who can read the full log is recorded opening it (the database ignores everyone else).
+  await supabase.rpc("log_message_view", { p_org: orgId });
 
   let query = supabase.from("message_log").select("id, sender_id, subject, body, audience, created_at").eq("org_id", orgId).order("created_at", { ascending: false }).limit(200);
   if (q) query = query.or(`subject.ilike.%${q.replace(/[%,()]/g, "")}%,body.ilike.%${q.replace(/[%,()]/g, "")}%`);
@@ -22,8 +23,8 @@ export default async function MessageLogPage({ searchParams }: { searchParams: P
 
   return (
     <>
-      <PageTitle title="Message log" sub="Every message in the unit, permanent and unedited. Opening this log is itself recorded." />
-      {!isAdmin && <div className="card">You see messages you sent or received. Unit admins and designated leaders see the full log.</div>}
+      <PageTitle title="Message log" sub="Every message in the unit, permanent and unedited, so you can check exactly what was said if a concern is ever raised. Opening this log is recorded." />
+      {!isAdmin && <div className="card">Unit admins and designated leaders with current Youth Protection Training see the full log; everyone else sees messages they sent or received.</div>}
       <form className="flex gap-2"><input aria-label="Search messages" name="q" defaultValue={q ?? ""} className="input flex-1" placeholder="Search messages" /><button className="btn-secondary">Search</button></form>
       <div className="flex flex-col gap-2">
         {(msgs ?? []).map((m) => {

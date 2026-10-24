@@ -115,7 +115,12 @@ export default function AdminLayoutClient({
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D7E0EE" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
           <input name="q" aria-label="Find a member" placeholder="Find a member" className="bg-transparent border-0 text-white text-[14px] outline-none flex-1 font-sans placeholder:text-[#AEB9C9]" />
         </form>
-        <Link href={to("/dashboard")} className="ml-auto text-[14px] font-bold no-underline min-h-[40px] px-4 rounded-full flex items-center" style={{ color: "#FFFFFF", border: "1px solid rgba(255,255,255,.3)" }}>Family view</Link>
+        {/* Same Leader | Family switch as the family side; Home remembers the last one. */}
+        <div role="group" aria-label="View" className="ml-auto flex rounded-full p-1 flex-none" style={{ background: "#0C2442" }}>
+          <span aria-current="page" className="min-h-[36px] px-4 rounded-full flex items-center text-[13px] font-bold" style={{ background: "#F5B700", color: "#101B2D" }}>Leader</span>
+          <Link href={to("/dashboard")} onClick={() => { document.cookie = "otm-view=family; path=/; max-age=31536000; samesite=lax"; }}
+            className="min-h-[36px] px-4 rounded-full flex items-center text-[13px] font-bold no-underline" style={{ color: "#D7E0EE" }}>Family</Link>
+        </div>
         <div className="flex flex-col items-end leading-tight">
           <span className="text-[14px] font-bold">{person.first_name} {person.last_name}</span>
           <span className="text-[12px]" style={{ color: "#D7E0EE" }}>{ROLE_LABELS[role] ?? role} · <button onClick={signOut} className="bg-transparent border-0 p-0 cursor-pointer font-sans text-[12px] font-bold underline" style={{ color: "#D7E0EE" }}>Sign out</button></span>

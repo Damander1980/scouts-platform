@@ -330,7 +330,7 @@ export default function LandingPage() {
           {[
             ["No ads, no selling data", "This holds children's information. It's never for sale."],
             ["Troop money stays with the troop", "Card payments land in the troop's own Stripe account, never ours."],
-            ["Safe for Scouts by design", "Messages to Scouts always copy their parents and leaders, and private details need current Youth Protection Training."],
+            ["Safe for Scouts by design", "Messages to Scouts always copy their parents, every message is kept for leaders to check, and private details need current Youth Protection Training."],
             ["Real people answer", "Questions get a reply within 24 to 48 business hours."],
           ].map(([a, b]) => (
             <div key={a} className="flex flex-col gap-1"><span className="font-bold text-[17px]">{a}</span><span className="text-[15px] text-smoke">{b}</span></div>

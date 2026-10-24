@@ -30,7 +30,7 @@ export default async function MessagesPage() {
 
   return (
     <Shell ctx={ctx}>
-      <PageTitle title="Messages" sub="Every message is saved and can't be edited or deleted. Messages to Scouts always copy their parents and leaders."
+      <PageTitle title="Messages" sub="Every message is saved and can't be edited or deleted. Messages to Scouts always copy their parents."
         action={<div className="flex gap-2"><LinkButton href="/forum" variant="secondary">Discussion boards</LinkButton><LinkButton href="/messages/new">New message</LinkButton></div>} />
       {rows.length === 0 && <Empty>No messages yet.</Empty>}
       {rows.length > 0 && <div className="card p-0 overflow-hidden flex flex-col">

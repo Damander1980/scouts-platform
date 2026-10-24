@@ -204,8 +204,8 @@ The data model adds certifications and scout\_certifications (earned date, signe
 The rule is that no adult communicates with a minor in private, and all of it is on the record.
 
 - **Everything is logged.** Every message to or from a minor, on any channel the platform sends (email, text, in-app, forum posts and replies), is stored with sender, recipients, time and content. Senders cannot edit or delete these messages.
-- **Leaders always receive a copy.** Each message to a minor is also delivered to the troop's designated leaders, set by the troop admin (at least two adults).
-- **Parents.** Scouting America's guidance says leaders should copy a parent and another leader on digital messages to youth, so every message to a Scout is always copied to the Scout's parents or guardians as well as the designated leaders (confirmed by Floyd).
+- **Parents always receive a copy.** Every message to a Scout is copied to the Scout's parents or guardians.
+- **Leaders are copied only on direct adult-to-Scout messages** (Floyd, 2026-10-24). When an adult writes to a Scout directly (picked people or a reply), the troop's designated leaders get a copy, so a parent and another leader are always on it. Group sends and Scout-to-Scout messages are not copied to leaders' inboxes; leaders read them in the Message log when a concern is raised.
 - **Under-13 Scouts** are messaged only through their parents; they have no logins.
 - **No private one-on-one threads** between an adult and a Scout. A Scout's reply goes to the same group.
 - **Contact details stay hidden.** Scouts' phone numbers and personal email addresses are visible only to leaders, and messages go through the platform so adults do not need to use their own accounts.

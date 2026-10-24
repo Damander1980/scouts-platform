@@ -164,7 +164,7 @@ export const SECTIONS: Section[] = [
             "Starting or ending a patrol leader updates their leadership time.",
             "Leadership time shows on each Scout's advancement page and counts toward Star, Life and Eagle.",
           ] },
-          { tip: "Patrol leaders can message their own patrol; parents and leaders get copies automatically." },
+          { tip: "Patrol leaders can message their own patrol; parents get copies automatically and every message is in the leaders' Message log." },
         ],
       },
     ],
@@ -261,7 +261,7 @@ export const SECTIONS: Section[] = [
           { h: "Who you can send to" },
           { list: [
             "Everyone active in the unit",
-            "All Scouts (parents and leaders get a copy)",
+            "All Scouts (parents get a copy)",
             "All parents and guardians",
             "All adults",
             "Everyone going to an event",

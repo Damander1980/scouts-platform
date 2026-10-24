@@ -85,8 +85,24 @@ export default function AppShell({
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
             )}
           </button>
+          {isLeader && (
+            // Leaders who are also parents switch between running the troop and their own family; Home remembers the last one.
+            <div role="group" aria-label="View" className="ml-auto flex rounded-full p-1 flex-none" style={{ background: "#0C2442" }}>
+              {([["leader", "/admin", "Leader"], ["family", "/dashboard", "Family"]] as const).map(([v, href, label]) => {
+                const on = v === "leader" ? pathname.startsWith("/admin") : !pathname.startsWith("/admin");
+                return (
+                  <Link key={v} href={to(href)} aria-current={on ? "page" : undefined}
+                    onClick={() => { document.cookie = `otm-view=${v}; path=/; max-age=31536000; samesite=lax`; }}
+                    className="min-h-[36px] px-3 md:px-4 rounded-full flex items-center text-[13px] font-bold no-underline"
+                    style={on ? { background: "#F5B700", color: "#101B2D" } : { color: "#D7E0EE" }}>
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
           <Link href={to("/settings")} aria-label="Settings"
-            className="ml-auto w-10 h-10 rounded-full flex items-center justify-center font-bold text-[13px] no-underline flex-none"
+            className={`${isLeader ? "" : "ml-auto "}w-10 h-10 rounded-full flex items-center justify-center font-bold text-[13px] no-underline flex-none`}
             style={{ background: "#0C2442", color: "#FFFFFF" }}>
             {initials}
           </Link>

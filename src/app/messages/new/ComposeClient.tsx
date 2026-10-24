@@ -24,7 +24,7 @@ export default function ComposeClient({ orgId, isLeader, weekBroadcasts = 0, can
   const [error, setError] = useState("");
 
   const options = [
-    ...(isLeader ? [["troop", "Everyone active in the unit"], ["scouts", "All Scouts (parents and leaders get a copy)"], ["parents", "All parents and guardians"], ["adults", "All adults"], ["event", "Everyone going to an event"], ["nonresponders", "Families who haven't replied to an event"], ["people", "Pick people"]] : []),
+    ...(isLeader ? [["troop", "Everyone active in the unit"], ["scouts", "All Scouts (parents get a copy)"], ["parents", "All parents and guardians"], ["adults", "All adults"], ["event", "Everyone going to an event"], ["nonresponders", "Families who haven't replied to an event"], ["people", "Pick people"]] : []),
     ...(isLeader || canMoney ? [["owing", "Families who owe money (parents only)"]] : []),
     ...(patrols.length ? [["patrol", "A patrol"]] : []),
     ["leaders", "My leaders"],
