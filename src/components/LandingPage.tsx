@@ -74,7 +74,7 @@ export default function LandingPage() {
         <div className="flex flex-col gap-6" style={{ flex: "1 1 440px" }}>
           <span className="eyebrow text-forest flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#12355F" strokeWidth="2"/><path d="M12 4l2.5 8L12 20l-2.5-8z" fill="#F5B700"/></svg>For Scouts BSA troops</span>
           <h1 className="font-display font-extrabold leading-[1.02] m-0" style={{ fontSize: "clamp(42px, 6vw, 66px)" }}>
-            Stop chasing parents.<br /><span className="text-forest relative inline-block">Start Scouting.<svg aria-hidden="true" viewBox="0 0 300 18" preserveAspectRatio="none" className="absolute left-0 -bottom-2 w-full h-[14px]"><path d="M3 12 C60 4 120 15 170 8 S260 4 297 9" fill="none" stroke="#F5B700" strokeWidth="5" strokeLinecap="round"/></svg></span>
+            Less paperwork.<br /><span className="text-forest relative inline-block">More Scouting.<svg aria-hidden="true" viewBox="0 0 300 18" preserveAspectRatio="none" className="absolute left-0 -bottom-2 w-full h-[14px]"><path d="M3 12 C60 4 120 15 170 8 S260 4 297 9" fill="none" stroke="#F5B700" strokeWidth="5" strokeLinecap="round"/></svg></span>
           </h1>
           <p className="text-[19px] leading-relaxed text-smoke m-0 max-w-[520px]">
             Sign-ups, payments, permission slips and advancement in one place. Parents finish on their phone in a minute. You see who's in, who's paid and who's ready, without a single spreadsheet.

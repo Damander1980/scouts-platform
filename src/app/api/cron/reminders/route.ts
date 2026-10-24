@@ -3,8 +3,8 @@ import { adminClient } from "@/lib/admin";
 import { claimOnce, notifyPeople } from "@/lib/notify";
 import { fmtDate, isoDay } from "@/components/ui";
 
-// Runs daily (see vercel.json). Protected by CRON_SECRET.
-//  1) RSVP deadline reminders, only to families who haven't responded.
+// Runs daily (Cloudflare Cron Trigger in wrangler.jsonc). Protected by CRON_SECRET.
+//  1) Who hasn't answered: before a sign-up deadline, or before an outing with none. Parents get their Scouts' names.
 //  2) Weekly digest on each person's chosen day.
 //  3) Health form expiry: guardians hear 30 and 7 days before a Scout's form runs out.
 export async function GET(request: Request) {
@@ -17,33 +17,58 @@ export async function GET(request: Request) {
   const in48 = new Date(now.getTime() + 48 * 3600000).toISOString();
   let reminders = 0, digests = 0;
 
-  const { data: dueEvents } = await db.from("events").select("id, org_id, title, rsvp_deadline")
-    .eq("canceled", false).gt("rsvp_deadline", now.toISOString()).lt("rsvp_deadline", in48);
-  for (const ev of dueEvents ?? []) {
+  // Who hasn't answered: 48 hours before a sign-up deadline, or (for outings with no deadline) about 3 days
+  // before they start. Parents hear which of their Scouts hasn't answered, by name; a Scout with their own
+  // login is nudged directly too. Adults with no Scout in the unit (leaders) are reminded about themselves.
+  const in72 = new Date(now.getTime() + 72 * 3600000).toISOString();
+  const in96 = new Date(now.getTime() + 96 * 3600000).toISOString();
+  const [{ data: deadlineEvents }, { data: soonEvents }] = await Promise.all([
+    db.from("events").select("id, org_id, title, start_at, rsvp_deadline")
+      .eq("canceled", false).gt("rsvp_deadline", now.toISOString()).lt("rsvp_deadline", in48),
+    db.from("events").select("id, org_id, title, start_at, rsvp_deadline")
+      .eq("canceled", false).is("rsvp_deadline", null).neq("kind", "meeting").gt("start_at", in72).lt("start_at", in96),
+  ]);
+  const due = [...(deadlineEvents ?? []), ...(soonEvents ?? [])];
+  for (const ev of due) {
     if (!(await claimOnce(db, `deadline:${ev.id}`))) continue;
-    const { data: members } = await db.from("memberships").select("person_id, persons(type)").eq("org_id", ev.org_id).eq("status", "active");
+    const { data: members } = await db.from("memberships").select("person_id, persons(type, first_name, user_id)").eq("org_id", ev.org_id).eq("status", "active");
     const { data: rsvps } = await db.from("rsvps").select("person_id").eq("event_id", ev.id);
     const replied = new Set((rsvps ?? []).map((r) => r.person_id));
-    const waiting = (members ?? []).filter((m) => !replied.has(m.person_id));
-    // Youth are reached through their parents. Parents of Scouts are reminded only about their Scouts
-    // (a parent coming along is optional); adults with no Scout in the unit (leaders) about themselves.
-    const guardianIds = new Set<string>();
+    type P = { type: string; first_name: string; user_id: string | null };
+    const when = ev.rsvp_deadline
+      ? `Sign-ups close ${fmtDate(ev.rsvp_deadline, { weekday: "short", month: "short", day: "numeric" })}.`
+      : `It starts ${fmtDate(ev.start_at, { weekday: "short", month: "short", day: "numeric" })}.`;
+
+    const kidsOf = new Map<string, string[]>(); // guardian -> names of their Scouts who haven't answered
     const parentsOfYouth = new Set<string>();
+    const scoutsWithLogin: string[] = [];
     for (const m of members ?? []) {
-      if ((m.persons as unknown as { type: string }).type !== "youth") continue;
+      const p = m.persons as unknown as P;
+      if (p.type !== "youth") continue;
+      const silent = !replied.has(m.person_id);
+      if (silent && p.user_id) scoutsWithLogin.push(m.person_id);
       const { data: hh } = await db.from("household_members").select("household_id").eq("person_id", m.person_id);
       for (const h of hh ?? []) {
         const { data: gs } = await db.from("household_members").select("person_id").eq("household_id", h.household_id).eq("is_guardian", true);
-        (gs ?? []).forEach((g) => { parentsOfYouth.add(g.person_id); if (!replied.has(m.person_id)) guardianIds.add(g.person_id); });
+        for (const g of gs ?? []) {
+          parentsOfYouth.add(g.person_id);
+          if (silent) kidsOf.set(g.person_id, [...new Set([...(kidsOf.get(g.person_id) ?? []), p.first_name])]);
+        }
       }
     }
-    for (const m of waiting) {
-      if ((m.persons as unknown as { type: string }).type === "adult" && !parentsOfYouth.has(m.person_id)) guardianIds.add(m.person_id);
+    const names = (list: string[]) => list.length <= 1 ? list[0] : `${list.slice(0, -1).join(", ")} and ${list.at(-1)}`;
+    for (const [guardian, kids] of kidsOf) {
+      await notifyPeople([guardian], "deadlines", `${names(kids)} ${kids.length === 1 ? "hasn't" : "haven't"} answered for ${ev.title}. ${when} Sign them up, or ask them to answer.`, `/events/${ev.id}`);
+      reminders++;
     }
-    const ids = [...guardianIds];
-    if (ids.length) {
-      await notifyPeople(ids, "deadlines", `Please RSVP for ${ev.title} by ${fmtDate(ev.rsvp_deadline!, { month: "short", day: "numeric" })}.`, `/events/${ev.id}`);
-      reminders += ids.length;
+    if (scoutsWithLogin.length) {
+      await notifyPeople(scoutsWithLogin, "deadlines", `Are you going to ${ev.title}? ${when} Tap to answer.`, `/events/${ev.id}`);
+      reminders += scoutsWithLogin.length;
+    }
+    const adults = (members ?? []).filter((m) => (m.persons as unknown as P).type === "adult" && !parentsOfYouth.has(m.person_id) && !replied.has(m.person_id)).map((m) => m.person_id);
+    if (adults.length) {
+      await notifyPeople(adults, "deadlines", `Please answer for ${ev.title}. ${when}`, `/events/${ev.id}`);
+      reminders += adults.length;
     }
   }
 

@@ -205,6 +205,8 @@ export const SECTIONS: Section[] = [
             "Canceling before the deadline: full credit. After it, the event's refund rule decides (full, half, or none).",
             "After the event is over, families can't sign up or cancel. Ask a leader to fix anything.",
           ] },
+          { h: "Automatic nudges" },
+          { p: "If a Scout hasn't answered 48 hours before the sign-up deadline (or about 3 days before an outing with no deadline), their parents get a reminder naming them, like \"Jake hasn't answered for the Fall Campout.\" Scouts with their own login get a nudge too. Families who already answered aren't bothered." },
           { h: "Scouts signing themselves up" },
           { p: "Unit settings decide what happens when a Scout with a login signs up for a paid event. By default the sign-up waits for a parent's OK, and nothing is charged until a parent approves." },
           { h: "Families who owe" },
