@@ -23,13 +23,14 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
   const { data: ev } = await supabase.from("events").select("id, title, description, location, start_at, end_at").eq("id", id).eq("org_id", orgId).maybeSingle();
   if (!ev) notFound();
 
-  const [{ data: plan }, { data: going }, { data: ms }, { data: pm }, { data: canMedical }, { data: ageFlags }] = await Promise.all([
+  const [{ data: plan }, { data: going }, { data: ms }, { data: pm }, { data: canMedical }, { data: ageFlags }, privRows] = await Promise.all([
     supabase.from("trip_plans").select("*").eq("event_id", id).maybeSingle(),
     supabase.from("rsvps").select("person_id, driver_seats, persons(first_name, last_name, type)").eq("event_id", id).eq("status", "going"),
     supabase.from("memberships").select("person_id, ypt_expires").eq("org_id", orgId),
     supabase.from("patrol_members").select("person_id, patrols(name)").eq("org_id", orgId).is("end_date", null),
     supabase.rpc("has_perm", { org: orgId, perm: "medical.view" }),
     supabase.rpc("member_age_flags", { p_org: orgId, p_on: isoDay(new Date(ev.start_at)) }),
+    rsvpPrivate(supabase, { events: [id] }),
   ]);
   // Only the forms of people going, so a large unit's form list can't run past the 1000-row page.
   const goingIds = ((going ?? []) as { person_id: string }[]).map((g) => g.person_id);
@@ -38,7 +39,7 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
     : { data: [] as { person_id: string; type: string; expires_at: string | null }[] };
   const over21 = new Set(((ageFlags ?? []) as { person_id: string; adult_21: boolean }[]).filter((a) => a.adult_21).map((a) => a.person_id));
 
-  const dietOf = Object.fromEntries((await rsvpPrivate(supabase, { events: [id] })).map((r) => [r.person_id, r.dietary]));
+  const dietOf = Object.fromEntries(privRows.map((r) => [r.person_id, r.dietary]));
   const rows = ((going ?? []) as unknown as Going[]).map((g) => ({ ...g, dietary: dietOf[g.person_id] ?? null })).sort((a, b) => a.persons.last_name.localeCompare(b.persons.last_name));
   const youth = rows.filter((r) => r.persons.type === "youth");
   const adults = rows.filter((r) => r.persons.type === "adult");

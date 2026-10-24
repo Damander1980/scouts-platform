@@ -4,7 +4,7 @@
 --    set_rsvp / decide_scout_rsvp / rsvp_promote (security definer); the table is read-only to the app.
 -- 2) Any member of the unit could read every family's allergy notes, sign-up notes and answers. Who is
 --    going stays visible to the unit; those three columns now come only through rsvp_private(), for the
---    family itself and the event's leaders.
+--    family itself and leaders with current YPT.
 drop policy if exists "rsvps: family manage" on public.rsvps;
 drop policy if exists "rsvps: leaders manage" on public.rsvps;
 drop policy if exists "rsvps: family view" on public.rsvps;
@@ -29,7 +29,9 @@ language sql stable security definer set search_path = public as $$
     and (p_org is null or e.org_id = p_org)
     and (p_event_ids is null or r.event_id = any(p_event_ids))
     and (p_person_ids is null or r.person_id = any(p_person_ids))
-    and (public.can_act_for(r.person_id) or public.is_org_leader(e.org_id))
-  order by r.rsvp_at desc;
+    -- Leaders also need private-detail or health access (current YPT and two-step, via has_perm), per the
+    -- rule that private kid data needs current YPT.
+    and (public.can_act_for(r.person_id) or public.has_perm(e.org_id, 'members.private') or public.has_perm(e.org_id, 'medical.view'))
+  order by r.rsvp_at desc, r.event_id, r.person_id; -- ties broken so callers can page past 1000 rows
 $$;
 grant execute on function public.rsvp_private(uuid, uuid[], uuid[]) to authenticated;

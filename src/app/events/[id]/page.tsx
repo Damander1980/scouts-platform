@@ -29,12 +29,14 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const packing = ((tripPlan?.packing ?? []) as { id: string; text: string }[]);
   const itinerary = ((tripPlan?.itinerary ?? []) as { id: string; day?: string; time?: string; text: string }[]);
 
-  const [{ data: rsvps }, { data: roster }, { data: patrolRows }, family, { data: ageFlags }] = await Promise.all([
+  // Notes, allergies and answers (privRows): the viewer's own family, or every row for the event's leaders.
+  const [{ data: rsvps }, { data: roster }, { data: patrolRows }, family, { data: ageFlags }, privRows] = await Promise.all([
     supabase.from("rsvps").select("person_id, status, driver_seats, rsvp_approval_status").eq("event_id", id),
     supabase.from("memberships").select("person_id, role, ypt_expires, persons(first_name, last_name, type)").eq("org_id", orgId).eq("status", "active"),
     supabase.from("patrol_members").select("person_id, patrols(name)").eq("org_id", orgId).is("end_date", null),
     loadFamily(supabase, orgId),
     supabase.rpc("member_age_flags", { p_org: orgId, p_on: isoDay(new Date(ev.start_at)) }),
+    rsvpPrivate(supabase, { events: [id] }),
   ]);
   // Health forms only for the people going (a whole troop's forms can pass the 1000-row read limit).
   const goingIds = (rsvps ?? []).filter((r) => r.status === "going").map((r) => r.person_id);
@@ -51,8 +53,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
   const people = (roster ?? []) as unknown as Roster[];
   const patrolOf = Object.fromEntries((patrolRows ?? []).map((p) => [p.person_id, (p.patrols as unknown as { name: string })?.name]));
-  // Notes, allergies and answers: the viewer's own family, or every row for the event's leaders.
-  const priv = Object.fromEntries((await rsvpPrivate(supabase, { events: [id] })).map((r) => [r.person_id, r]));
+  const priv = Object.fromEntries(privRows.map((r) => [r.person_id, r]));
   const byPerson = Object.fromEntries((rsvps ?? []).map((r) => [r.person_id, { ...r, notes: priv[r.person_id]?.notes ?? null, dietary: priv[r.person_id]?.dietary ?? null, answers: priv[r.person_id]?.answers ?? {} }]));
   const name = (pid: string) => { const p = people.find((x) => x.person_id === pid)?.persons; return p ? `${p.first_name} ${p.last_name}` : "Member"; };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, Field, money, fmtDate } from "@/components/ui";
@@ -59,7 +59,7 @@ const yearDefault = () => { const n = new Date(); const y = n.getMonth() >= 6 ? 
 export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plans: DuesPlan[]; canEdit: boolean }) {
   const supabase = createClient();
   const router = useRouter();
-  const [selected, setSelected] = useState<string | null>(plans[0]?.id ?? null);
+  const [selected, setSelectedState] = useState<string | null>(plans[0]?.id ?? null);
   const [rows, setRows] = useState<Row[]>([]);
   const [f, setF] = useState({ name: `${yearDefault()} yearly dues`, year: yearDefault(), amount: "", due: "", applies: "youth", category: "dues" });
   const [cat, setCat] = useState("all");
@@ -69,6 +69,10 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
   const [busy, setBusy] = useState(false);
 
   const plan = plans.find((p) => p.id === selected) ?? null;
+  // The plan in view right now (run() reads it after an await, when its own closure may be stale).
+  // Updated together with the state, so it is current before React re-renders.
+  const selectedRef = useRef(selected);
+  const setSelected = (id: string | null) => { selectedRef.current = id; setSelectedState(id); };
   const [troop, setTroop] = useState("our troop");
   const [kind, setKind] = useState<Template>("yearly");
   const [note, setNote] = useState({ subject: "", body: "" });
@@ -76,12 +80,14 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
   useEffect(() => {
     supabase.from("organizations").select("name").eq("id", orgId).maybeSingle().then(({ data }) => { if (data?.name) setTroop(data.name); });
   }, [orgId, supabase]);
-  // Yearly dues get the dues message; camp, gear and fees get the general one.
-  useEffect(() => { if (plan) setKind((plan.category ?? "dues") === "dues" ? "yearly" : "charge"); }, [selected]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Yearly dues get the dues message; camp, gear and fees get the general one. Keyed on the plan found in
+  // props (not just the selected id), so a just-created plan gets its own draft once the page refreshes.
+  const planId = plan?.id;
+  useEffect(() => { if (plan) setKind((plan.category ?? "dues") === "dues" ? "yearly" : "charge"); }, [planId]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (plan) setNote(draft(kind, troop, plan, typeof window !== "undefined" ? window.location.origin : ""));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kind, troop, selected]);
+  }, [kind, troop, planId]);
 
   useEffect(() => {
     if (!selected) { setRows([]); return; }
@@ -93,7 +99,12 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
 
   const run = async (fn: () => Promise<void>, msg?: string) => {
     setBusy(true); setError(""); setOk("");
-    try { await fn(); if (msg) setOk(msg); router.refresh(); if (selected) { const { data, error: dErr } = await supabase.rpc("dues_status", { p_plan: selected }); if (dErr) throw dErr; setRows((data ?? []) as Row[]); } }
+    try {
+      await fn(); if (msg) setOk(msg); router.refresh();
+      // fn may have switched plans (creating one selects it): reload the plan in view now, not the one at the start.
+      const id = selectedRef.current;
+      if (id) { const { data, error: dErr } = await supabase.rpc("dues_status", { p_plan: id }); if (dErr) throw dErr; if (selectedRef.current === id) setRows((data ?? []) as Row[]); }
+    }
     catch (e: any) { setError(e.message ?? String(e)); }
     setBusy(false);
   };
@@ -160,21 +171,26 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
 
           {canEdit && (
             <form className="card flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); run(async () => {
+              // Checked before charging, so an empty message never leaves families charged with no notice.
+              if (!note.body.trim()) throw new Error("Write the message first.");
               let charged = 0;
               if (alsoCharge && kind !== "reminder" && notCharged > 0) {
                 const { data, error } = await supabase.rpc("charge_dues", { p_plan: plan.id }); if (error) throw error;
                 charged = Number(data) || 0;
               }
-              if (!note.body.trim()) throw new Error("Write the message first.");
               // Parents and guardians of every family with a balance due (never the Scouts themselves).
-              const { data: mid, error } = await supabase.rpc("send_message", { p_org: orgId, p_subject: note.subject || null, p_body: note.body, p_audience: "owing", p_ref: null, p_person_ids: null });
+              // Parents of the families this plan charged (a reminder: only those still owing). Before the database
+              // update (0077) the server doesn't know these audiences, so fall back to every family that owes.
+              const send = (audience: string, ref: string | null) => supabase.rpc("send_message", { p_org: orgId, p_subject: note.subject || null, p_body: note.body, p_audience: audience, p_ref: ref, p_person_ids: null });
+              let { data: mid, error } = await send(kind === "reminder" ? "dues_owing" : "dues", plan.id);
+              if (error && /unknown audience/i.test(error.message)) ({ data: mid, error } = await send("owing", null));
               if (error) throw new Error(charged ? `Charged ${charged} ${charged === 1 ? "family" : "families"}, but the message didn't send: ${error.message}` : error.message);
               fetch("/api/notify/message", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messageId: mid }) }).catch(() => {});
-              setOk(`${charged ? `Charged ${charged} ${charged === 1 ? "family" : "families"} and sent` : "Sent"} your message to every family that owes.`);
+              setOk(`${charged ? `Charged ${charged} ${charged === 1 ? "family" : "families"} and sent` : "Sent"} your message to the families this charge is for.`);
             }); }}>
               <div>
                 <div className="font-bold text-[17px]">Send it out</div>
-                <p className="text-[13px] text-smoke m-0">Pick a message, make it yours, and send it to the parents of every family that owes. Charging and the message go out together.</p>
+                <p className="text-[13px] text-smoke m-0">Pick a message, make it yours, and send it to the parents of the families this charge is for (a reminder goes only to those who still owe). Charging and the message go out together.</p>
               </div>
               {rows.length === 0 ? (
                 <div className="rounded-xl p-3 text-[14px]" style={{ background: "#FFF6D6", color: "#5E4400" }}>

@@ -7,9 +7,10 @@ declare me uuid; oid uuid; base text; s text; n int := 1;
 begin
   me := public.my_person_id();
   if me is null then raise exception 'Finish your profile first'; end if;
-  if exists (select 1 from public.memberships m join public.organizations o on o.id = m.org_id
-             where m.person_id = me and m.is_admin and m.status = 'active')
-     and not exists (select 1 from public.platform_owners where user_id = auth.uid()) then
+  -- One at a time per person: two quick presses can't both pass the check below and start two troops.
+  perform pg_advisory_xact_lock(hashtext('create_organization:' || me::text));
+  if exists (select 1 from public.memberships m where m.person_id = me and m.is_admin and m.status = 'active')
+     and not public.am_platform_owner() then
     raise exception 'You already run a troop. Each admin can start one troop; ask us if you need help with another.';
   end if;
   base := lower(regexp_replace(p_word || p_number || p_city, '[^A-Za-z0-9]', '', 'g'));

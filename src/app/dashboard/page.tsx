@@ -17,10 +17,12 @@ export default async function DashboardPage() {
     const { data: evs } = await supabase.from("events").select("id, title, start_at, end_at, location, kind, cost_cents, rsvp_deadline")
       .eq("org_id", orgId).eq("canceled", false).gte("start_at", new Date().toISOString()).order("start_at").limit(12);
     const evIds = (evs ?? []).map((e) => e.id);
-    const { data: mine } = evIds.length
-      ? await supabase.from("rsvps").select("event_id, status, rsvp_approval_status").eq("person_id", person.id).in("event_id", evIds)
-      : { data: [] as { event_id: string; status: string; rsvp_approval_status: string | null }[] };
-    const minePriv = evIds.length ? await rsvpPrivate(supabase, { events: evIds, persons: [person.id] }) : [];
+    const [{ data: mine }, minePriv] = evIds.length
+      ? await Promise.all([
+        supabase.from("rsvps").select("event_id, status, rsvp_approval_status").eq("person_id", person.id).in("event_id", evIds),
+        rsvpPrivate(supabase, { events: evIds, persons: [person.id] }),
+      ])
+      : [{ data: [] as { event_id: string; status: string; rsvp_approval_status: string | null }[] }, []];
     const privOf = Object.fromEntries(minePriv.map((r) => [r.event_id, r]));
     const byEvent = Object.fromEntries((mine ?? []).map((r) => [r.event_id, { ...r, notes: privOf[r.event_id]?.notes ?? null, dietary: privOf[r.event_id]?.dietary ?? null, answers: privOf[r.event_id]?.answers ?? {} }]));
     const scoutEvents: ScoutEvent[] = (evs ?? []).map((e) => {

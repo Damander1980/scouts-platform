@@ -43,9 +43,11 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
     else {
       // Same rule as mark_form: the end of the 12th month after (tetanus: 120 months). Worked out from the date's
       // own year and month, since new Date("2026-02-01") is UTC midnight, which is still January in Texas.
-      const [y, mo] = date.split("-").map(Number);
-      const exp = new Date(Date.UTC(y, mo - 1 + (type === "tetanus" ? 121 : 13), 0, 12)).toISOString();
-      setForms((fs) => [...fs.filter((f) => !(f.person_id === pid && f.type === type)), ...(received ? [{ person_id: pid, type, exam_date: date, expires_at: exp }] : [])]);
+      // An empty date box means today (mark_form uses current_date); only worked out when a form was recorded.
+      const day = date || isoDay();
+      const [y, mo] = day.split("-").map(Number);
+      const exp = () => new Date(Date.UTC(y, mo - 1 + (type === "tetanus" ? 121 : 13), 0, 12)).toISOString();
+      setForms((fs) => [...fs.filter((f) => !(f.person_id === pid && f.type === type)), ...(received ? [{ person_id: pid, type, exam_date: day, expires_at: exp() }] : [])]);
       setEditing(null);
     }
     setBusy(false);
