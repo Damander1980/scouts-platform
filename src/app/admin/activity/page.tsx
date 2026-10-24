@@ -11,6 +11,15 @@ const LABEL: Record<string, string> = {
   "membership.created": "added a member",
   "membership.changed": "changed a member's role, admin or leader status",
   "position.assigned": "assigned a position",
+  "position.insert": "added a position",
+  "position.update": "changed what a position can do",
+  "position.delete": "deleted a position",
+  "person.identity_changed": "changed name, pronoun or registration details",
+  "family.claimed": "claimed a family record",
+  "email.hold_cleared": "lifted an email hold",
+  "form.received": "recorded a form",
+  "form.cleared": "cleared a form",
+  "platform.people_viewed": "viewed the platform member list",
   "position.removed": "removed a position",
   "rsvp.set": "changed a sign-up",
   "event.canceled": "canceled an event",
@@ -78,6 +87,15 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   const kinds = [...new Set((data ?? []).map((r) => String(r.action).split(".")[0]))].sort();
   const filtered = !!(from || to || kind || who?.trim());
 
+  // The same person doing the same thing several times in a row (within a few minutes) is one line.
+  const groups: { r: Row; n: number }[] = [];
+  for (const r of rows) {
+    const last = groups.at(-1);
+    if (last && last.r.action === r.action && last.r.actor_id === r.actor_id && !detail(r) && !detail(last.r)
+      && Math.abs(new Date(last.r.created_at).getTime() - new Date(r.created_at).getTime()) < 5 * 60000) last.n++;
+    else groups.push({ r, n: 1 });
+  }
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-end justify-between gap-3 flex-wrap">
@@ -107,10 +125,10 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
       {rows.length === 0 && <div className="card text-smoke">{filtered ? "Nothing matches those filters." : "Nothing recorded yet."}</div>}
       {rows.length > 0 && (
         <div className="card p-0 overflow-hidden">
-          {rows.map((r) => (
+          {groups.map(({ r, n }) => (
             <div key={r.id} className="flex items-center gap-3 px-5 py-3 border-b border-[#EAE4D6] last:border-0 flex-wrap text-[14px]">
               <span className="w-36 text-smoke flex-none">{fmtDate(r.created_at, { month: "short", day: "numeric" })} · {fmtTime(r.created_at)}</span>
-              <span className="flex-1 min-w-[220px]"><b>{r.actor_id ? nameOf[r.actor_id] ?? "A member" : "System"}</b> {LABEL[r.action] ?? r.action.replace(/[._]/g, " ")}</span>
+              <span className="flex-1 min-w-[220px]"><b>{r.actor_id ? nameOf[r.actor_id] ?? "A member" : "System"}</b> {LABEL[r.action] ?? r.action.replace(/[._]/g, " ")}{n > 1 && <span className="text-smoke"> ({n} times)</span>}</span>
               {detail(r) && <span className="text-smoke">{detail(r)}</span>}
               {SENSITIVE.has(r.action) && <Chip tone="orange">Privacy</Chip>}
             </div>
