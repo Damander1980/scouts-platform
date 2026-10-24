@@ -7,6 +7,15 @@
 workflows:
   ios-testflight:
     name: iOS → TestFlight
+    # Builds by itself when the native shell changes (not for ordinary website changes, which reach the app live).
+    triggering:
+      events: [push]
+      branch_patterns:
+        - pattern: master
+          include: true
+    when:
+      changeset:
+        includes: ["ios/", "capacitor.config.ts", "mobile/", "assets/", "codemagic.yaml"]
     max_build_duration: 60
     instance_type: mac_mini_m2
     integrations:
