@@ -42,3 +42,30 @@ Google sign-in: in Google Cloud Console, add `https://ourtroopmanager.com` to th
 
 ## 6. Texts (Twilio, later)
 `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM`; point the number's incoming-message webhook at `https://ourtroopmanager.com/api/sms/inbound`. Carrier (10DLC) registration takes a few weeks, so start it early.
+
+## 7. iPhone and Android apps (Capacitor, built in the cloud by Codemagic)
+The apps are a native shell around the live site (`capacitor.config.ts`), so website releases reach them
+without a new build. Build again only when icons, plugins or permissions change.
+
+One-time Apple setup (you, signed in to your Apple Developer account):
+1. developer.apple.com → Certificates, Identifiers & Profiles → Identifiers → **+** → App IDs → App.
+   Description `Our Troop Manager`, Bundle ID (explicit) `com.ourtroopmanager.app`. Tick **Push Notifications**. Register.
+2. appstoreconnect.apple.com → Apps → **+** → New App: iOS, name `Our Troop Manager`, language English (U.S.),
+   bundle ID `com.ourtroopmanager.app`, SKU `ourtroopmanager`. After it's created, copy its **Apple ID** number
+   (App Information page).
+3. App Store Connect → Users and Access → Integrations → App Store Connect API → **+**: name `Codemagic`,
+   access **Admin**. Download the .p8 file (only once!) and note the **Key ID** and **Issuer ID**.
+
+One-time Codemagic setup:
+4. codemagic.io → sign up with GitHub → add the `scouts-platform` repository.
+5. Team settings → Integrations → Developer Portal → connect: name it exactly `ASC key`, enter the Issuer ID,
+   Key ID and upload the .p8.
+6. In the app's workflow settings → Environment variables: add `APP_STORE_APPLE_ID` = the number from step 2.
+
+Each test build:
+7. Codemagic → Start new build → workflow **iOS → TestFlight**. About 20 minutes, then Apple processes it
+   (15-30 minutes more).
+8. App Store Connect → the app → TestFlight → Internal Testing → **+** group → add yourself. The invite shows in
+   the TestFlight app on your iPhone. Install.
+9. Android: start **Android → install file**, open the .apk download link on the Android phone, allow installing
+   from that source, install.
