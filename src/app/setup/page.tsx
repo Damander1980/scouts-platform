@@ -1,5 +1,7 @@
 "use client";
 
+import StateSelect from "@/components/StateSelect";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -156,8 +158,7 @@ export default function SetupPage() {
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="state" className="font-bold text-sm">State</label>
-              <input id="state" type="text" maxLength={2} value={state}
-                onChange={(e) => setState(e.target.value.toUpperCase())} placeholder="TX" className="input w-full" />
+              <StateSelect id="state" value={state} onChange={setState} />
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="ypt" className="font-bold text-sm">Your Youth Protection Training expires</label>

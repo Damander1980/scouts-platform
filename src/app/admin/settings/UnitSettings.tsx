@@ -1,5 +1,7 @@
 "use client";
 
+import StateSelect from "@/components/StateSelect";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -54,7 +56,7 @@ export default function UnitSettings({ org, isAdmin, calendarToken }: { org: Org
       <section className="card grid sm:grid-cols-3 gap-3">
         <Field label="Unit name"><input className="input" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
         <Field label="City"><input className="input" value={f.city} onChange={(e) => setF({ ...f, city: e.target.value })} /></Field>
-        <Field label="State"><input className="input" maxLength={2} value={f.state} onChange={(e) => setF({ ...f, state: e.target.value.toUpperCase() })} /></Field>
+        <Field label="State"><StateSelect value={f.state} onChange={(state) => setF({ ...f, state })} /></Field>
       </section>
 
       <section className="card flex flex-col gap-3">
