@@ -1,5 +1,7 @@
 "use client";
 
+import PasswordInput from "@/components/PasswordInput";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -73,7 +75,7 @@ export default function ScoutbookConnect({ orgId, canConnect, connection }: {
           </p>
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Scoutbook (my.scouting.org) username"><input className="input" autoComplete="off" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value })} required /></Field>
-            <Field label="Password"><input className="input" type="password" autoComplete="off" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} required /></Field>
+            <Field label="Password"><PasswordInput className="input w-full" autoComplete="off" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} required /></Field>
           </div>
           <Field label="Your Scoutbook position">
             <select className="input" value={f.position} onChange={(e) => setF({ ...f, position: e.target.value })}>

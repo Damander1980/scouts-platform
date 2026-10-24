@@ -45,9 +45,12 @@ export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitT
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="font-display font-extrabold text-[32px] m-0">Advancement</h1>
-        <p className="text-[14px] text-smoke m-0 mt-1">Sign-offs, merit badge requests, every Scout&apos;s progress, and what to buy for the next Court of Honor.</p>
+      <div className="flex items-end justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="font-display font-extrabold text-[32px] m-0">Advancement</h1>
+          <p className="text-[14px] text-smoke m-0 mt-1">Sign-offs, merit badge requests, every Scout&apos;s progress, and what to buy for the next Court of Honor.</p>
+        </div>
+        <a className="btn-primary no-underline" href="/admin/advancement/tfc">Trail to First Class</a>
       </div>
       <ErrorBox>{error}</ErrorBox>
       <ScoutbookSync pending={scoutbookPending} />
@@ -149,6 +152,7 @@ export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitT
             <a className="btn-secondary no-underline" href="/api/export/advancement.csv">Advancement report for the Scout Shop (CSV)</a>
             <a className="btn-secondary no-underline" href="/admin/advancement/court-of-honor">Print shopping list and program</a>
             <a className="btn-secondary no-underline" href="/admin/advancement/labels">Print award labels</a>
+            <a className="btn-secondary no-underline" href="/admin/advancement/tfc">Trail to First Class</a>
             {awards.some((a) => !a.purchased_at) && (
               <button className="btn-secondary" disabled={busy} onClick={() => run(async () => {
                 const ids = awards.filter((a) => !a.purchased_at).map((a) => a.adv_id);

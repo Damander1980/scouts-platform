@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import PasswordInput from "@/components/PasswordInput";
 
 // Reached from the emailed reset link (via /auth/confirm, which signs the person in first).
 export default function ResetPasswordPage() {
@@ -24,7 +25,7 @@ export default function ResetPasswordPage() {
         style={{ boxShadow: "0 1px 2px rgba(16,27,45,.06), 0 14px 36px rgba(16,27,45,.12)" }}>
         <h1 className="font-display font-extrabold text-[32px] m-0">Choose a new password</h1>
         <label htmlFor="password" className="font-bold text-sm">New password</label>
-        <input id="password" type="password" required minLength={8} autoComplete="new-password" autoFocus
+        <PasswordInput id="password" required minLength={8} autoComplete="new-password" autoFocus
           value={password} onChange={(e) => setPassword(e.target.value)} className="input w-full" />
         <span className="text-[12px] text-smoke">At least 8 characters.</span>
         {error && <p role="alert" className="text-sm m-0 rounded-xl p-3" style={{ background: "#FFF6D6", color: "#5E4400" }}>{error}</p>}

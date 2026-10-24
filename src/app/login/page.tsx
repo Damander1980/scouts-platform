@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient, createEmailLinkClient } from "@/lib/supabase/client";
 import Mark from "@/components/Mark";
+import PasswordInput from "@/components/PasswordInput";
 import { safeNext } from "@/lib/safeNext";
 
 type Mode = "signin" | "signup" | "forgot";
@@ -99,7 +100,7 @@ export default function LoginPage() {
                     <button type="button" onClick={() => switchMode("forgot")} className="text-[13px] font-bold text-forest bg-transparent border-none cursor-pointer min-h-[44px] px-0">Forgot password?</button>
                   )}
                 </div>
-                <input id="password" type="password" required minLength={mode === "signup" ? 8 : undefined}
+                <PasswordInput id="password" required minLength={mode === "signup" ? 8 : undefined}
                   autoComplete={mode === "signup" ? "new-password" : "current-password"}
                   value={password} onChange={(e) => setPassword(e.target.value)} className="input w-full" />
                 {mode === "signup" && <span className="text-[12px] text-smoke">At least 8 characters.</span>}

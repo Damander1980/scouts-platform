@@ -2,6 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AdvancementClient, { type Progress, type Tracked } from "@/components/AdvancementClient";
 import { loadCatalog } from "@/lib/advancement";
+import { trailToFirstClass } from "@/lib/tfc";
+import TfcPanel, { type Coming } from "@/components/TfcPanel";
+import { isoDay } from "@/components/ui";
 import { cookies } from "next/headers";
 import { ORG_COOKIE } from "@/lib/context";
 
@@ -103,6 +106,20 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
       return acc;
     }, {}));
 
+  // Trail to First Class, plus the skill sessions the troop has coming up (so a Scout can practice ahead).
+  const tfc = trailToFirstClass(items, progress, new Set(Object.keys(rankEarned).filter((k) => rankEarned[k])));
+  const { data: sessRows } = tfc.finished ? { data: [] } : await supabase.from("skill_sessions")
+    .select("on_date, skill_modules(title, requirement_ids, notes, links)").eq("org_id", orgId).gte("on_date", isoDay()).order("on_date").limit(3);
+  const reqOf = Object.fromEntries(tfc.all.map((r) => [r.id, r]));
+  const coming: Coming[] = ((sessRows ?? []) as unknown as { on_date: string; skill_modules: { title: string; requirement_ids: string[]; notes: string | null; links: { label: string; url: string }[] } | null }[])
+    .filter((s) => s.skill_modules).map((s) => ({
+      date: s.on_date, title: s.skill_modules!.title, notes: s.skill_modules!.notes, links: s.skill_modules!.links ?? [],
+      reqs: s.skill_modules!.requirement_ids.map((rid) => reqOf[rid]).filter(Boolean).map((r) => ({
+        id: r.id, label: `${r.rankName} ${r.number}`, text: r.text,
+        status: (rankEarned[r.rank] || progress[r.id]?.approved_by ? "done" : progress[r.id]?.completed_at ? "waiting" : "todo") as "done" | "waiting" | "todo",
+      })),
+    }));
+
   return (
     <AdvancementClient key={id}
       scout={scout}
@@ -114,6 +131,7 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
       viewerPersonId={viewer.id}
       counselorBadgeIds={counselorBadgeIds}
       extras={{ birthdate: who?.birthdate ?? null, rankEarned, positions: positions ?? [], credits, serviceEvents, counselors: counselorList, eagle }}
+      top={<TfcPanel tfc={tfc} coming={coming} firstName={scout.first_name} self={viewer.id === id} />}
     />
   );
 }

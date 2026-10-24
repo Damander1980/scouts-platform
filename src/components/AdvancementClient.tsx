@@ -87,8 +87,9 @@ function SegmentBar({ total, done, approved }: { total: number; done: number; ap
 
 export default function AdvancementClient({
   scout, orgId, items, tracked: initialTracked, progress: initialProgress,
-  isLeader, viewerPersonId, demo = false, counselorBadgeIds = [], extras,
+  isLeader, viewerPersonId, demo = false, counselorBadgeIds = [], extras, top,
 }: {
+  top?: React.ReactNode;
   counselorBadgeIds?: string[];
   extras?: Extras;
   scout: { id: string; first_name: string; last_name: string };
@@ -317,6 +318,7 @@ export default function AdvancementClient({
           )}
         </div>
       </header>
+      {top && <div className="max-w-4xl mx-auto px-4 sm:px-8 pt-6">{top}</div>}
 
       <div className="max-w-4xl mx-auto px-4 sm:px-8 -mt-5 pb-16 flex flex-col gap-6">
         {/* Stats */}
