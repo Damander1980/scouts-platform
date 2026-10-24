@@ -33,7 +33,7 @@ export default async function TfcTracker() {
       if (!ids.length || !reqIds.length) return out;
       for (let from = 0; ; from += 1000) {
         const { data } = await supabase.from("requirement_progress").select("person_id, requirement_id, completed_at, approved_by")
-          .in("person_id", ids).in("requirement_id", reqIds).range(from, from + 999);
+          .in("person_id", ids).in("requirement_id", reqIds).order("person_id").order("requirement_id").range(from, from + 999);
         out.push(...((data ?? []) as Row[]));
         if (!data || data.length < 1000) return out;
       }
@@ -41,20 +41,24 @@ export default async function TfcTracker() {
   ]);
   const codeOf = Object.fromEntries(rankItems.map((i) => [i.id, i.code]));
 
-  const onTrail = scouts.map((s) => {
-    const progress: Progress = {};
-    for (const r of progressRows) if (r.person_id === s.person_id) progress[r.requirement_id] = { completed_at: r.completed_at, approved_by: r.approved_by };
-    const earned = new Set(((earnedRows ?? []) as { person_id: string; item_id: string }[]).filter((e) => e.person_id === s.person_id).map((e) => codeOf[e.item_id]));
-    return { s, progress, earned, tfc: trailToFirstClass(rankItems, progress, earned) };
-  }).filter((x) => !x.tfc.finished)
+  // Group once, instead of scanning every row for every Scout.
+  const progressOf = new Map<string, Progress>();
+  for (const r of progressRows) {
+    const p = progressOf.get(r.person_id) ?? {};
+    p[r.requirement_id] = { completed_at: r.completed_at, approved_by: r.approved_by };
+    progressOf.set(r.person_id, p);
+  }
+  const earnedOf = new Map<string, Set<string>>();
+  for (const e of (earnedRows ?? []) as { person_id: string; item_id: string }[]) {
+    earnedOf.set(e.person_id, (earnedOf.get(e.person_id) ?? new Set<string>()).add(codeOf[e.item_id]));
+  }
+  const onTrail = scouts.map((s) => ({ s, tfc: trailToFirstClass(rankItems, progressOf.get(s.person_id) ?? {}, earnedOf.get(s.person_id) ?? new Set()) }))
+    .filter((x) => !x.tfc.finished)
     .sort((a, b) => a.tfc.done / (a.tfc.total || 1) - b.tfc.done / (b.tfc.total || 1) || a.s.persons.last_name.localeCompare(b.s.persons.last_name));
 
   // How many Scouts on the trail still need each requirement (not signed off and not waiting).
   const need = new Map<string, number>();
-  for (const x of onTrail) for (const r of x.tfc.all) {
-    if (x.earned.has(r.rank) || x.progress[r.id]?.approved_by || x.progress[r.id]?.completed_at) continue;
-    need.set(r.id, (need.get(r.id) ?? 0) + 1);
-  }
+  for (const x of onTrail) for (const r of x.tfc.all) if (r.status === "todo") need.set(r.id, (need.get(r.id) ?? 0) + 1);
   const allReqs = onTrail[0]?.tfc.all ?? trailToFirstClass(rankItems, {}, new Set()).all;
   const [{ data: mods }, { data: sess }] = await Promise.all([
     supabase.from("skill_modules").select("id, title, requirement_ids, notes, links, sort").eq("org_id", orgId).order("sort").order("created_at"),

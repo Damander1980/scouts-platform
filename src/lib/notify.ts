@@ -45,6 +45,22 @@ export async function claimOnce(db: NonNullable<ReturnType<typeof adminClient>>,
   throw new Error(`Could not record notice ${key}: ${error.message}`); // a real failure must not look like "already sent"
 }
 
+// claimOnce for many keys in two calls instead of two per key; falls back to one at a time if two runs race.
+export async function claimMany(db: NonNullable<ReturnType<typeof adminClient>>, keys: string[]) {
+  const unique = [...new Set(keys)];
+  if (!unique.length) return new Set<string>();
+  const { data: seen } = await db.from("notification_log").select("category").eq("channel", "system").in("category", unique);
+  const done = new Set((seen ?? []).map((r) => r.category as string));
+  const fresh = unique.filter((k) => !done.has(k));
+  if (!fresh.length) return new Set<string>();
+  const { error } = await db.from("notification_log").insert(fresh.map((category) => ({ category, channel: "system", status: "done" })));
+  if (!error) return new Set(fresh);
+  if (error.code !== "23505") throw new Error(`Could not record notices: ${error.message}`);
+  const won = new Set<string>();
+  for (const k of fresh) if (await claimOnce(db, k)) won.add(k);
+  return won;
+}
+
 // Addresses on hold (permanent bounce or spam complaint): mailing them again only hurts delivery for everyone.
 export async function heldAddresses(db: NonNullable<ReturnType<typeof adminClient>>, emails: (string | null | undefined)[]) {
   const list = [...new Set(emails.filter((e): e is string => !!e).map((e) => e.toLowerCase()))];
@@ -55,38 +71,83 @@ export async function heldAddresses(db: NonNullable<ReturnType<typeof adminClien
 
 const esc = (t: string) => t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
+// Many notices at once: Resend's batch endpoint takes up to 100 emails per call, which keeps a big reminder
+// run well inside Cloudflare's per-run call limit. Returns one result per email, in order.
+async function sendEmailBatch(items: { to: string; subject: string; html: string; personId: string }[]) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return items.map(() => ({ status: "skipped" as const, id: undefined as string | undefined }));
+  const from = process.env.EMAIL_FROM || "Our Troop Manager <notify@ourtroopmanager.com>";
+  const out: { status: "sent" | "failed" | "skipped"; id?: string }[] = [];
+  for (let i = 0; i < items.length; i += 100) {
+    const chunk = items.slice(i, i + 100);
+    const res = await fetch("https://api.resend.com/emails/batch", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify(chunk.map((m) => ({ from, to: m.to, subject: m.subject, html: m.html,
+        headers: { "List-Unsubscribe": `<${SITE_URL}/api/unsubscribe?p=${m.personId}&t=${unsubscribeToken(m.personId)}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } }))),
+    }).catch(() => null);
+    const body = res ? await res.json().catch(() => ({})) : {};
+    const ids = (body?.data ?? []) as { id?: string }[];
+    chunk.forEach((_, j) => out.push(res?.ok ? { status: "sent", id: ids[j]?.id } : { status: "failed" }));
+  }
+  return out;
+}
+
+export type Notice = { personIds: string[]; category: Category; subject: string; path: string };
+
 // Notices never include message content: just that something is waiting, with a link.
 export async function notifyPeople(personIds: string[], category: Category, subject: string, path: string) {
+  return notifyMany([{ personIds, category, subject, path }]);
+}
+
+// Several different notices in one pass: one lookup of people and preferences, one batched email call per
+// 100 emails, one log write. Keeps the daily reminder run small however many families it reaches.
+export async function notifyMany(notices: Notice[]) {
   const db = adminClient();
-  if (!db || !personIds.length) return { delivered: 0, skipped: personIds.length };
+  const allIds = [...new Set(notices.flatMap((n) => n.personIds))];
+  if (!db || !allIds.length) return { delivered: 0, skipped: allIds.length };
 
-  const { data: people } = await db.from("persons").select("id, type, user_id, users(email)").in("id", personIds);
-  const { data: prefs } = await db.from("notification_prefs").select("*").in("person_id", personIds);
+  const [{ data: people }, { data: prefs }] = await Promise.all([
+    db.from("persons").select("id, type, user_id, users(email)").in("id", allIds),
+    db.from("notification_prefs").select("*").in("person_id", allIds),
+  ]);
+  const personOf = Object.fromEntries((people ?? []).map((p) => [p.id, p]));
   const prefOf = Object.fromEntries((prefs ?? []).map((p) => [p.person_id, p]));
-  let delivered = 0;
   const held = await heldAddresses(db, (people ?? []).map((p) => (p.users as unknown as { email: string } | null)?.email));
+  let delivered = 0;
+  const emails: { to: string; subject: string; html: string; personId: string; category: string }[] = [];
+  const logs: { person_id: string; channel: string; category: string; status: string; provider_id: string | null }[] = [];
 
-  for (const p of people ?? []) {
-    const pref = prefOf[p.id] ?? { email_on: true, sms_on: false, categories: {}, quiet_start: "21:00", quiet_end: "08:00", timezone: "America/Chicago" };
-    if (pref.categories?.[category] === false) continue;
-    const quiet = inQuietHours(pref.quiet_start.slice(0, 5), pref.quiet_end.slice(0, 5), pref.timezone);
-    const link = `${SITE_URL}${path}`;
-    const email = (p.users as unknown as { email: string } | null)?.email;
-
-    if (pref.email_on && email && !held.has(email.toLowerCase()) && (!quiet || category === "urgent")) {
-      const r = await sendEmail(email, subject,
-        `<div style="font-family:Arial,sans-serif;max-width:480px;padding:20px;color:#101B2D"><p style="font-size:16px">${esc(subject)}</p>
-         <p><a href="${link}" style="background:#F5B700;color:#101B2D;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold">Open in Our Troop Manager</a></p>
-         <p style="font-size:12px;color:#4B5568">Change what you get in <a href="${SITE_URL}/settings">Settings</a>, or <a href="${SITE_URL}/unsubscribe?p=${p.id}&t=${unsubscribeToken(p.id)}">unsubscribe</a>.</p></div>`, p.id);
-      await db.from("notification_log").insert({ person_id: p.id, channel: "email", category, status: r.status, provider_id: r.id ?? null });
-      if (r.status === "sent") delivered++;
-    }
-    // Texts go to adults who opted in; never to a Scout's own phone.
-    if (pref.sms_on && pref.sms_phone && pref.sms_consent_at && p.type === "adult" && (!quiet || category === "urgent")) {
-      const r = await sendSms(pref.sms_phone, `${subject} ${link} Reply STOP to opt out.`);
-      await db.from("notification_log").insert({ person_id: p.id, channel: "sms", category, status: r.status, provider_id: r.id ?? null });
-      if (r.status === "sent") delivered++;
+  for (const n of notices) {
+    const link = `${SITE_URL}${n.path}`;
+    for (const id of new Set(n.personIds)) {
+      const p = personOf[id];
+      if (!p) continue;
+      const pref = prefOf[p.id] ?? { email_on: true, sms_on: false, categories: {}, quiet_start: "21:00", quiet_end: "08:00", timezone: "America/Chicago" };
+      if (pref.categories?.[n.category] === false) continue;
+      const quiet = inQuietHours(pref.quiet_start.slice(0, 5), pref.quiet_end.slice(0, 5), pref.timezone);
+      const email = (p.users as unknown as { email: string } | null)?.email;
+      if (pref.email_on && email && !held.has(email.toLowerCase()) && (!quiet || n.category === "urgent")) {
+        emails.push({ to: email, subject: n.subject, personId: p.id, category: n.category, html:
+          `<div style="font-family:Arial,sans-serif;max-width:480px;padding:20px;color:#101B2D"><p style="font-size:16px">${esc(n.subject)}</p>
+           <p><a href="${link}" style="background:#F5B700;color:#101B2D;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold">Open in Our Troop Manager</a></p>
+           <p style="font-size:12px;color:#4B5568">Change what you get in <a href="${SITE_URL}/settings">Settings</a>, or <a href="${SITE_URL}/unsubscribe?p=${p.id}&t=${unsubscribeToken(p.id)}">unsubscribe</a>.</p></div>` });
+      }
+      // Texts go to adults who opted in; never to a Scout's own phone.
+      if (pref.sms_on && pref.sms_phone && pref.sms_consent_at && p.type === "adult" && (!quiet || n.category === "urgent")) {
+        const r = await sendSms(pref.sms_phone, `${n.subject} ${link} Reply STOP to opt out.`);
+        logs.push({ person_id: p.id, channel: "sms", category: n.category, status: r.status, provider_id: r.id ?? null });
+        if (r.status === "sent") delivered++;
+      }
     }
   }
+  const results = emails.length === 1
+    ? [await sendEmail(emails[0].to, emails[0].subject, emails[0].html, emails[0].personId)]
+    : await sendEmailBatch(emails);
+  results.forEach((r, i) => {
+    logs.push({ person_id: emails[i].personId, channel: "email", category: emails[i].category, status: r.status, provider_id: r.id ?? null });
+    if (r.status === "sent") delivered++;
+  });
+  if (logs.length) await db.from("notification_log").insert(logs);
   return { delivered };
 }

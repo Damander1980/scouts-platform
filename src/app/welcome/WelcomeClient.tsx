@@ -59,12 +59,9 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
   };
 
   const saveName = () => run(async () => {
-    const { error } = await supabase.rpc("ensure_person", { p_first: first, p_last: last });
+    const { data: myId, error } = await supabase.rpc("ensure_person", { p_first: first, p_last: last });
     if (error) throw error;
-    if (hasIdentity(meId)) {
-      const { data: myId } = await supabase.rpc("my_person_id");
-      if (myId) await saveIdentity(supabase, null, myId as string, meId);
-    }
+    if (myId && hasIdentity(meId)) await saveIdentity(supabase, null, myId as string, meId);
     if (!kidLast) setKidLast(last);
     await reloadFamily();
     setStep("family");
@@ -75,14 +72,19 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
     run(async () => {
       const { data: newKid, error } = await supabase.rpc("add_child", { p_first: kidFirst, p_last: kidLast, p_birthdate: kidBirth || null });
       if (error) throw error;
-      if (newKid && hasIdentity(kidId)) await saveIdentity(supabase, null, newKid as string, kidId);
-      // Optional: the child's own email becomes their own login once the parent consents.
-      if (newKid && kidEmail.trim()) {
-        const { error: le } = await supabase.rpc("invite_child_login", { p_person: newKid, p_email: kidEmail.trim(), p_consent_text: childLoginConsent(kidFirst) });
-        if (le) throw new Error(`${kidFirst} was added, but their login wasn't set up: ${le.message}. You can do it later on your Family page.`);
-      }
+      // The child exists now: clear the form and show them even if a follow-up step fails, so "Add child" isn't pressed twice.
+      const name = kidFirst, ident = kidId, email = kidEmail.trim();
       setKidFirst(""); setKidBirth(""); setKidId(EMPTY_IDENTITY); setKidEmail(""); setKidConsent(false);
-      await reloadFamily();
+      try {
+        if (newKid && hasIdentity(ident)) await saveIdentity(supabase, null, newKid as string, ident);
+        // Optional: the child's own email becomes their own login once the parent consents.
+        if (newKid && email) {
+          const { error: le } = await supabase.rpc("invite_child_login", { p_person: newKid, p_email: email, p_consent_text: childLoginConsent(name) });
+          if (le) throw new Error(`${name} was added, but their login wasn't set up: ${le.message}. You can do it later on your Family page.`);
+        }
+      } finally {
+        await reloadFamily();
+      }
     });
   };
 

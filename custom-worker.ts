@@ -3,10 +3,19 @@
 import { default as handler } from "./.open-next/worker.js";
 
 type Env = { NEXT_PUBLIC_SITE_URL: string; CRON_SECRET: string };
+type Ctx = { waitUntil: (p: Promise<unknown>) => void };
 
 export default {
   fetch: handler.fetch,
-  async scheduled(_controller: unknown, env: Env, ctx: { waitUntil: (p: Promise<unknown>) => void }) {
-    ctx.waitUntil(fetch(`${env.NEXT_PUBLIC_SITE_URL}/api/cron/reminders`, { headers: { Authorization: `Bearer ${env.CRON_SECRET}` } }));
+  async scheduled(_controller: unknown, env: Env, ctx: Ctx) {
+    // Run the job inside this worker rather than fetching our own public address (a Worker calling its own
+    // custom domain isn't guaranteed to reach itself). A failed run must show up in the Workers logs.
+    const req = new Request(`${env.NEXT_PUBLIC_SITE_URL}/api/cron/reminders`, { headers: { Authorization: `Bearer ${env.CRON_SECRET}` } });
+    ctx.waitUntil(
+      Promise.resolve(handler.fetch(req, env, ctx)).then(async (r: Response) => {
+        if (!r.ok) throw new Error(`Reminder job failed: ${r.status} ${await r.text().catch(() => "")}`);
+        console.log(`Reminder job: ${await r.text().catch(() => "")}`);
+      }),
+    );
   },
 };

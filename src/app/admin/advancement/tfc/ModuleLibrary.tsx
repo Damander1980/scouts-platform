@@ -125,7 +125,7 @@ export default function ModuleLibrary({ orgId, reqs, modules, sessions, scoutsOn
                   <div key={g.rank} className="flex flex-col gap-1">
                     <div className="eyebrow text-forest">{g.rank}</div>
                     {g.items.map((r) => (
-                      <label key={r.id} className="flex items-start gap-2 text-[14px] min-h-[36px] py-1">
+                      <label key={r.id} className="flex items-start gap-2 text-[14px] min-h-[44px] py-1">
                         <input type="checkbox" className="w-5 h-5 mt-0.5 flex-none" checked={f.reqs.includes(r.id)}
                           onChange={(e) => setF({ ...f, reqs: e.target.checked ? [...f.reqs, r.id] : f.reqs.filter((x) => x !== r.id) })} />
                         <span><b>{r.label}</b> {r.text} {r.need > 0 && <span className="text-[12px] font-bold" style={{ color: "#5E4400" }}>· {r.need}/{scoutsOnTrail} need it</span>}</span>
@@ -176,7 +176,7 @@ export default function ModuleLibrary({ orgId, reqs, modules, sessions, scoutsOn
                 )}
                 {next && <div className="text-[13px] font-bold">Scheduled {fmtDate(next.on_date + "T12:00:00", { weekday: "short", month: "short", day: "numeric" })}</div>}
                 <div className="flex gap-2 flex-wrap items-center pt-1">
-                  <input type="date" className="input h-10 min-h-0 w-auto" aria-label={`Meeting date for ${m.title}`} value={dateFor[m.id] ?? ""} min={today}
+                  <input type="date" className="input w-auto" aria-label={`Meeting date for ${m.title}`} value={dateFor[m.id] ?? ""} min={today}
                     onChange={(e) => setDateFor({ ...dateFor, [m.id]: e.target.value })} />
                   <button className="btn-secondary" disabled={busy || !dateFor[m.id]} onClick={() => schedule(m)}>Schedule</button>
                   <button className="btn-ghost" disabled={busy} onClick={() => startEdit(m)}>Edit</button>

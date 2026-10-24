@@ -107,7 +107,10 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
     }, {}));
 
   // Trail to First Class, plus the skill sessions the troop has coming up (so a Scout can practice ahead).
-  const tfc = trailToFirstClass(items, progress, new Set(Object.keys(rankEarned).filter((k) => rankEarned[k])));
+  // Earned: a date on record, or a completed rank row even when it has no date (some imports leave it blank).
+  const completedRanks = new Set(items.filter((i) => i.kind === "rank" && i.program === "scouts_bsa"
+    && (rankEarned[i.code] || (tracked ?? []).some((x) => x.item_id === i.id && x.status === "completed"))).map((i) => i.code));
+  const tfc = trailToFirstClass(items, progress, completedRanks);
   const { data: sessRows } = tfc.finished ? { data: [] } : await supabase.from("skill_sessions")
     .select("on_date, skill_modules(title, requirement_ids, notes, links)").eq("org_id", orgId).gte("on_date", isoDay()).order("on_date").limit(3);
   const reqOf = Object.fromEntries(tfc.all.map((r) => [r.id, r]));
@@ -115,8 +118,7 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
     .filter((s) => s.skill_modules).map((s) => ({
       date: s.on_date, title: s.skill_modules!.title, notes: s.skill_modules!.notes, links: s.skill_modules!.links ?? [],
       reqs: s.skill_modules!.requirement_ids.map((rid) => reqOf[rid]).filter(Boolean).map((r) => ({
-        id: r.id, label: `${r.rankName} ${r.number}`, text: r.text,
-        status: (rankEarned[r.rank] || progress[r.id]?.approved_by ? "done" : progress[r.id]?.completed_at ? "waiting" : "todo") as "done" | "waiting" | "todo",
+        id: r.id, label: `${r.rankName} ${r.number}`, text: r.text, status: r.status,
       })),
     }));
 

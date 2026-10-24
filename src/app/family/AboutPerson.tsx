@@ -24,7 +24,7 @@ export default function AboutPerson({ orgId, personId, name, youth, initial }: {
     return (
       <div className="flex items-center gap-2 text-[13px] flex-wrap">
         <span className="text-smoke">{summary || "No name, pronoun or registration details yet."}</span>
-        <button className="btn-ghost text-[13px] min-h-0 px-0" onClick={() => setOpen(true)}>Edit about {name}</button>
+        <button className="btn-ghost text-[13px] min-h-[44px] px-0" onClick={() => setOpen(true)}>Edit about {name}</button>
       </div>
     );
   }

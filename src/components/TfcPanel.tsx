@@ -47,7 +47,7 @@ export default function TfcPanel({ tfc, coming = [], firstName, self }: { tfc: T
           {c.links.filter((l) => safeUrl(l.url)).length > 0 && (
             <div className="flex gap-2 flex-wrap">
               {c.links.filter((l) => safeUrl(l.url)).map((l) => (
-                <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="min-h-[40px] px-4 rounded-full font-bold text-[14px] flex items-center no-underline" style={{ background: "#101B2D", color: "white" }}>▶ {l.label}</a>
+                <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="min-h-[44px] px-4 rounded-full font-bold text-[14px] flex items-center no-underline" style={{ background: "#101B2D", color: "white" }}>▶ {l.label}</a>
               ))}
             </div>
           )}
@@ -56,7 +56,7 @@ export default function TfcPanel({ tfc, coming = [], firstName, self }: { tfc: T
               <li key={r.id} className="flex gap-2 items-start text-[14px] rounded-xl px-3 py-2" style={{ background: "rgba(255,255,255,.55)" }}>
                 <span className="font-bold flex-none" aria-label={r.status}>{r.status === "done" ? "✓" : r.status === "waiting" ? "…" : "○"}</span>
                 <span className="flex-1"><b>{r.label}</b> {short(r.text)}{r.status === "done" ? " (done)" : r.status === "waiting" ? " (waiting for sign-off)" : ""}</span>
-                {r.status === "todo" && <a href={videoSearch(r.text)} target="_blank" rel="noopener noreferrer" className="text-[13px] font-bold flex-none" style={{ color: "#12355F" }}>Find a video</a>}
+                {r.status === "todo" && <a href={videoSearch(r.text)} target="_blank" rel="noopener noreferrer" className="text-[13px] font-bold flex-none min-h-[44px] flex items-center" style={{ color: "#12355F" }}>Find a video</a>}
               </li>
             ))}
           </ul>

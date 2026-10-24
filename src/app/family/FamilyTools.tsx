@@ -34,9 +34,14 @@ export default function FamilyTools({ defaultLast, notInTroop, orgId }: {
       <form className="card flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); run(async () => {
         const { data: kid, error } = await supabase.rpc("add_child", { p_first: first, p_last: last, p_birthdate: birth || null });
         if (error) throw error;
-        if (kid && hasIdentity(ident)) await saveIdentity(supabase, orgId, kid as string, ident);
+        // The child exists now: clear the form and refresh even if saving the extra details fails, so they aren't added twice.
+        const details = ident;
         setFirst(""); setBirth(""); setIdent(EMPTY_IDENTITY); setMsg("Child added. Ask to add them to the troop below.");
-        router.refresh();
+        try {
+          if (kid && hasIdentity(details)) await saveIdentity(supabase, orgId, kid as string, details);
+        } finally {
+          router.refresh();
+        }
       }); }}>
         <div className="font-bold text-[16px]">Add a child</div>
         <div className="grid grid-cols-2 gap-2">
