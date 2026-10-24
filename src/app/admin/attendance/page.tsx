@@ -9,9 +9,11 @@ export default async function AttendanceReport({ searchParams }: { searchParams:
   const { supabase, current } = await requireLeader();
   const orgId = current.org.id;
   const now = new Date();
-  const programStart = new Date(now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1, 7, 1);
-  const from = sp.from ?? isoDay(programStart);
-  const to = sp.to ?? isoDay(now);
+  // Program year starts August 1, counted on the troop's calendar (the server runs in UTC).
+  const today = isoDay(now);
+  const [ty, tm] = today.split("-").map(Number);
+  const from = sp.from ?? `${tm >= 8 ? ty : ty - 1}-08-01`;
+  const to = sp.to ?? today;
 
   const [{ data }, { data: patrols }, { data: pm }, { data: recent }] = await Promise.all([
     supabase.rpc("attendance_summary", { p_org: orgId, p_from: from, p_to: to }),

@@ -102,8 +102,13 @@ export async function requirePerm(...any: Perm[]) {
 
 // Leader tools show children's data, so staff must have passed two-step verification this session.
 async function requireTwoStep(supabase: Awaited<ReturnType<typeof getContext>>["supabase"]) {
+  if (!(await twoStepDone(supabase))) redirect("/two-step?next=/admin");
+}
+
+// For API routes (which answer 403 instead of redirecting): has this session passed two-step verification?
+export async function twoStepDone(supabase: Awaited<ReturnType<typeof getContext>>["supabase"]) {
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== "aal2") redirect("/two-step?next=/admin");
+  return aal?.currentLevel === "aal2";
 }
 
 // Anyone holding any position ability can open the unit tools area.

@@ -9,7 +9,14 @@ describe("csv", () => {
   it("neutralizes spreadsheet formulas", () => {
     expect(toCsv([{ a: "=SUM(A1)" }])).toContain("'=SUM(A1)");
   });
+  it("leaves negative numbers as numbers", () => {
+    expect(toCsv([{ Amount: "-12.50" }])).toBe("Amount\r\n-12.50");
+  });
+  it("treats a quote inside an unquoted field as text", () => {
+    expect(parseCsv('Name,Patrol\nWilliam "Billy" Ray,Eagles\nJake,Hawks')).toEqual([
+      { Name: 'William "Billy" Ray', Patrol: "Eagles" }, { Name: "Jake", Patrol: "Hawks" }]);
+  });
   it("handles a byte-order mark, CRLF and blank lines", () => {
-    expect(parseCsv("\uFEFFFirst Name,Last Name\r\nJake,Garcia\r\n\r\n")).toEqual([{ "First Name": "Jake", "Last Name": "Garcia" }]);
+    expect(parseCsv("﻿First Name,Last Name\r\nJake,Garcia\r\n\r\n")).toEqual([{ "First Name": "Jake", "Last Name": "Garcia" }]);
   });
 });

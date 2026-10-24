@@ -2,7 +2,8 @@
 // spreadsheet never runs them as formulas (CSV injection).
 function cell(v: unknown) {
   let s = v === null || v === undefined ? "" : String(v);
-  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  // Plain numbers ("-12.50" in a ledger) stay numbers so spreadsheet totals still work.
+  if (/^[=+\-@\t\r]/.test(s) && !/^-\d+(\.\d+)?$/.test(s)) s = "'" + s;
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
@@ -22,7 +23,7 @@ export function parseCsv(text: string): Record<string, string>[] {
       if (c === '"' && s[i + 1] === '"') { cur += '"'; i++; }
       else if (c === '"') q = false;
       else cur += c;
-    } else if (c === '"') q = true;
+    } else if (c === '"' && cur.trim() === "") { cur = ""; q = true; } // a quote only opens a field at its start
     else if (c === ",") { row.push(cur); cur = ""; }
     else if (c === "\n" || c === "\r") {
       if (c === "\r" && s[i + 1] === "\n") i++;

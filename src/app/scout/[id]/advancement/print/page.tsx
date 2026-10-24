@@ -28,7 +28,8 @@ export default async function AdvancementPrint({ params }: { params: Promise<{ i
     .sort((a, b) => RANKS.indexOf(a.advancement_items.code) - RANKS.indexOf(b.advancement_items.code));
   const badges = rows.filter((r) => r.advancement_items.kind === "badge").sort((a, b) => a.advancement_items.name.localeCompare(b.advancement_items.name));
   const earned = badges.filter((b) => b.status === "completed");
-  const working = badges.filter((b) => b.status !== "completed");
+  // Declined blue cards aren't in progress.
+  const working = badges.filter((b) => b.status !== "completed" && b.status !== "declined");
   const unit = (membership?.organizations as unknown as { name: string } | null)?.name ?? "";
   const d = (iso: string | null) => (iso ? fmtDate(iso, { month: "short", day: "numeric", year: "numeric" }) : "");
 

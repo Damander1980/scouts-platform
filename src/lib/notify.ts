@@ -12,7 +12,9 @@ async function sendEmail(to: string, subject: string, html: string, personId?: s
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({ from: process.env.EMAIL_FROM || "Our Troop Manager <notify@ourtroopmanager.com>", to, subject, html,
       ...(personId ? { headers: { "List-Unsubscribe": `<${SITE_URL}/api/unsubscribe?p=${personId}&t=${unsubscribeToken(personId)}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } } : {}) }),
-  });
+  }).catch(() => null);
+  // A network error is one failed send, never an exception that drops everyone else's notices and the log.
+  if (!res) return { status: "failed" as const, id: undefined };
   const body = await res.json().catch(() => ({}));
   return { status: res.ok ? ("sent" as const) : ("failed" as const), id: body?.id as string | undefined };
 }
@@ -24,7 +26,8 @@ export async function sendSms(to: string, text: string) {
     method: "POST",
     headers: { Authorization: "Basic " + Buffer.from(`${sid}:${token}`).toString("base64"), "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ To: to, From: from, Body: text }),
-  });
+  }).catch(() => null);
+  if (!res) return { status: "failed" as const, id: undefined };
   const body = await res.json().catch(() => ({}));
   return { status: res.ok ? ("sent" as const) : ("failed" as const), id: body?.sid as string | undefined };
 }

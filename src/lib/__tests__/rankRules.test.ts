@@ -39,6 +39,16 @@ describe("rankChecks", () => {
     expect(byLabel(c, "4 months in a position").ok).toBe(false);
   });
 
+  it("two positions held at the same time count once", () => {
+    const c = rankChecks("star", base({
+      positions: [
+        { title: "Patrol Leader", start_date: "2026-07-01", end_date: "2026-09-01", counts_for_rank: true },
+        { title: "Scribe", start_date: "2026-07-01", end_date: "2026-09-01", counts_for_rank: true },
+      ],
+    }));
+    expect(byLabel(c, "4 months in a position").detail).toMatch(/^2 months/);
+  });
+
   it("only counts position time after the previous rank", () => {
     const c = rankChecks("star", base({
       rankEarned: { ...base().rankEarned, first_class: "2026-09-01" },

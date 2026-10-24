@@ -31,12 +31,20 @@ function eagleCount(badges: RuleInput["badgesEarned"]) {
 // Position months served while holding the previous rank (APL doesn't count; for Eagle, bugler doesn't either).
 function porMonths(input: RuleInput, since: string | null, rank: "star" | "life" | "eagle") {
   if (!since) return 0;
-  return input.positions
+  const day = (x: string | Date) => ymd(x).map((n, i) => String(n).padStart(i ? 2 : 4, "0")).join("-");
+  const from = day(since), today = day(new Date());
+  // Two positions held at the same time are one stretch of service, not double the months.
+  const spans = input.positions
     .filter((p) => p.counts_for_rank && p.title !== "Assistant Patrol Leader" && !(rank === "eagle" && p.title === "Bugler"))
-    .reduce((sum, p) => {
-      const s = p.start_date > since.slice(0, 10) ? p.start_date : since;
-      return sum + Math.max(0, monthsBetween(s, p.end_date ?? new Date()));
-    }, 0);
+    .map((p) => [p.start_date.slice(0, 10) > from ? p.start_date.slice(0, 10) : from, p.end_date ? day(p.end_date) : today] as [string, string])
+    .filter(([s, e]) => e > s)
+    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  const merged: [string, string][] = [];
+  for (const [s, e] of spans) {
+    const last = merged[merged.length - 1];
+    if (last && s <= last[1]) { if (e > last[1]) last[1] = e; } else merged.push([s, e]);
+  }
+  return merged.reduce((sum, [s, e]) => sum + Math.max(0, monthsBetween(s, e)), 0);
 }
 
 export function rankChecks(code: string, input: RuleInput): Check[] {
