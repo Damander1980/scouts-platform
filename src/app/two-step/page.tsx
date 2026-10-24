@@ -11,6 +11,8 @@ export default function TwoStepPage() {
   const [factorId, setFactorId] = useState("");
   const [qr, setQr] = useState("");
   const [secret, setSecret] = useState("");
+  const [uri, setUri] = useState("");
+  const [copied, setCopied] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(true);
@@ -28,9 +30,9 @@ export default function TwoStepPage() {
       if (verified) { setFactorId(verified.id); setBusy(false); return; }
       // Clear any half-finished setup, then start a fresh one.
       for (const f of data.all.filter((f) => f.status === "unverified")) await supabase.auth.mfa.unenroll({ factorId: f.id });
-      const { data: en, error: e2 } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `Authenticator ${new Date().toISOString().slice(0, 10)}` });
+      const { data: en, error: e2 } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `Authenticator ${new Date().toISOString().slice(0, 10)}`, issuer: "Our Troop Manager" });
       if (e2) { setError(e2.message); setBusy(false); return; }
-      setFactorId(en.id); setQr(en.totp.qr_code); setSecret(en.totp.secret);
+      setFactorId(en.id); setQr(en.totp.qr_code); setSecret(en.totp.secret); setUri(en.totp.uri);
       setBusy(false);
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -57,7 +59,14 @@ export default function TwoStepPage() {
           <div className="flex flex-col items-center gap-2 rounded-2xl p-4" style={{ background: "#EEE8D9" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={qr} alt="QR code to add Our Troop Manager to your authenticator app" width={180} height={180} className="bg-white rounded-xl p-2" />
-            <span className="text-[13px] text-smoke text-center">1. Scan this in your app. Can&apos;t scan? Type this key: <code className="font-bold break-all">{secret}</code></span>
+            <span className="text-[13px] text-smoke text-center">1. Scan this in your authenticator app.</span>
+            {/* On a phone you can't scan your own screen: open the app directly, or copy the key into it. */}
+            {uri && <a href={uri} className="btn-primary no-underline w-full text-center">Add to authenticator app on this phone</a>}
+            <span className="text-[13px] text-smoke text-center">Or copy this key into your app:</span>
+            <code className="font-bold break-all text-center text-[15px]">{secret}</code>
+            <button type="button" className="btn-secondary w-full" onClick={async () => {
+              try { await navigator.clipboard.writeText(secret); setCopied(true); setTimeout(() => setCopied(false), 2500); } catch { /* clipboard blocked: the key can still be selected */ }
+            }}>{copied ? "Copied ✓" : "Copy key"}</button>
             <span className="text-[13px] text-smoke">2. Enter the 6-digit code it shows.</span>
           </div>
         )}
