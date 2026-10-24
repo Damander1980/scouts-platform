@@ -63,10 +63,19 @@ export default function EventForm({ orgId, initial, copyFrom }: { orgId: string;
       if (f.end && f.start && new Date(f.end) < new Date(f.start)) throw new Error("The end must be after the start.");
       if (!initial?.id && f.kind === "meeting" && f.repeatUntil) {
         const minutes = f.end ? Math.round((new Date(f.end).getTime() - new Date(f.start).getTime()) / 60000) : 90;
-        const { error } = await supabase.rpc("create_weekly_series", {
+        const base = {
           p_org: orgId, p_title: f.title.trim(), p_location: f.location.trim() || null,
           p_first: fromLocal(f.start), p_minutes: minutes, p_until: f.repeatUntil,
-        });
+        };
+        // Everything else on the form goes to every meeting in the series.
+        const extra = {
+          description: f.description.trim(), visibility: f.visibility, needs_permission: f.permission, share_linked: f.shareLinked,
+          service_hours: parseFloat(f.hours || "0"), miles: parseFloat(f.miles || "0"),
+          questions: f.questions.split("\n").map((q) => q.trim()).filter(Boolean),
+          cost_cents: Math.round(parseFloat(f.cost || "0") * 100), cap: f.cap ? parseInt(f.cap) : null, refund_rule: f.refund,
+        };
+        let { error } = await supabase.rpc("create_weekly_series", { ...base, p_extra: extra });
+        if (error?.code === "PGRST202") ({ error } = await supabase.rpc("create_weekly_series", base)); // database not yet updated (0069)
         if (error) throw error;
         router.push("/events");
         router.refresh();
@@ -92,6 +101,9 @@ export default function EventForm({ orgId, initial, copyFrom }: { orgId: string;
         miles: parseFloat(f.miles || "0"),
         questions: f.questions.split("\n").map((q) => q.trim()).filter(Boolean),
       };
+      // Charges post at sign-up, so a new price only applies to people who sign up after this.
+      if (initial?.id && row.cost_cents !== initial.cost_cents
+        && !window.confirm("Families who already signed up keep the price they were charged. Only new sign-ups pay the new price. Change it?")) { setBusy(false); return; }
       const { data, error } = initial?.id
         ? await supabase.from("events").update(row).eq("id", initial.id).select("id").single()
         : await supabase.from("events").insert(row).select("id").single();

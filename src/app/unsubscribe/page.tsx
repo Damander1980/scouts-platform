@@ -1,5 +1,5 @@
 import { adminClient } from "@/lib/admin";
-import { unsubscribeToken } from "@/lib/messageEmail";
+import { validUnsubscribe } from "@/lib/unsubscribe";
 import { redirect } from "next/navigation";
 
 // Opening the link only asks. Mail scanners (Outlook Safe Links, Gmail) open every link in an email,
@@ -10,7 +10,7 @@ async function confirmUnsubscribe(form: FormData) {
   const p = String(form.get("p") ?? ""), t = String(form.get("t") ?? "");
   const db = adminClient();
   let ok = false;
-  if (db && p && t && t === unsubscribeToken(p)) {
+  if (db && validUnsubscribe(p, t)) {
     const { error } = await db.from("notification_prefs").upsert({ person_id: p, email_on: false, updated_at: new Date().toISOString() });
     ok = !error;
     if (ok) await db.from("notification_log").insert({ person_id: p, channel: "email", category: "unsubscribe", status: "opted_out" });
@@ -20,7 +20,7 @@ async function confirmUnsubscribe(form: FormData) {
 
 export default async function Unsubscribe({ searchParams }: { searchParams: Promise<{ p?: string; t?: string; done?: string }> }) {
   const { p, t, done } = await searchParams;
-  const valid = !!(p && t && t === unsubscribeToken(p));
+  const valid = validUnsubscribe(p, t);
   const [title, body] = done === "1"
     ? ["You're unsubscribed", "You won't get unit email anymore. You can turn it back on any time in Settings."]
     : done === "0" || !valid

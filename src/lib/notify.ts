@@ -1,14 +1,17 @@
 import { adminClient, SITE_URL } from "./admin";
+import { unsubscribeToken } from "./unsubscribe";
 
 type Category = "messages" | "reminders" | "deadlines" | "payments" | "digest" | "urgent";
 
-async function sendEmail(to: string, subject: string, html: string) {
+// personId adds the one-click unsubscribe header Gmail and Yahoo require of bulk senders.
+async function sendEmail(to: string, subject: string, html: string, personId?: string) {
   const key = process.env.RESEND_API_KEY;
   if (!key) return { status: "skipped" as const };
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.EMAIL_FROM || "ScoutPlatform <notify@scoutplatform.app>", to, subject, html }),
+    body: JSON.stringify({ from: process.env.EMAIL_FROM || "ScoutPlatform <notify@scoutplatform.app>", to, subject, html,
+      ...(personId ? { headers: { "List-Unsubscribe": `<${SITE_URL}/api/unsubscribe?p=${personId}&t=${unsubscribeToken(personId)}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } } : {}) }),
   });
   const body = await res.json().catch(() => ({}));
   return { status: res.ok ? ("sent" as const) : ("failed" as const), id: body?.id as string | undefined };
@@ -74,7 +77,7 @@ export async function notifyPeople(personIds: string[], category: Category, subj
       const r = await sendEmail(email, subject,
         `<div style="font-family:Arial,sans-serif;max-width:480px;padding:20px;color:#101B2D"><p style="font-size:16px">${esc(subject)}</p>
          <p><a href="${link}" style="background:#F5B700;color:#101B2D;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold">Open in ScoutPlatform</a></p>
-         <p style="font-size:12px;color:#4B5568">Change what you get in Settings. <a href="${SITE_URL}/settings">Unsubscribe</a>.</p></div>`);
+         <p style="font-size:12px;color:#4B5568">Change what you get in <a href="${SITE_URL}/settings">Settings</a>, or <a href="${SITE_URL}/unsubscribe?p=${p.id}&t=${unsubscribeToken(p.id)}">unsubscribe</a>.</p></div>`, p.id);
       await db.from("notification_log").insert({ person_id: p.id, channel: "email", category, status: r.status, provider_id: r.id ?? null });
       if (r.status === "sent") delivered++;
     }

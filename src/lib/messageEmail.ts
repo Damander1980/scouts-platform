@@ -5,10 +5,8 @@ import { heldAddresses } from "./notify";
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 // One-click unsubscribe without signing in: a signed token for the person.
-export function unsubscribeToken(personId: string) {
-  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "dev";
-  return crypto.createHmac("sha256", secret).update(`unsub:${personId}`).digest("hex").slice(0, 32);
-}
+export { unsubscribeToken } from "./unsubscribe";
+import { unsubscribeToken } from "./unsubscribe";
 
 async function resend(payload: Record<string, unknown>) {
   const key = process.env.RESEND_API_KEY;
