@@ -37,6 +37,9 @@ export default function ScoutHome({ personId, firstName, events: initial, plc = 
   const supabase = createClient();
   const router = useRouter();
   const [events, setEvents] = useState(initial);
+  // router.refresh() sends fresh server data (e.g. a sign-up now waiting for a parent's OK); take it over the local copy.
+  const [seen, setSeen] = useState(initial);
+  if (seen !== initial) { setSeen(initial); setEvents(initial); }
   const [busy, setBusy] = useState<string | null>(null);
   const [askParent, setAskParent] = useState<string | null>(null);
   const [changing, setChanging] = useState<string | null>(null);

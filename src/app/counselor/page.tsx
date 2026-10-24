@@ -13,7 +13,7 @@ export default async function CounselorPage() {
     supabase.rpc("signoff_queue", { p_org: orgId }),
     supabase.from("merit_badge_counselors").select("advancement_items(id, name)").eq("org_id", orgId).eq("person_id", person.id),
   ]);
-  const myBadges = ((badges ?? []) as unknown as { advancement_items: { id: string; name: string } }[]).map((b) => b.advancement_items);
+  const myBadges = ((badges ?? []) as unknown as { advancement_items: { id: string; name: string } }[]).map((b) => b.advancement_items).filter(Boolean);
   const ids = new Set(myBadges.map((b) => b.id));
   const myQueue = ((queue ?? []) as { progress_id: string; person_id: string; scout: string; item: string; item_id: string; number: string; requirement: string; can_sign: boolean }[])
     .filter((q) => ids.has(q.item_id) && q.can_sign);

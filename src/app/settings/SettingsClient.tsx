@@ -62,6 +62,8 @@ export default function SettingsClient({ person, email, prefs, weekCount }: {
     else {
       setSaved("Saved.");
       if (consentNow) { setP({ ...p, sms_consent_at: row.sms_consent_at! }); fetch("/api/sms/confirm", { method: "POST" }).catch(() => {}); }
+      // Turning texts off cleared the saved consent, so turning them back on must ask for it again.
+      else if (!p.sms_on && p.sms_consent_at) { setP({ ...p, sms_consent_at: null }); setAgree(false); }
       router.refresh();
     }
   }

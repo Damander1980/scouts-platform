@@ -2,7 +2,7 @@ import Link from "next/link";
 import { rsvpPrivate } from "@/lib/rsvpPrivate";
 import { requireOrg, unitWord } from "@/lib/context";
 import Shell from "@/components/Shell";
-import { Chip, fmtDate, fmtTime, money } from "@/components/ui";
+import { Chip, TIME_ZONE, fmtDate, fmtTime, money } from "@/components/ui";
 import { householdBalance, loadFamily } from "@/lib/family";
 import ScoutHome, { type ScoutEvent } from "./ScoutHome";
 import { nextRankSummary } from "@/lib/advancement";
@@ -36,23 +36,42 @@ export default async function DashboardPage() {
   const family = await loadFamily(supabase, orgId);
   const inTroop = family.filter((f) => f.in_org);
   const ids = inTroop.map((f) => f.id);
+  const scouts = inTroop.filter((p) => p.type === "youth");
+  const youthIds = scouts.map((f) => f.id);
 
   const now = new Date().toISOString();
-  const [{ data: events }, balance, { data: forms }] = await Promise.all([
+  const [{ data: events }, balance, { data: forms }, [{ count: joins }, { count: signoffs }], { data: pendingRows }] = await Promise.all([
     supabase.from("events").select("id, title, start_at, end_at, location, cost_cents, rsvp_deadline, kind")
       .eq("org_id", orgId).eq("canceled", false).gte("start_at", now).order("start_at").limit(8),
     householdBalance(supabase, householdId, orgId),
     ids.length ? supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId).in("person_id", ids) : Promise.resolve({ data: [] }),
+    isLeader
+      ? Promise.all([
+        supabase.from("join_requests").select("*", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "pending"),
+        supabase.from("requirement_progress").select("*", { count: "exact", head: true }).eq("org_id", orgId).not("completed_at", "is", null).is("approved_by", null),
+      ])
+      : Promise.resolve([{ count: 0 }, { count: 0 }]),
+    // Scouts' paid sign-ups waiting for a parent's OK (unit setting; nothing is charged until approved).
+    youthIds.length
+      ? supabase.from("rsvps").select("event_id, person_id, events!inner(title, cost_cents, start_at, canceled)").in("person_id", youthIds).eq("rsvp_approval_status", "pending").eq("status", "going")
+          .eq("events.canceled", false).gte("events.start_at", new Date().toISOString())
+      : Promise.resolve({ data: [] as { event_id: string; person_id: string; events: unknown }[] }),
   ]);
 
+  // Trips short on drivers: youth going vs seats adults have offered (campouts and high adventure).
   const eventIds = (events ?? []).map((e) => e.id);
-  const { data: rsvps } = eventIds.length && ids.length
-    ? await supabase.from("rsvps").select("event_id, person_id, status").in("event_id", eventIds).in("person_id", ids)
-    : { data: [] as { event_id: string; person_id: string; status: string }[] };
+  const trips = (events ?? []).filter((e) => ["campout", "high_adventure"].includes(e.kind ?? ""));
+  const [{ data: rsvps }, { data: tripRsvps }] = await Promise.all([
+    eventIds.length && ids.length
+      ? supabase.from("rsvps").select("event_id, person_id, status").in("event_id", eventIds).in("person_id", ids)
+      : Promise.resolve({ data: [] as { event_id: string; person_id: string; status: string }[] }),
+    trips.length
+      ? supabase.from("rsvps").select("event_id, driver_seats, persons(type)").in("event_id", trips.map((e) => e.id)).eq("status", "going")
+      : Promise.resolve({ data: [] as { event_id: string; driver_seats: number; persons: unknown }[] }),
+  ]);
 
   const rsvpFor = (eventId: string) => (rsvps ?? []).filter((r) => r.event_id === eventId);
   // An event needs an answer when a Scout in the family hasn't replied; parents coming along is optional.
-  const youthIds = inTroop.filter((f) => f.type === "youth").map((f) => f.id);
   const mustAnswer = youthIds.length ? youthIds : ids;
   const unanswered = (eventId: string) => mustAnswer.some((id) => !rsvpFor(eventId).some((r) => r.person_id === id));
   const needsAnswer = (events ?? []).filter((e) => unanswered(e.id));
@@ -70,33 +89,16 @@ export default async function DashboardPage() {
     return out;
   });
 
-  let leaderTodos: { label: string; href: string; count: number }[] = [];
-  if (isLeader) {
-    const [{ count: joins }, { count: signoffs }] = await Promise.all([
-      supabase.from("join_requests").select("*", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "pending"),
-      supabase.from("requirement_progress").select("*", { count: "exact", head: true }).eq("org_id", orgId).not("completed_at", "is", null).is("approved_by", null),
-    ]);
-    leaderTodos = [
-      { label: "Families waiting to join", href: "/admin/members?tab=requests", count: joins ?? 0 },
-      { label: "Requirements waiting for sign-off", href: "/admin/advancement", count: signoffs ?? 0 },
-    ].filter((t) => t.count > 0);
-  }
+  const leaderTodos = [
+    { label: "Families waiting to join", href: "/admin/members?tab=requests", count: joins ?? 0 },
+    { label: "Requirements waiting for sign-off", href: "/admin/advancement", count: signoffs ?? 0 },
+  ].filter((t) => t.count > 0);
 
   const next = (events ?? [])[0];
   const word = unitWord(current.org.type);
 
-  // Scouts' paid sign-ups waiting for a parent's OK (unit setting; nothing is charged until approved).
-  const youthIdsForOk = inTroop.filter((f) => f.type === "youth").map((f) => f.id);
-  const { data: pendingRows } = youthIdsForOk.length
-    ? await supabase.from("rsvps").select("event_id, person_id, events(title, cost_cents)").in("person_id", youthIdsForOk).eq("rsvp_approval_status", "pending").eq("status", "going")
-    : { data: [] as { event_id: string; person_id: string; events: unknown }[] };
   const pendingOk = (pendingRows ?? []).map((r) => ({ ...r, ev: r.events as { title: string; cost_cents: number } | null, who: inTroop.find((f) => f.id === r.person_id)?.first_name ?? "Your Scout" }));
 
-  // Trips short on drivers: youth going vs seats adults have offered (campouts and high adventure).
-  const trips = (events ?? []).filter((e) => ["campout", "high_adventure"].includes(e.kind ?? ""));
-  const { data: tripRsvps } = trips.length
-    ? await supabase.from("rsvps").select("event_id, driver_seats, persons(type)").in("event_id", trips.map((e) => e.id)).eq("status", "going")
-    : { data: [] as { event_id: string; driver_seats: number; persons: unknown }[] };
   const needDrivers = trips.map((e) => {
     const rs = (tripRsvps ?? []).filter((r) => r.event_id === e.id);
     const youth = rs.filter((r) => (r.persons as { type: string } | null)?.type === "youth").length;
@@ -105,9 +107,9 @@ export default async function DashboardPage() {
   }).filter((x) => x.short > 0);
 
   const nextAnswered = next ? !unanswered(next.id) : true;
-  const scouts = inTroop.filter((p) => p.type === "youth");
   const todoCount = (balance > 0 ? 1 : 0) + (formIssues.length ? 1 : 0) + needsAnswer.length;
-  const hour = new Date().getHours();
+  // The server runs on UTC; greet by the unit's local hour.
+  const hour = Number(new Intl.DateTimeFormat("en-US", { timeZone: TIME_ZONE, hour: "numeric", hourCycle: "h23" }).format(new Date()));
   const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   return (

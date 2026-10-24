@@ -26,10 +26,11 @@ export default function PlcClient({ orgId, myId, meetings, actions: initialActio
     setError("");
     const r = await fn() as { error: { message: string } | null; data?: unknown };
     // Updates that should change a row pass .select("id"); an empty result means nothing saved.
-    if (r.error) setError(r.error.message);
-    else if (Array.isArray(r.data) && r.data.length === 0) setError("That didn't save. Reload and try again.");
-    else router.refresh();
-    return !error;
+    // Report this save's own result: the `error` state read here would still be the previous render's value.
+    if (r.error) { setError(r.error.message); return false; }
+    if (Array.isArray(r.data) && r.data.length === 0) { setError("That didn't save. Reload and try again."); return false; }
+    router.refresh();
+    return true;
   }
 
   async function toggle(a: Action) {

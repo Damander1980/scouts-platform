@@ -20,6 +20,7 @@ export default async function PlcPage() {
     supabase.from("memberships").select("person_id, persons(first_name, last_name)").eq("org_id", orgId).eq("status", "active"),
   ]);
   const people = ((roster ?? []) as unknown as { person_id: string; persons: { first_name: string; last_name: string } }[])
+    .filter((r) => r.persons)
     .map((r) => ({ id: r.person_id, name: `${r.persons.first_name} ${r.persons.last_name}` })).sort((a, b) => a.name.localeCompare(b.name));
 
   return (

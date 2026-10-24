@@ -24,6 +24,7 @@ export default async function AttendancePage({ params }: { params: Promise<{ id:
   const rsvpOf = Object.fromEntries((rsvps ?? []).map((r) => [r.person_id, r.status]));
   const patrolOf = Object.fromEntries((patrols ?? []).map((p) => [p.person_id, (p.patrols as unknown as { name: string })?.name ?? ""]));
   const people = ((members ?? []) as unknown as { person_id: string; persons: { first_name: string; last_name: string; type: string } }[])
+    .filter((m) => m.persons)
     .map((m) => ({ id: m.person_id, name: `${m.persons.first_name} ${m.persons.last_name}`, type: m.persons.type, rsvp: rsvpOf[m.person_id] ?? null, patrol: patrolOf[m.person_id] ?? "" }))
     .sort((a, b) => Number(b.rsvp === "going") - Number(a.rsvp === "going") || a.patrol.localeCompare(b.patrol) || a.name.localeCompare(b.name));
 

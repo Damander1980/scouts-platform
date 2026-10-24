@@ -21,7 +21,7 @@ export default async function PatrolsPage({ searchParams }: { searchParams: Prom
     supabase.from("events").select("id, title, start_at").eq("org_id", orgId).eq("canceled", false).gte("start_at", new Date().toISOString()).order("start_at").limit(6),
   ]);
   type M = { patrol_id: string; person_id: string; role: string; persons: { first_name: string; last_name: string } };
-  const members = (pm ?? []) as unknown as M[];
+  const members = ((pm ?? []) as unknown as M[]).filter((m) => m.persons);
   // Default to my own patrol (or my Scout's).
   const mine = new Set([person.id, ...family.map((f) => f.id)]);
   const myPatrol = members.find((m) => mine.has(m.person_id))?.patrol_id;

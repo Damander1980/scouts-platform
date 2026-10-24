@@ -43,7 +43,25 @@ export default function AttendanceClient({ orgId, eventId, people, initial, chec
       org_id: orgId, event_id: eventId, person_id: o.pid, present: o.value, method: "leader", confirmed: true, marked_at: o.at,
     })), { onConflict: "event_id,person_id" }) : { error: null };
     const r2 = toClear.length ? await supabase.from("attendance").delete().eq("event_id", eventId).in("person_id", toClear) : { error: null };
-    if (r1.error || r2.error) { setError((r1.error || r2.error)!.message); return; }
+    let refused: string[] = [];
+    if (r1.error || r2.error) {
+      const err = (r1.error || r2.error)!;
+      // No database code means the network failed: keep everything queued and try again later.
+      if (!err.code) { setError(err.message); return; }
+      // The database refused the batch (for example someone who has left the unit). Save each mark on its own
+      // so one bad mark can't block the rest forever; the refused ones are dropped and named.
+      for (const o of latest.values()) {
+        const r = o.value !== null
+          ? await supabase.from("attendance").upsert({ org_id: orgId, event_id: eventId, person_id: o.pid, present: o.value, method: "leader", confirmed: true, marked_at: o.at }, { onConflict: "event_id,person_id" })
+          : await supabase.from("attendance").delete().eq("event_id", eventId).eq("person_id", o.pid);
+        if (r.error) {
+          if (!r.error.code) { setError(r.error.message); return; }
+          refused.push(o.pid);
+        }
+      }
+      refused = [...new Set(refused)];
+      setError(refused.length ? `${refused.length} ${refused.length === 1 ? "mark" : "marks"} couldn't be saved (${err.message}). Everyone else is saved.` : "");
+    }
     // Drop only what was just saved (newer taps arrived after q was read).
     const sent = new Set(q.map((o) => `${o.pid}|${o.at}`));
     const rest = readQueue().filter((o) => !sent.has(`${o.pid}|${o.at}`));
