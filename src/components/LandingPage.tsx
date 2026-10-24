@@ -7,13 +7,20 @@ import Mark from "@/components/Mark";
 const FLOAT = { boxShadow: "0 1px 2px rgba(16,27,45,.06), 0 10px 28px rgba(16,27,45,.10)" };
 const HERO_SHADOW = { boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 24px 60px rgba(16,27,45,.22)" };
 
+// Feature cards are written to one person each: what their week looks like with the app.
 const TOOLS = [
-  { title: "Events that fill themselves", body: "Families pick who's going, sign the permission slip and pay in one flow. You see who's in, who owes and who hasn't answered, and nudge only them.", icon: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" },
-  { title: "Advancement, and Scoutbook kept current", body: "Scouts request sign-offs, leaders approve in one tap, and the app counts what isn't in Scoutbook yet. One file brings it up to date before a Court of Honor.", icon: "M12 15a6 6 0 100-12 6 6 0 000 12zM8.5 14L7 22l5-3 5 3-1.5-8" },
-  { title: "Safety built in, not bolted on", body: "Every message to a Scout is logged and copied to parents and leaders. Leaders without current YPT lose access to kids' private details. Leader tools need two-step sign-in.", icon: "M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6zM9 12l2 2 4-4" },
-  { title: "Health forms without storing them", body: "Leaders mark Parts A, B and C received with an expiry date. The form itself never gets uploaded, as councils ask, and every trip roster shows who isn't cleared.", icon: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M9 15l2 2 4-4" },
-  { title: "Money your way", body: "Card through Stripe straight into the troop's own bank account, cash and check recorded by the treasurer, or both. Your troop decides who covers the card fee.", icon: "M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" },
-  { title: "A public site that recruits", body: "Your troop page goes live at its own address with your calendar and a join button, so new families can find you and ask to join.", icon: "M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" },
+  { who: "For the Scoutmaster", title: "Walk into every campout knowing you're ready.", body: "Who's going, who's paid, who's missing a health form, whether you have two-deep leadership. It's all on one screen days ahead, not discovered at the trailhead.",
+    perks: ["Trip roster and trip sheet ready to print", "Reminders go only to families who haven't answered", "Copy last year's campout in one click"], icon: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" },
+  { who: "For parents", title: "Sign up, pay and you're done. From your phone.", body: "Tap the link, check who's going, pay with Apple Pay or card. Your Scout's schedule, balance and progress live in one place, and every message to your Scout comes to you too.",
+    perks: ["No app to download, no forms to print", "Allergy notes carry over trip to trip", "See what your Scout is working on next"], icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8z" },
+  { who: "For the treasurer", title: "Stop collecting checks at the back of the room.", body: "Families pay when they sign up, straight into the troop's own bank account. You see who owes in one list and remind all of them with one message.",
+    perks: ["Card, Apple Pay, cash or check", "Yearly dues charged in one step", "Scout accounts for fundraising credit"], icon: "M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" },
+  { who: "For the advancement chair", title: "Court of Honor prep without the scramble.", body: "Leaders sign off in a tap, the app keeps count of what Scoutbook is missing, and one file catches it up. The Scout Shop list, the program and the award labels print themselves.",
+    perks: ["Sign-offs waiting, all in one place", "Merit badge counselors sign only their badges", "Eagle candidates and their deadlines at a glance"], icon: "M12 15a6 6 0 100-12 6 6 0 000 12zM8.5 14L7 22l5-3 5 3-1.5-8" },
+  { who: "For Scouts", title: "Scouts answer for themselves. On their own phone.", body: "No more waiting on Mom to check her email. Scouts tap \"I'm going\", see what they need for their next rank, and ask for sign-offs themselves. Parents still OK anything that costs money, and see every message.",
+    perks: ["Their own login (with a parent's OK under 13)", "Sign up for trips in a tap", "See their next rank and ask for sign-offs", "Patrol leaders message their own patrol"], icon: "M4 21V5m0 0h11l-2 4 2 4H4" },
+  { who: "For the committee", title: "A troop new families can find, and want to join.", body: "Your troop gets its own website with your calendar and a join button. New families ask to join, you approve them, and they can sign up for their first campout right away.",
+    perks: ["Public pages and members-only pages", "Invite every family with one link", "Run it next to your old system until you're ready"], icon: "M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" },
 ];
 
 const COMPARE: [string, string, string][] = [
@@ -39,6 +46,7 @@ export default function LandingPage() {
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-[15px] font-bold">
             <a href="#tools" className="text-white no-underline">Features</a>
+            <a href="#leaders" className="text-white no-underline">For leaders</a>
             <a href="#compare" className="text-white no-underline">Compare</a>
             <a href="#pricing" className="text-white no-underline">Pricing</a>
           </nav>
@@ -66,16 +74,16 @@ export default function LandingPage() {
         <div className="flex flex-col gap-6" style={{ flex: "1 1 440px" }}>
           <span className="eyebrow text-forest flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#12355F" strokeWidth="2"/><path d="M12 4l2.5 8L12 20l-2.5-8z" fill="#F5B700"/></svg>For Scouts BSA troops</span>
           <h1 className="font-display font-extrabold leading-[1.02] m-0" style={{ fontSize: "clamp(42px, 6vw, 66px)" }}>
-            Less paperwork.<br /><span className="text-forest relative inline-block">More Scouting.<svg aria-hidden="true" viewBox="0 0 300 18" preserveAspectRatio="none" className="absolute left-0 -bottom-2 w-full h-[14px]"><path d="M3 12 C60 4 120 15 170 8 S260 4 297 9" fill="none" stroke="#F5B700" strokeWidth="5" strokeLinecap="round"/></svg></span>
+            Stop chasing parents.<br /><span className="text-forest relative inline-block">Start Scouting.<svg aria-hidden="true" viewBox="0 0 300 18" preserveAspectRatio="none" className="absolute left-0 -bottom-2 w-full h-[14px]"><path d="M3 12 C60 4 120 15 170 8 S260 4 297 9" fill="none" stroke="#F5B700" strokeWidth="5" strokeLinecap="round"/></svg></span>
           </h1>
           <p className="text-[19px] leading-relaxed text-smoke m-0 max-w-[520px]">
-            One place for sign-ups, payments, health form status, advancement and messages. A real dashboard for leaders at the computer, and a simple page parents finish on their phone in a minute.
+            Sign-ups, payments, permission slips and advancement in one place. Parents finish on their phone in a minute. You see who's in, who's paid and who's ready, without a single spreadsheet.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/login?next=/setup" className="min-h-[54px] px-8 rounded-full font-bold text-[17px] flex items-center no-underline" style={{ background: "#F5B700", color: "#101B2D" }}>Start your free 30 days</Link>
             <Link href="/demo/tour" className="min-h-[54px] px-7 rounded-full font-bold text-[17px] flex items-center no-underline text-forest" style={{ border: "2px solid #12355F" }}>See it in action</Link>
           </div>
-          <span className="text-[14px] text-smoke">No credit card needed. $125 a year after that, for the whole troop.</span>
+          <span className="text-[14px] text-smoke">Free for 30 days, no credit card. Then $125 a year for the whole troop, every family included.</span>
         </div>
 
         <div className="rounded-[20px] overflow-hidden bg-white hero-float" style={{ flex: "1 1 460px", ...HERO_SHADOW }} aria-label="Example of the leader dashboard" role="img">
@@ -120,36 +128,105 @@ export default function LandingPage() {
 
       <section className="text-white" style={{ background: "var(--topo-dark), #0C2442", backgroundSize: "520px 520px", borderTop: "3px solid #F5B700", borderBottom: "3px solid #F5B700" }}>
         <div className="max-w-6xl mx-auto px-5 py-8 grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-          {[["Every message logged", "and copied to parents and leaders"], ["No medical forms stored", "status and expiry only"], ["Money to your troop", "straight into its own bank account"], ["Your data is yours", "download everything any time"]].map(([a, b]) => (
+          {[["Sign up and pay in one tap", "no more collecting checks at meetings"], ["Everyone ready to roll", "forms, payments and leaders checked for you"], ["Money straight to your troop", "card, Apple Pay, cash or check"], ["Scoutbook kept current", "one file brings it up to date"]].map(([a, b]) => (
             <div key={a} className="pl-4 border-l-2 border-dashed" style={{ borderColor: "rgba(245,183,0,.5)" }}><div className="font-display font-extrabold text-[22px]" style={{ color: "#F5B700" }}>{a}</div><div className="text-[15px]" style={{ color: "#D7E0EE" }}>{b}</div></div>
+          ))}
+        </div>
+      </section>
+
+      <section className="max-w-6xl mx-auto px-5 pt-20 flex flex-col gap-8">
+        <div className="flex flex-col gap-2 max-w-2xl">
+          <span className="eyebrow text-forest">Sound familiar?</span>
+          <h2 className="font-display font-extrabold text-[40px] leading-tight m-0">You signed up to lead Scouts, not to run a back office.</h2>
+        </div>
+        <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
+          {[["Who's coming Saturday?", "Replies scattered across email, texts and a sign-up sheet.", "Everyone answers in one place, and you see the list live."],
+            ["Who still owes for summer camp?", "A spreadsheet only the treasurer understands.", "Families pay when they sign up. Who owes is one tap away."],
+            ["Does everyone have a health form?", "You find out at the trailhead.", "Every trip shows who isn't cleared, days ahead."],
+            ["Is Scoutbook up to date?", "Probably not, before the Court of Honor.", "One file catches it up, and the shopping list prints itself."]].map(([q, before, after]) => (
+            <div key={q} className="card !rounded-[20px] !p-6 flex flex-col gap-3">
+              <span className="font-bold text-[18px]">{q}</span>
+              <span className="text-[14px] text-smoke line-through decoration-[#C9BFA8]">{before}</span>
+              <span className="text-[15px] font-bold text-forest flex gap-2"><span aria-hidden="true" style={{ color: "#F5B700" }}>✓</span>{after}</span>
+            </div>
           ))}
         </div>
       </section>
 
       <section id="tools" className="max-w-6xl mx-auto px-5 py-20 flex flex-col gap-10">
         <div className="flex flex-col gap-2 max-w-2xl">
-          <span className="eyebrow text-forest">Leader power tools</span>
-          <h2 className="font-display font-extrabold text-[40px] leading-tight m-0">Built for a Scoutmaster&apos;s Thursday night.</h2>
+          <span className="eyebrow text-forest">Made for every volunteer</span>
+          <h2 className="font-display font-extrabold text-[40px] leading-tight m-0">Less work for everyone who makes your troop run.</h2>
         </div>
         <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
-          {TOOLS.map((t, i) => (
-            <div key={t.title} className="card !rounded-[20px] !p-6 flex flex-col gap-3">
-              <div className="flex items-center justify-between">
+          {TOOLS.map((t) => (
+            <div key={t.who} className="card !rounded-[20px] !p-6 flex flex-col gap-3">
+              <div className="flex items-center gap-3">
                 {/* Merit-badge style: round navy patch with a stitched gold ring. */}
-                <span className="w-14 h-14 rounded-full flex items-center justify-center text-white relative" style={{ background: "#12355F", boxShadow: "0 0 0 3px #F5B700, 0 6px 14px rgba(12,36,66,.3)" }}>
+                <span className="w-12 h-12 rounded-full flex items-center justify-center text-white relative flex-none" style={{ background: "#12355F", boxShadow: "0 0 0 3px #F5B700, 0 6px 14px rgba(12,36,66,.3)" }}>
                   <span aria-hidden="true" className="absolute inset-[5px] rounded-full border border-dashed" style={{ borderColor: "rgba(245,183,0,.6)" }} />
                   <Icon d={t.icon} />
                 </span>
-                <span className="eyebrow text-sage">{String(i + 1).padStart(2, "0")}</span>
+                <span className="eyebrow text-forest">{t.who}</span>
               </div>
-              <span className="font-bold text-[19px]">{t.title}</span>
+              <span className="font-display font-extrabold text-[22px] leading-tight">{t.title}</span>
               <span className="text-[15px] leading-relaxed text-smoke">{t.body}</span>
+              <ul className="m-0 p-0 list-none flex flex-col gap-1.5 mt-1">
+                {t.perks.map((x) => <li key={x} className="flex gap-2 text-[14px] font-bold"><span aria-hidden="true" style={{ color: "#F5B700" }}>✓</span>{x}</li>)}
+              </ul>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-5 pb-20 flex flex-wrap gap-12 items-center">
+      <section id="leaders" className="text-white" style={{ background: "var(--topo-dark), #0C2442", backgroundSize: "520px 520px" }}>
+        <div className="max-w-6xl mx-auto px-5 py-20 flex flex-col gap-10">
+          <div className="flex flex-col gap-2 max-w-3xl">
+            <span className="eyebrow" style={{ color: "#F5B700" }}>For troop leaders</span>
+            <h2 className="font-display font-extrabold text-[40px] leading-tight m-0">Here&apos;s what you can do, and what it saves you.</h2>
+            <p className="text-[17px] m-0" style={{ color: "#D7E0EE" }}>Every job below is something a volunteer does by hand today. Our Troop Manager does it for you.</p>
+          </div>
+          <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
+            {([
+              ["Save hours every week", [
+                ["Post a campout once", "Families sign up, sign the permission slip and pay in one go. No sign-up sheet to retype."],
+                ["Let Scouts answer for themselves", "Scouts sign up from their own phone, so you're not waiting on a parent to relay it. Parents still approve the cost."],
+                ["Remind only who hasn't answered", "One tap nudges the families still missing. Everyone else is left alone."],
+                ["Know who's ready without checking", "Health forms, permission slips, payments and two-deep leadership are checked for every trip automatically."],
+                ["Reuse last year's trips", "Copy an event and its whole trip plan: packing list, meals, duty roster."],
+                ["Keep Scoutbook current with one file", "No double entry. The app tracks what Scoutbook is missing and gives you the upload file."],
+                ["Print what you need", "Trip sheets, rosters, Court of Honor shopping lists, programs and award labels, ready to print."],
+              ]],
+              ["Save money every year", [
+                ["One price for the whole troop", "$125 a year covers every family, leader and Scout, plus your troop website. No per-member fees."],
+                ["Get paid up front", "Families pay when they sign up, so the troop isn't fronting money for campsites and food."],
+                ["Nothing slips through the cracks", "See who owes in one list and remind all of them at once, instead of writing off unpaid balances."],
+                ["You choose who pays card fees", "Pass the fee to families, or cover it. Cash and checks are always free."],
+                ["Money goes to the troop's bank", "Card payments land in the troop's own account, not a volunteer's personal one."],
+                ["No extra tools to pay for", "Sign-ups, payments, messages, website and advancement in one place, instead of a separate service for each."],
+              ]],
+            ] as [string, [string, string][]][]).map(([head, items]) => (
+              <div key={head} className="rounded-[20px] p-6 md:p-8 flex flex-col gap-5" style={{ background: "rgba(255,255,255,.06)", boxShadow: "inset 0 0 0 1px rgba(245,183,0,.35)" }}>
+                <span className="font-display font-extrabold text-[26px]" style={{ color: "#F5B700" }}>{head}</span>
+                <ul className="m-0 p-0 list-none flex flex-col gap-4">
+                  {items.map(([a, b]) => (
+                    <li key={a} className="flex gap-3">
+                      <span aria-hidden="true" className="font-bold" style={{ color: "#F5B700" }}>✓</span>
+                      <span className="flex flex-col"><span className="font-bold text-[17px] text-white">{a}</span><span className="text-[15px]" style={{ color: "#D7E0EE" }}>{b}</span></span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-3 items-center">
+            <Link href="/login?next=/setup" className="min-h-[54px] px-8 rounded-full font-bold text-[17px] flex items-center no-underline" style={{ background: "#F5B700", color: "#101B2D" }}>Start your free 30 days</Link>
+            <Link href="/demo/tour" className="min-h-[54px] px-7 rounded-full font-bold text-[17px] flex items-center no-underline text-white" style={{ border: "2px solid #F5B700" }}>See it in action</Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="max-w-6xl mx-auto px-5 py-20 flex flex-wrap gap-12 items-center">
         <div className="flex flex-col gap-5" style={{ flex: "1 1 380px" }}>
           <span className="eyebrow text-forest">What a parent sees</span>
           <h2 className="font-display font-extrabold text-[40px] leading-tight m-0">A text arrives. A minute later, they&apos;re signed up and paid.</h2>
@@ -253,6 +330,7 @@ export default function LandingPage() {
           {[
             ["No ads, no selling data", "This holds children's information. It's never for sale."],
             ["Troop money stays with the troop", "Card payments land in the troop's own Stripe account, never ours."],
+            ["Safe for Scouts by design", "Messages to Scouts always copy their parents and leaders, and private details need current Youth Protection Training."],
             ["Real people answer", "Questions get a reply within 24 to 48 business hours."],
           ].map(([a, b]) => (
             <div key={a} className="flex flex-col gap-1"><span className="font-bold text-[17px]">{a}</span><span className="text-[15px] text-smoke">{b}</span></div>
@@ -264,10 +342,10 @@ export default function LandingPage() {
       <section className="max-w-6xl mx-auto px-5 pb-20">
         <div className="card !rounded-[24px] !p-8 md:!p-10 flex flex-wrap gap-6 items-center">
           <div className="flex flex-col gap-2" style={{ flex: "1 1 420px" }}>
-            <h2 className="font-display font-extrabold text-[30px] leading-tight m-0">Bring your troop over by file.</h2>
-            <p className="text-[16px] text-smoke m-0">Upload your Scoutbook roster and advancement exports, or any roster spreadsheet. You see a preview before anything is saved, and an import can be undone. Run both systems side by side until you&apos;re ready.</p>
+            <h2 className="font-display font-extrabold text-[30px] leading-tight m-0">Your next campout could be the easy one.</h2>
+            <p className="text-[16px] text-smoke m-0">Bring your roster and advancement over from Scoutbook or any spreadsheet, invite families with one link, and post your next trip. Try it free for 30 days. No credit card, and you can run it alongside what you use now.</p>
           </div>
-          <Link href="/login?next=/setup" className="min-h-[54px] px-8 rounded-full font-bold text-[17px] flex items-center no-underline" style={{ background: "#F5B700", color: "#101B2D" }}>Set up your troop</Link>
+          <Link href="/login?next=/setup" className="min-h-[54px] px-8 rounded-full font-bold text-[17px] flex items-center no-underline" style={{ background: "#F5B700", color: "#101B2D" }}>Start your free 30 days</Link>
         </div>
       </section>
 
