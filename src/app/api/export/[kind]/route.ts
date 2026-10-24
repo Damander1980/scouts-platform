@@ -69,9 +69,22 @@ export async function GET(req: Request, { params }: { params: Promise<{ kind: st
     const tables = ["memberships", "patrols", "patrol_members", "leadership_positions", "events", "attendance", "forms",
       "scout_advancement", "requirement_progress", "scout_certifications", "ledger_entries", "message_log", "join_requests"] as const;
     const out: Record<string, unknown> = { exported_at: new Date().toISOString(), unit: ctx.current.org };
-    for (const t of tables) {
-      const { data } = await supabase.from(t).select("*").eq("org_id", orgId);
-      out[t] = data ?? [];
+    // Paged: PostgREST returns at most 1000 rows, and "everything" must not quietly stop there.
+    const PAGE = 1000;
+    const allRows = async (t: (typeof tables)[number]) => {
+      const rows: unknown[] = [];
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase.from(t).select("*").eq("org_id", orgId).order("id").range(from, from + PAGE - 1);
+        if (error) throw new Error(`${t}: ${error.message}`);
+        rows.push(...(data ?? []));
+        if (!data || data.length < PAGE) return rows;
+      }
+    };
+    try {
+      const results = await Promise.all(tables.map(allRows));
+      tables.forEach((t, i) => { out[t] = results[i]; });
+    } catch (e) {
+      return new Response(`Couldn't build the file: ${(e as Error).message}`, { status: 500 });
     }
     out.people = Object.entries(await names(supabase, orgId)).map(([id, p]) => ({ id, ...p }));
     return new Response(JSON.stringify(out, null, 2), { headers: { "Content-Type": "application/json", "Content-Disposition": `attachment; filename="all-data-${slug}.json"` } });

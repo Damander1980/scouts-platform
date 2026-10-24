@@ -6,8 +6,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const supabase = await createClient();
   const { data: ev } = await supabase.from("events").select("id, org_id, title").eq("id", id).maybeSingle();
   if (!ev) return new Response("Not found", { status: 404 });
-  const { data: leader } = await supabase.rpc("is_org_leader", { org: ev.org_id });
-  if (!leader) return new Response("Forbidden", { status: 403 });
+  // Health form status, allergies and family notes are private details: current YPT and two-step sign-in
+  // (has_perm checks both), like every other screen that shows them.
+  const [{ data: priv }, { data: medical }] = await Promise.all([
+    supabase.rpc("has_perm", { org: ev.org_id, perm: "members.private" }),
+    supabase.rpc("has_perm", { org: ev.org_id, perm: "medical.view" }),
+  ]);
+  if (!priv && !medical) return new Response("Your Youth Protection Training must be current to download the trip roster.", { status: 403 });
 
   const [{ data: rsvps }, { data: forms }, { data: patrols }] = await Promise.all([
     supabase.from("rsvps").select("person_id, status, driver_seats, dietary, notes, answers, persons(first_name, last_name, type)").eq("event_id", id),

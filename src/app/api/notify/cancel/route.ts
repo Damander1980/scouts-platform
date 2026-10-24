@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/admin";
-import { claimOnce, notifyPeople } from "@/lib/notify";
+import { claimOnce, guardiansOf, notifyPeople } from "@/lib/notify";
 import { fmtDate } from "@/components/ui";
 
 // An event was just canceled: tell everyone signed up (adults directly, Scouts through their
@@ -27,14 +27,12 @@ export async function POST(request: Request) {
   if (!(await claimOnce(db, key))) return NextResponse.json({ notified: 0 });
 
   const { data: rs } = await db.from("rsvps").select("person_id, persons(type)").eq("event_id", ev.id).in("status", ["going", "waitlisted"]);
+  const isAdult = (r: { persons: unknown }) => (r.persons as { type: string } | null)?.type === "adult";
+  const guardians = await guardiansOf(db, (rs ?? []).filter((r) => !isAdult(r)).map((r) => r.person_id));
   const ids = new Set<string>();
   for (const r of rs ?? []) {
-    if ((r.persons as unknown as { type: string } | null)?.type === "adult") { ids.add(r.person_id); continue; }
-    const { data: hh } = await db.from("household_members").select("household_id").eq("person_id", r.person_id);
-    for (const h of hh ?? []) {
-      const { data: gs } = await db.from("household_members").select("person_id").eq("household_id", h.household_id).eq("is_guardian", true);
-      (gs ?? []).forEach((g) => ids.add(g.person_id));
-    }
+    if (isAdult(r)) ids.add(r.person_id);
+    else (guardians.get(r.person_id) ?? []).forEach((g) => ids.add(g));
   }
   const when = fmtDate(ev.start_at, { weekday: "short", month: "short", day: "numeric" });
   const money = ev.cost_cents > 0 ? " Anything you paid becomes a credit on your family account." : "";

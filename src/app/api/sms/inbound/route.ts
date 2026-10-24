@@ -39,8 +39,9 @@ export async function POST(request: Request) {
   const from = last10(params.From);
   if (from.length < 10) return twiml();
 
-  // Phones are stored as typed, so match on the last ten digits.
-  const { data: prefs } = await db.from("notification_prefs").select("person_id, sms_on, sms_phone, sms_consent_at").not("sms_phone", "is", null);
+  // Phones are stored as typed, so match on the last ten digits. Narrowed by the last four in the query:
+  // PostgREST returns at most 1000 rows, so reading every saved phone would miss STOPs once there are more.
+  const { data: prefs } = await db.from("notification_prefs").select("person_id, sms_on, sms_phone, sms_consent_at").like("sms_phone", `%${from.slice(-4)}%`);
   const matches = (prefs ?? []).filter((p) => last10(p.sms_phone) === from);
 
   if (STOP.includes(word)) {

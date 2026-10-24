@@ -1,7 +1,5 @@
 import { getContext } from "@/lib/context";
-
-const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
-const stamp = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+import { icsEscape as esc, icsStamp as stamp } from "@/lib/ics";
 
 // One event as a calendar file, for "Add to my calendar" on the event page (members only, via RLS).
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {

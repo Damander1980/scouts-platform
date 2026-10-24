@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/admin";
-import { claimMany, notifyMany, type Notice } from "@/lib/notify";
+import { claimMany, guardiansOf, notifyMany, type Notice } from "@/lib/notify";
 import { fmtDate, isoDay } from "@/components/ui";
 
 // Runs daily (Cloudflare Cron Trigger in wrangler.jsonc). Protected by CRON_SECRET.
@@ -22,18 +22,6 @@ export async function GET(request: Request) {
   const counts = { reminders: 0, formReminders: 0, digests: 0 };
   const add = (n: Notice, kind: keyof typeof counts) => { if (n.personIds.length) { notices.push(n); counts[kind] += n.personIds.length; } };
 
-  // Guardians of a set of people, in two queries: person -> households -> guardians.
-  const guardiansOf = async (personIds: string[]) => {
-    const out = new Map<string, string[]>();
-    if (!personIds.length) return out;
-    const { data: links } = await db.from("household_members").select("household_id, person_id").in("person_id", personIds);
-    const hhIds = [...new Set((links ?? []).map((l) => l.household_id))];
-    const { data: gs } = hhIds.length ? await db.from("household_members").select("household_id, person_id").in("household_id", hhIds).eq("is_guardian", true) : { data: [] };
-    const byHh = new Map<string, string[]>();
-    for (const g of gs ?? []) byHh.set(g.household_id, [...(byHh.get(g.household_id) ?? []), g.person_id]);
-    for (const l of links ?? []) out.set(l.person_id, [...new Set([...(out.get(l.person_id) ?? []), ...(byHh.get(l.household_id) ?? [])])]);
-    return out;
-  };
   const names = (list: string[]) => (list.length <= 1 ? list[0] : `${list.slice(0, -1).join(", ")} and ${list.at(-1)}`);
 
   // 1) Who hasn't answered: 48 hours before a sign-up deadline, or about 3 days before an outing with none.
@@ -45,19 +33,24 @@ export async function GET(request: Request) {
   ]);
   const due = [...(deadlineEvents ?? []), ...(soonEvents ?? [])];
   const claimedEvents = await claimMany(db, due.map((e) => `deadline:${e.id}`));
-  for (const ev of due.filter((e) => claimedEvents.has(`deadline:${e.id}`))) {
-    const [{ data: members }, { data: rsvps }] = await Promise.all([
-      db.from("memberships").select("person_id, persons(type, first_name, user_id)").eq("org_id", ev.org_id).eq("status", "active"),
-      db.from("rsvps").select("person_id").eq("event_id", ev.id),
-    ]);
-    type P = { type: string; first_name: string; user_id: string | null };
-    const replied = new Set((rsvps ?? []).map((r) => r.person_id));
+  const dueNow = due.filter((e) => claimedEvents.has(`deadline:${e.id}`));
+  type P = { type: string; first_name: string; user_id: string | null };
+  // Members, answers and guardians for every due event at once, not one round of lookups per event.
+  const [{ data: allMembers }, { data: allRsvps }] = dueNow.length
+    ? await Promise.all([
+      db.from("memberships").select("org_id, person_id, persons(type, first_name, user_id)").in("org_id", [...new Set(dueNow.map((e) => e.org_id))]).eq("status", "active"),
+      db.from("rsvps").select("event_id, person_id").in("event_id", dueNow.map((e) => e.id)),
+    ])
+    : [{ data: [] as { org_id: string; person_id: string; persons: unknown }[] }, { data: [] as { event_id: string; person_id: string }[] }];
+  const guardians = await guardiansOf(db, (allMembers ?? []).filter((m) => (m.persons as unknown as P).type === "youth").map((m) => m.person_id));
+  for (const ev of dueNow) {
+    const members = (allMembers ?? []).filter((m) => m.org_id === ev.org_id);
+    const replied = new Set((allRsvps ?? []).filter((r) => r.event_id === ev.id).map((r) => r.person_id));
     const when = ev.rsvp_deadline
       ? `Sign-ups close ${fmtDate(ev.rsvp_deadline, { weekday: "short", month: "short", day: "numeric" })}.`
       : `It starts ${fmtDate(ev.start_at, { weekday: "short", month: "short", day: "numeric" })}.`;
     const path = `/events/${ev.id}`;
-    const youth = (members ?? []).filter((m) => (m.persons as unknown as P).type === "youth");
-    const guardians = await guardiansOf(youth.map((m) => m.person_id));
+    const youth = members.filter((m) => (m.persons as unknown as P).type === "youth");
     const kidsOf = new Map<string, string[]>();
     const parentsOfYouth = new Set<string>();
     const scoutsWithLogin: string[] = [];
@@ -77,7 +70,7 @@ export async function GET(request: Request) {
     }
     for (const [subject, personIds] of byText) add({ personIds, category: "deadlines", subject, path }, "reminders");
     add({ personIds: scoutsWithLogin, category: "deadlines", subject: `Are you going to ${ev.title}? ${when} Tap to answer.`, path }, "reminders");
-    const adults = (members ?? []).filter((m) => (m.persons as unknown as P).type === "adult" && !parentsOfYouth.has(m.person_id) && !replied.has(m.person_id)).map((m) => m.person_id);
+    const adults = members.filter((m) => (m.persons as unknown as P).type === "adult" && !parentsOfYouth.has(m.person_id) && !replied.has(m.person_id)).map((m) => m.person_id);
     add({ personIds: adults, category: "deadlines", subject: `Please answer for ${ev.title}. ${when}`, path }, "reminders");
   }
 
@@ -88,10 +81,10 @@ export async function GET(request: Request) {
       .in("type", ["health_ab", "health_c"]).gte("expires_at", day).lt("expires_at", day + "T23:59:59");
     const claimed = await claimMany(db, (expiring ?? []).map((f) => `form:${f.id}:${days}`));
     const todo = (expiring ?? []).filter((f) => claimed.has(`form:${f.id}:${days}`));
-    const guardians = await guardiansOf(todo.map((f) => f.person_id));
+    const formGuardians = await guardiansOf(db, todo.map((f) => f.person_id));
     for (const f of todo) {
       const who = f.persons as unknown as { first_name: string; type: string };
-      const ids = new Set(guardians.get(f.person_id) ?? []);
+      const ids = new Set(formGuardians.get(f.person_id) ?? []);
       if (who.type === "adult") ids.add(f.person_id);
       const part = f.type === "health_c" ? "Part C" : "Parts A and B";
       add({ personIds: [...ids], category: "reminders", path: "/forms",
@@ -114,12 +107,18 @@ export async function GET(request: Request) {
   const { data: prefs } = await db.from("notification_prefs").select("person_id, digest_day, categories").eq("digest_day", today);
   const people = new Set((prefs ?? []).filter((p) => (p.categories as Record<string, boolean>)?.digest !== false).map((p) => p.person_id as string));
   if (today === "sun") {
-    const [{ data: adults }, { data: all }] = await Promise.all([
-      db.from("persons").select("id").eq("type", "adult").not("user_id", "is", null),
-      db.from("notification_prefs").select("person_id"),
-    ]);
-    const hasPref = new Set((all ?? []).map((a) => a.person_id));
-    (adults ?? []).forEach((p) => { if (!hasPref.has(p.id)) people.add(p.id); });
+    // Paged: PostgREST returns at most 1000 rows, and a short list would mail people who chose another day.
+    const PAGE = 1000;
+    for (let from = 0; ; from += PAGE) {
+      const { data: adults } = await db.from("persons").select("id").eq("type", "adult").not("user_id", "is", null).order("id").range(from, from + PAGE - 1);
+      const ids = (adults ?? []).map((p) => p.id as string);
+      if (ids.length) {
+        const { data: chose } = await db.from("notification_prefs").select("person_id").in("person_id", ids);
+        const hasPref = new Set((chose ?? []).map((a) => a.person_id));
+        ids.forEach((id) => { if (!hasPref.has(id)) people.add(id); });
+      }
+      if (ids.length < PAGE) break;
+    }
   }
   const claimedDigests = await claimMany(db, [...people].map((pid) => `digest:${pid}:${isoDay(now)}`));
   const digestIds = [...people].filter((pid) => claimedDigests.has(`digest:${pid}:${isoDay(now)}`));

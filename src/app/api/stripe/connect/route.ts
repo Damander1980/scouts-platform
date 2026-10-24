@@ -20,8 +20,10 @@ export async function POST() {
       business_profile: { name: org.name, product_description: "Youth program dues, event fees and donations" },
       metadata: { org_id: org.id },
     });
-    account = acct.id;
-    await db.from("organizations").update({ stripe_account_id: account }).eq("id", org.id);
+    // Only fills an empty slot: a double click that created a second account keeps the first one.
+    await db.from("organizations").update({ stripe_account_id: acct.id }).eq("id", org.id).is("stripe_account_id", null);
+    const { data: saved } = await db.from("organizations").select("stripe_account_id").eq("id", org.id).single();
+    account = (saved?.stripe_account_id as string | null) ?? acct.id;
   }
   const link = await s.accountLinks.create({
     account, type: "account_onboarding",

@@ -61,6 +61,21 @@ export async function claimMany(db: NonNullable<ReturnType<typeof adminClient>>,
   return won;
 }
 
+// Guardians of a set of people in two queries (person -> households -> guardians), never one query per person:
+// Cloudflare caps how many outside calls one request may make.
+export async function guardiansOf(db: NonNullable<ReturnType<typeof adminClient>>, personIds: string[]) {
+  const out = new Map<string, string[]>();
+  const ids = [...new Set(personIds)];
+  if (!ids.length) return out;
+  const { data: links } = await db.from("household_members").select("household_id, person_id").in("person_id", ids);
+  const hhIds = [...new Set((links ?? []).map((l) => l.household_id as string))];
+  const { data: gs } = hhIds.length ? await db.from("household_members").select("household_id, person_id").in("household_id", hhIds).eq("is_guardian", true) : { data: [] };
+  const byHh = new Map<string, string[]>();
+  for (const g of gs ?? []) byHh.set(g.household_id, [...(byHh.get(g.household_id) ?? []), g.person_id]);
+  for (const l of links ?? []) out.set(l.person_id, [...new Set([...(out.get(l.person_id) ?? []), ...(byHh.get(l.household_id) ?? [])])]);
+  return out;
+}
+
 // Addresses on hold (permanent bounce or spam complaint): mailing them again only hurts delivery for everyone.
 export async function heldAddresses(db: NonNullable<ReturnType<typeof adminClient>>, emails: (string | null | undefined)[]) {
   const list = [...new Set(emails.filter((e): e is string => !!e).map((e) => e.toLowerCase()))];

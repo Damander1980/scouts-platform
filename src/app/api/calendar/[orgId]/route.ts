@@ -1,7 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-
-const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
-const stamp = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+import { icsEscape as esc, icsStamp as stamp } from "@/lib/ics";
 
 export async function GET(request: Request, { params }: { params: Promise<{ orgId: string }> }) {
   const { orgId } = await params;

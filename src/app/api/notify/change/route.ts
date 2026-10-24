@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/admin";
-import { claimOnce, notifyPeople } from "@/lib/notify";
+import { claimOnce, guardiansOf, notifyPeople } from "@/lib/notify";
 import { fmtDate, fmtTime } from "@/components/ui";
 
 // A leader changed an event's time or place: tell everyone signed up (parents for Scouts).
@@ -25,18 +25,18 @@ export async function POST(request: Request) {
   const prefix = `change:${ev.id}:`;
   const sig = `${ev.start_at}|${ev.end_at ?? ""}|${ev.location ?? ""}`;
   const { data: prior } = await db.from("notification_log").select("category").eq("channel", "system").like("category", `${prefix}%`).order("created_at", { ascending: false });
-  if (prior?.[0] && prior[0].category.slice(prefix.length).split("#")[0] === sig) return NextResponse.json({ notified: 0 });
+  // The count follows the last "#": a location such as "Room #4" has its own.
+  const lastSig = (c: string) => c.slice(prefix.length, c.lastIndexOf("#"));
+  if (prior?.[0] && lastSig(prior[0].category) === sig) return NextResponse.json({ notified: 0 });
   if (!(await claimOnce(db, `${prefix}${sig}#${prior?.length ?? 0}`))) return NextResponse.json({ notified: 0 });
 
   const { data: rs } = await db.from("rsvps").select("person_id, persons(type)").eq("event_id", ev.id).in("status", ["going", "waitlisted"]);
+  const isAdult = (r: { persons: unknown }) => (r.persons as { type: string } | null)?.type === "adult";
+  const guardians = await guardiansOf(db, (rs ?? []).filter((r) => !isAdult(r)).map((r) => r.person_id));
   const ids = new Set<string>();
   for (const r of rs ?? []) {
-    if ((r.persons as unknown as { type: string } | null)?.type === "adult") { ids.add(r.person_id); continue; }
-    const { data: hh } = await db.from("household_members").select("household_id").eq("person_id", r.person_id);
-    for (const h of hh ?? []) {
-      const { data: gs } = await db.from("household_members").select("person_id").eq("household_id", h.household_id).eq("is_guardian", true);
-      (gs ?? []).forEach((g) => ids.add(g.person_id));
-    }
+    if (isAdult(r)) ids.add(r.person_id);
+    else (guardians.get(r.person_id) ?? []).forEach((g) => ids.add(g));
   }
   const soon = new Date(ev.start_at).getTime() - Date.now() < 48 * 3600000;
   const parts = [`now starts ${fmtDate(ev.start_at, { weekday: "short", month: "short", day: "numeric" })} at ${fmtTime(ev.start_at)}`];
