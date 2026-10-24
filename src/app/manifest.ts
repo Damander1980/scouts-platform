@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "ScoutPlatform",
+    name: "Our Troop Manager",
     short_name: "Scouts",
     description: "RSVP, pay, attendance and advancement for your Scouting unit",
     start_url: "/home",

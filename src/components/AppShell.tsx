@@ -75,7 +75,7 @@ export default function AppShell({
         <div className="px-4 md:px-6 h-16 flex items-center gap-3">
           <Link href={to("/dashboard")} aria-label="Home" className="flex items-center gap-2.5 no-underline text-white flex-none">
             <Mark size={36} />
-            <span className="hidden md:inline font-display font-extrabold text-[19px] tracking-[-0.01em]">ScoutPlatform</span>
+            <span className="hidden md:inline font-display font-extrabold text-[19px] tracking-[-0.01em]">Our Troop Manager</span>
           </Link>
           <button onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label="Switch unit"
             className="ml-1 md:ml-4 flex items-center gap-2 min-h-[40px] px-4 rounded-full border-0 cursor-pointer font-sans font-bold text-[14px] min-w-0"

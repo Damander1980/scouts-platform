@@ -18,7 +18,7 @@ export async function POST() {
     .gte("created_at", p.sms_consent_at).limit(1);
   if (sent?.length) return NextResponse.json({ ok: true, already: true });
 
-  const r = await sendSms(p.sms_phone, `You're signed up for unit texts from ScoutPlatform. Msg frequency varies. Msg & data rates may apply. Reply HELP for help, STOP to opt out. ${SITE_URL}/settings`);
+  const r = await sendSms(p.sms_phone, `You're signed up for unit texts from Our Troop Manager. Msg frequency varies. Msg & data rates may apply. Reply HELP for help, STOP to opt out. ${SITE_URL}/settings`);
   await db.from("notification_log").insert({ person_id: ctx.person.id, channel: "sms", category: "opt_in_confirm", status: r.status, provider_id: r.id ?? null });
   return NextResponse.json({ ok: r.status !== "failed", status: r.status });
 }

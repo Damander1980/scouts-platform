@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 // Link preview image (texts, email, social posts). Troop sites override it with their own icon.
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "ScoutPlatform: less paperwork, more Scouting";
+export const alt = "Our Troop Manager: less paperwork, more Scouting";
 
 export default function OgImage() {
   return new ImageResponse(
@@ -16,7 +16,7 @@ export default function OgImage() {
               <path d="M8.6 8.2 10.7 11.7 9.4 11 8.1 12.1 7 11z" fill="#FFFFFF" />
             </svg>
           </div>
-          <div style={{ fontSize: 40, fontWeight: 800 }}>ScoutPlatform</div>
+          <div style={{ fontSize: 40, fontWeight: 800 }}>Our Troop Manager</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ fontSize: 92, fontWeight: 800, lineHeight: 1 }}>Less paperwork.</div>

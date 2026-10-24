@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ErrorBox, Field, fmtDate } from "@/components/ui";
 
 const SMS_CONSENT =
-  "I agree to receive text messages from ScoutPlatform about my unit's events, deadlines, payments and urgent changes at the number above. " +
+  "I agree to receive text messages from Our Troop Manager about my unit's events, deadlines, payments and urgent changes at the number above. " +
   "Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not required to use the service.";
 
 const CATS: [string, string][] = [

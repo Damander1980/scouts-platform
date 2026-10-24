@@ -11,7 +11,7 @@ export default function NotFound() {
         <p className="text-[16px] text-smoke m-0">That page doesn&apos;t exist, or the link has expired. If a leader sent it, ask them for a fresh one.</p>
         <div className="flex gap-3 flex-wrap">
           <Link href="/home" className="btn-primary no-underline">Go to my home</Link>
-          <Link href="/" className="btn-secondary no-underline">ScoutPlatform</Link>
+          <Link href="/" className="btn-secondary no-underline">Our Troop Manager</Link>
         </div>
       </div>
     </div>

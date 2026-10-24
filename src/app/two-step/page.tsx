@@ -51,12 +51,12 @@ export default function TwoStepPage() {
         <p className="text-[15px] text-smoke m-0">
           {qr
             ? "Leader tools show children's information, so leaders, treasurers and admins confirm it's them with a code from an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password and others)."
-            : "Open your authenticator app and enter the 6-digit code for ScoutPlatform."}
+            : "Open your authenticator app and enter the 6-digit code for Our Troop Manager."}
         </p>
         {qr && (
           <div className="flex flex-col items-center gap-2 rounded-2xl p-4" style={{ background: "#EEE8D9" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={qr} alt="QR code to add ScoutPlatform to your authenticator app" width={180} height={180} className="bg-white rounded-xl p-2" />
+            <img src={qr} alt="QR code to add Our Troop Manager to your authenticator app" width={180} height={180} className="bg-white rounded-xl p-2" />
             <span className="text-[13px] text-smoke text-center">1. Scan this in your app. Can&apos;t scan? Type this key: <code className="font-bold break-all">{secret}</code></span>
             <span className="text-[13px] text-smoke">2. Enter the 6-digit code it shows.</span>
           </div>

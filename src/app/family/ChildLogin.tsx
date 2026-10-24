@@ -6,8 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 
 // The parent's consent for a child's own login (required for children under 13). Also used at sign-up.
 export function childLoginConsent(name: string) {
-  return `I am ${name}'s parent or legal guardian. I give permission for ${name} to have their own ScoutPlatform login using the email I entered, ` +
-    `and for ScoutPlatform to collect the information ${name} enters in order to run their Scouting activities. I understand every message ${name} sends or receives ` +
+  return `I am ${name}'s parent or legal guardian. I give permission for ${name} to have their own Our Troop Manager login using the email I entered, ` +
+    `and for Our Troop Manager to collect the information ${name} enters in order to run their Scouting activities. I understand every message ${name} sends or receives ` +
     `is saved and copied to me and to unit leaders, and I can remove ${name}'s login or request deletion of their data at any time.`;
 }
 

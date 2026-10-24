@@ -5,7 +5,7 @@
 
 const AUTH = "https://my.scouting.org/api/users";
 const API = "https://api.scouting.org";
-const HEADERS = { Accept: "application/json; version=2", "User-Agent": "ScoutPlatform/1.0 (unit management; Scoutbook sync)" };
+const HEADERS = { Accept: "application/json; version=2", "User-Agent": "OurTroopManager/1.0 (unit management; Scoutbook sync)" };
 
 export type Session = { token: string; userId: string };
 export class ScoutbookError extends Error {

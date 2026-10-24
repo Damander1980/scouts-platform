@@ -27,7 +27,7 @@ Build order (Floyd, 2026-10-19): **PC web platform first, then the app, iOS last
 - [ ] **Two-way Scoutbook sync** (decided 2026-10-21, stored leader login): needs a sanitized browser capture (HAR) from a Key 3 / advancement chair login viewing roster, a Scout profile, a rank and merit badges. Check Scouting America's terms first.
 - [x] Linked-unit sign-ups: charge goes on the guest's family account in their own unit (built, 0044).
 - [x] Domain: ourtroopmanager.com (2026-10-23). Point it at the Vercel project, then set NEXT_PUBLIC_SITE_URL and verify the domain in Resend (SPF/DKIM) so email sends from it.
-- [ ] Product name: rename ScoutPlatform to match the domain?
+- [x] Product name: Our Troop Manager (renamed 2026-10-23).
 
 ### Push / deploy
 - [x] Migrations 0036-0041 pushed and all code pushed to GitHub.

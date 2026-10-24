@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ErrorBox, Field, fmtStamp } from "@/components/ui";
 
-const CONSENT = "I hold this Scoutbook position for this unit and allow ScoutPlatform to sign in to Scoutbook as me to copy roster and advancement both ways. I can remove this at any time, which deletes my stored login.";
+const CONSENT = "I hold this Scoutbook position for this unit and allow Our Troop Manager to sign in to Scoutbook as me to copy roster and advancement both ways. I can remove this at any time, which deletes my stored login.";
 const POSITIONS: [string, string][] = [
   ["unit_leader", "Unit leader (Scoutmaster)"], ["committee_chair", "Committee chair"], ["chartered_org_rep", "Chartered organization representative"],
   ["unit_advancement_chair", "Unit advancement chair"], ["key3_delegate", "Key 3 delegate"],

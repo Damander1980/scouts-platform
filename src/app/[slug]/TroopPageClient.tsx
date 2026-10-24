@@ -164,7 +164,7 @@ export default function TroopPageClient({ data, storageUrl, menu = [] }: { data:
       </div>
 
       <footer className="py-8 text-center text-[13px] text-smoke">
-        {org.name} · Powered by ScoutPlatform · Not affiliated with Scouting America
+        {org.name} · Powered by Our Troop Manager · Not affiliated with Scouting America
       </footer>
 
       {lightbox && (() => {

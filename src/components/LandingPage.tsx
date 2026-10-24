@@ -35,7 +35,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2.5 no-underline text-white flex-1">
             <Mark size={36} />
-            <span className="hidden sm:inline font-display font-extrabold text-[19px]">ScoutPlatform</span>
+            <span className="hidden sm:inline font-display font-extrabold text-[19px]">Our Troop Manager</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-[15px] font-bold">
             <a href="#tools" className="text-white no-underline">Features</a>
@@ -218,7 +218,7 @@ export default function LandingPage() {
               <thead>
                 <tr>
                   <th className="text-left p-4 w-[22%]" scope="col"><span className="sr-only">Topic</span></th>
-                  <th className="text-left p-4 text-[15px] font-bold text-white bg-forest" scope="col">ScoutPlatform</th>
+                  <th className="text-left p-4 text-[15px] font-bold text-white bg-forest" scope="col">Our Troop Manager</th>
                   <th className="text-left p-4 text-[15px] font-bold" scope="col">TroopWebHost</th>
                 </tr>
               </thead>
@@ -273,7 +273,7 @@ export default function LandingPage() {
 
       <footer style={{ background: "#091A30", color: "#AEB9C9" }}>
         <div className="max-w-6xl mx-auto px-5 py-8 flex flex-wrap gap-6 items-center justify-between text-[14px]">
-          <span className="font-bold text-white">ScoutPlatform</span>
+          <span className="font-bold text-white">Our Troop Manager</span>
           <div className="flex gap-5 flex-wrap">
             <a href="#tools" className="no-underline" style={{ color: "#AEB9C9" }}>Features</a>
             <a href="#pricing" className="no-underline" style={{ color: "#AEB9C9" }}>Pricing</a>

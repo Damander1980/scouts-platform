@@ -58,7 +58,7 @@ export async function POST(request: Request) {
   }
 
   if (HELP.includes(word)) {
-    return twiml(`Unit notices from ScoutPlatform. Msg frequency varies. Msg & data rates may apply. Manage texts at ${SITE_URL}/settings. Reply STOP to opt out.`);
+    return twiml(`Unit notices from Our Troop Manager. Msg frequency varies. Msg & data rates may apply. Manage texts at ${SITE_URL}/settings. Reply STOP to opt out.`);
   }
 
   // Replies are not read here: messages live in the app, not in texts.

@@ -71,7 +71,7 @@ export default function LoginPage() {
         <svg aria-hidden="true" viewBox="0 0 400 600" preserveAspectRatio="xMaxYMax slice" className="absolute inset-0 w-full h-full pointer-events-none"><path d="M40 620 C120 540 90 480 180 440 S300 360 260 280 S330 150 350 90" fill="none" stroke="#F5B700" strokeWidth="3" strokeDasharray="2 12" strokeLinecap="round" opacity=".7"/><path d="M350 72l9 16h-18z" fill="#F5B700"/></svg>
         <a href="/" className="relative flex items-center gap-3 no-underline text-white">
           <Mark size={40} />
-          <span className="font-display font-extrabold text-[20px]">ScoutPlatform</span>
+          <span className="font-display font-extrabold text-[20px]">Our Troop Manager</span>
         </a>
         <div className="relative flex flex-col gap-4 max-w-md">
           <h1 className="font-display font-extrabold text-[44px] leading-[1.05] m-0">Your troop,<br /><span style={{ color: "#F5B700" }}>all in one place.</span></h1>

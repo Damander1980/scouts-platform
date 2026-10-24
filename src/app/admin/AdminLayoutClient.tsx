@@ -107,7 +107,7 @@ export default function AdminLayoutClient({
       <header className="hidden md:flex print:hidden text-white sticky top-0 z-30 h-16 items-center gap-3 px-6" style={{ background: "linear-gradient(90deg, #0C2442 0%, #12355F 60%, #17437A 100%)", boxShadow: "inset 0 -3px 0 #F5B700" }}>
         <Link href={to("/dashboard")} aria-label="Home" className="flex items-center gap-2.5 no-underline text-white">
           <Mark size={36} />
-          <span className="font-display font-extrabold text-[19px]">ScoutPlatform</span>
+          <span className="font-display font-extrabold text-[19px]">Our Troop Manager</span>
         </Link>
         <span className="ml-4 min-h-[40px] px-4 rounded-full font-bold text-[14px] flex items-center" style={{ background: "#F5B700", color: "#101B2D" }}>{unitWord} {org.unit_number}</span>
         <span className="text-[14px]" style={{ color: "#D7E0EE" }}>Leader tools</span>

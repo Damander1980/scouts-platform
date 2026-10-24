@@ -65,7 +65,7 @@ export default function SafetyPage() {
         <div className="max-w-4xl mx-auto px-5 h-16 flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2.5 no-underline text-white flex-1">
             <Mark size={36} />
-            <span className="hidden sm:inline font-display font-extrabold text-[19px]">ScoutPlatform</span>
+            <span className="hidden sm:inline font-display font-extrabold text-[19px]">Our Troop Manager</span>
           </Link>
           <Link href="/login" className="text-white font-bold text-[15px] no-underline min-h-[44px] flex items-center whitespace-nowrap">Sign in</Link>
         </div>

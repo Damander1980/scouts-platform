@@ -126,7 +126,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
         style={{ boxShadow: "0 2px 4px rgba(16,27,45,.08), 0 14px 32px rgba(16,27,45,.18)" }}>
         <div className="flex items-center gap-2.5 mb-5">
           <Mark size={32} />
-          <span className="font-display font-extrabold text-[17px]">ScoutPlatform</span>
+          <span className="font-display font-extrabold text-[17px]">Our Troop Manager</span>
         </div>
         <div className="eyebrow" style={{ color: "#F5B700" }}>{header.kicker}</div>
         <h1 className="font-display font-extrabold text-[32px] leading-tight m-0 mt-1">{header.title}</h1>

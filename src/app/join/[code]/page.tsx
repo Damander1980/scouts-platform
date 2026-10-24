@@ -19,7 +19,7 @@ export default async function JoinLanding({ params }: { params: Promise<{ code: 
         <div className="bg-forest text-white px-7 pt-8 pb-7">
           <div className="flex items-center gap-2.5 mb-5">
             <Mark size={32} />
-            <span className="font-display font-extrabold text-[17px]">ScoutPlatform</span>
+            <span className="font-display font-extrabold text-[17px]">Our Troop Manager</span>
           </div>
           <div className="eyebrow" style={{ color: "#F5B700" }}>You&apos;re invited</div>
           <h1 className="font-display font-extrabold text-[34px] leading-tight m-0 mt-1">{org ? `Join ${org.name}` : "Join a troop"}</h1>

@@ -13,8 +13,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const site = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
   const end = e.end_at ?? new Date(new Date(e.start_at).getTime() + 90 * 60000).toISOString();
   const body = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//ScoutPlatform//EN", "METHOD:PUBLISH",
-    "BEGIN:VEVENT", `UID:${e.id}@scoutplatform`, `DTSTAMP:${stamp(new Date().toISOString())}`,
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//OurTroopManager//EN", "METHOD:PUBLISH",
+    "BEGIN:VEVENT", `UID:${e.id}@ourtroopmanager.com`, `DTSTAMP:${stamp(new Date().toISOString())}`,
     `DTSTART:${stamp(e.start_at)}`, `DTEND:${stamp(end)}`,
     `SUMMARY:${esc((e.canceled ? "CANCELED: " : "") + e.title)}`,
     ...(e.location ? [`LOCATION:${esc(e.location)}`] : []),

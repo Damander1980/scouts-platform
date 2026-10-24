@@ -31,7 +31,7 @@ export default function Tour() {
         <div className="max-w-5xl mx-auto px-5 h-16 flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2.5 no-underline text-white flex-1">
             <Mark size={36} />
-            <span className="hidden sm:inline font-display font-extrabold text-[19px]">ScoutPlatform</span>
+            <span className="hidden sm:inline font-display font-extrabold text-[19px]">Our Troop Manager</span>
           </Link>
           <Link href="/login?next=/setup" className="min-h-[44px] px-5 rounded-full font-bold text-[15px] flex items-center no-underline whitespace-nowrap" style={{ background: "#F5B700", color: "#101B2D" }}>Start free</Link>
         </div>
