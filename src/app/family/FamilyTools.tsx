@@ -46,7 +46,7 @@ export default function FamilyTools({ defaultLast, notInTroop, orgId }: {
 
       <div className="card flex flex-col gap-3">
         <div className="font-bold text-[16px]">Add your spouse or co-parent</div>
-        <p className="text-[13px] text-smoke m-0">Give them this one-time code. After they sign in, they enter it to join your family.</p>
+        <p className="text-[13px] text-smoke m-0">Give them this one-time code. After they sign in, they enter it to join your family. It works for 14 days.</p>
         {code ? (
           <div className="font-display font-extrabold text-[28px] tracking-widest text-center py-2 rounded-xl" style={{ background: "#EEE8D9" }}>{code}</div>
         ) : (

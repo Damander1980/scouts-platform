@@ -368,7 +368,7 @@ Or enter join code ${String(joinCode ?? "").toUpperCase()} after you sign up. Ad
                           : <button className="btn-secondary" disabled={busy} onClick={() => patch(m.id, { status: "active" })}>Restore</button>}
                         {!m.persons.user_id && (
                           claim?.pid === m.persons.id
-                            ? <span className="font-bold text-[14px] self-center">Claim code: <span className="tracking-widest">{claim.code}</span></span>
+                            ? <span className="font-bold text-[14px] self-center">Claim code: <span className="tracking-widest">{claim.code}</span> <span className="font-normal text-smoke text-[12px]">(works once, for 14 days)</span></span>
                             : <button className="btn-ghost" disabled={busy} onClick={() => run(async () => {
                                 const { data, error } = await supabase.rpc("create_claim_code", { p_org: orgId, p_person: m.persons.id });
                                 if (error) throw error;

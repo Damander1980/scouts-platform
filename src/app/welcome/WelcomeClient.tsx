@@ -71,8 +71,9 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
   };
 
   const joinFamily = () => run(async () => {
-    const { error } = await supabase.rpc("accept_household_invite", { p_code: familyCode });
+    const { data, error } = await supabase.rpc("accept_household_invite", { p_code: familyCode });
     if (error) throw error;
+    if (!data) throw new Error("That family code didn't work. It may have expired (codes last 14 days) or been used already. Ask for a new one.");
     setFamilyCode("");
     await reloadFamily();
   });
@@ -165,8 +166,9 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
                 <div className="flex gap-2">
                   <input aria-label="Claim code" className="input flex-1" value={familyCode} onChange={(e) => setFamilyCode(e.target.value)} placeholder="Claim code" />
                   <button type="button" className="btn-secondary" disabled={busy || !familyCode} onClick={() => run(async () => {
-                    const { error } = await supabase.rpc("claim_record", { p_code: familyCode });
+                    const { data, error } = await supabase.rpc("claim_record", { p_code: familyCode });
                     if (error) throw error;
+                    if (!data) throw new Error("That claim code didn't work. It may have expired (codes last 14 days) or been used already. Ask your leader for a new one.");
                     setFamilyCode("");
                     router.push("/home");
                   })}>Claim</button>
