@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { rsvpPrivate } from "@/lib/rsvpPrivate";
 import { requireOrg, unitWord } from "@/lib/context";
 import Shell from "@/components/Shell";
 import { Chip, fmtDate, fmtTime, money } from "@/components/ui";
@@ -17,9 +18,11 @@ export default async function DashboardPage() {
       .eq("org_id", orgId).eq("canceled", false).gte("start_at", new Date().toISOString()).order("start_at").limit(12);
     const evIds = (evs ?? []).map((e) => e.id);
     const { data: mine } = evIds.length
-      ? await supabase.from("rsvps").select("event_id, status, notes, dietary, answers, rsvp_approval_status").eq("person_id", person.id).in("event_id", evIds)
-      : { data: [] as { event_id: string; status: string; notes: string | null; dietary: string | null; answers: Record<string, string>; rsvp_approval_status: string | null }[] };
-    const byEvent = Object.fromEntries((mine ?? []).map((r) => [r.event_id, r]));
+      ? await supabase.from("rsvps").select("event_id, status, rsvp_approval_status").eq("person_id", person.id).in("event_id", evIds)
+      : { data: [] as { event_id: string; status: string; rsvp_approval_status: string | null }[] };
+    const minePriv = evIds.length ? await rsvpPrivate(supabase, { events: evIds, persons: [person.id] }) : [];
+    const privOf = Object.fromEntries(minePriv.map((r) => [r.event_id, r]));
+    const byEvent = Object.fromEntries((mine ?? []).map((r) => [r.event_id, { ...r, notes: privOf[r.event_id]?.notes ?? null, dietary: privOf[r.event_id]?.dietary ?? null, answers: privOf[r.event_id]?.answers ?? {} }]));
     const scoutEvents: ScoutEvent[] = (evs ?? []).map((e) => {
       const r = byEvent[e.id];
       return { ...e, mine: r ? { status: r.status, notes: r.notes, dietary: r.dietary, answers: (r.answers ?? {}) as Record<string, string>, pending: r.rsvp_approval_status === "pending" } : null };

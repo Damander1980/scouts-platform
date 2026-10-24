@@ -17,10 +17,18 @@ create table if not exists public.code_attempts (
 create index if not exists code_attempts_user_at on public.code_attempts (user_id, at);
 alter table public.code_attempts enable row level security; -- no policies: only the functions below touch it
 
+-- Takes a per-user lock held to the end of the transaction, so parallel tries from one account are
+-- counted one after another (otherwise each would see fewer than 10 and all would get through).
+-- Tries older than an hour no longer count and are removed here, so the table stays small.
 create or replace function public.code_tries_left()
-returns boolean language sql stable security definer set search_path = public as $$
-  select (select count(*) from public.code_attempts where user_id = auth.uid() and at > now() - interval '1 hour') < 10;
+returns boolean language plpgsql security definer set search_path = public as $$
+begin
+  perform pg_advisory_xact_lock(hashtext('code_attempts:' || auth.uid()::text));
+  delete from public.code_attempts where user_id = auth.uid() and at <= now() - interval '1 hour';
+  return (select count(*) from public.code_attempts where user_id = auth.uid()) < 10;
+end;
 $$;
+revoke execute on function public.code_tries_left() from public, anon, authenticated;
 
 -- Wrong codes return null instead of raising, so the failed try is kept (an error would roll it back).
 create or replace function public.claim_record(p_code text)
@@ -29,7 +37,8 @@ declare cc record; me uuid; old_hid uuid;
 begin
   if auth.uid() is null then raise exception 'Sign in first'; end if;
   if not public.code_tries_left() then raise exception 'Too many tries. Wait an hour, or ask your leader for a new code.'; end if;
-  select * into cc from public.claim_codes where code = lower(trim(p_code)) and used_by is null and expires_at > now();
+  -- Row lock: two people entering the same code at once can't both become guardians.
+  select * into cc from public.claim_codes where code = lower(trim(p_code)) and used_by is null and expires_at > now() for update;
   if cc is null then
     insert into public.code_attempts (user_id) values (auth.uid());
     return null;
@@ -64,7 +73,7 @@ begin
   me := public.my_person_id();
   if me is null then raise exception 'Finish your profile first'; end if;
   if not public.code_tries_left() then raise exception 'Too many tries. Wait an hour, or ask for a new family code.'; end if;
-  select * into inv from public.household_invites where code = lower(trim(p_code)) and used_by is null and expires_at > now();
+  select * into inv from public.household_invites where code = lower(trim(p_code)) and used_by is null and expires_at > now() for update;
   if inv is null then
     insert into public.code_attempts (user_id) values (auth.uid());
     return null;

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { toCsv } from "@/lib/csv";
+import { rsvpPrivate } from "@/lib/rsvpPrivate";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,11 +15,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   ]);
   if (!priv && !medical) return new Response("Your Youth Protection Training must be current to download the trip roster.", { status: 403 });
 
-  const [{ data: rsvps }, { data: forms }, { data: patrols }] = await Promise.all([
-    supabase.from("rsvps").select("person_id, status, driver_seats, dietary, notes, answers, persons(first_name, last_name, type)").eq("event_id", id),
+  const [{ data: rsvps }, { data: forms }, { data: patrols }, details] = await Promise.all([
+    supabase.from("rsvps").select("person_id, status, driver_seats, persons(first_name, last_name, type)").eq("event_id", id),
     supabase.from("forms").select("person_id, type, expires_at").eq("org_id", ev.org_id),
     supabase.from("patrol_members").select("person_id, patrols(name)").eq("org_id", ev.org_id).is("end_date", null),
+    rsvpPrivate(supabase, { events: [id] }),
   ]);
+  const privOf = Object.fromEntries(details.map((r) => [r.person_id, r]));
   const patrolOf = Object.fromEntries((patrols ?? []).map((p) => [p.person_id, (p.patrols as unknown as { name: string })?.name ?? ""]));
   const formOk = (pid: string, t: string) => {
     const ok = (forms ?? []).some((x) => x.person_id === pid && x.type === t && (!x.expires_at || new Date(x.expires_at) > new Date()));
@@ -30,8 +33,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     return {
       Name: `${p.first_name} ${p.last_name}`, Type: p.type, Patrol: patrolOf[r.person_id] ?? "", Status: r.status,
       "Health A+B": formOk(r.person_id, "health_ab"), "Health C": formOk(r.person_id, "health_c"), Permission: formOk(r.person_id, "permission"),
-      "Driver seats": r.driver_seats || "", Dietary: r.dietary ?? "", Notes: r.notes ?? "",
-      ...Object.fromEntries(Object.entries((r.answers ?? {}) as Record<string, string>)),
+      "Driver seats": r.driver_seats || "", Dietary: privOf[r.person_id]?.dietary ?? "", Notes: privOf[r.person_id]?.notes ?? "",
+      ...Object.fromEntries(Object.entries((privOf[r.person_id]?.answers ?? {}) as Record<string, string>)),
     };
   });
   const safe = ev.title.replace(/[^A-Za-z0-9]+/g, "-");

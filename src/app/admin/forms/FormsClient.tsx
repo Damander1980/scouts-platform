@@ -41,7 +41,10 @@ export default function FormsClient({ orgId, canMark, people, forms: initialForm
     const { error } = await supabase.rpc("mark_form", { p_org: orgId, p_person: pid, p_type: type, p_date: date, p_received: received });
     if (error) setError(error.message);
     else {
-      const exp = new Date(new Date(date).getFullYear(), new Date(date).getMonth() + (type === "tetanus" ? 121 : 13), 0).toISOString();
+      // Same rule as mark_form: the end of the 12th month after (tetanus: 120 months). Worked out from the date's
+      // own year and month, since new Date("2026-02-01") is UTC midnight, which is still January in Texas.
+      const [y, mo] = date.split("-").map(Number);
+      const exp = new Date(Date.UTC(y, mo - 1 + (type === "tetanus" ? 121 : 13), 0, 12)).toISOString();
       setForms((fs) => [...fs.filter((f) => !(f.person_id === pid && f.type === type)), ...(received ? [{ person_id: pid, type, exam_date: date, expires_at: exp }] : [])]);
       setEditing(null);
     }

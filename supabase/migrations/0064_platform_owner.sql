@@ -62,7 +62,7 @@ begin
     p.created_at
   from persons p left join users u on u.id = p.user_id
   where p_org is null or exists (select 1 from memberships m where m.person_id = p.id and m.org_id = p_org)
-  order by p.first_name, p.last_name;
+  order by p.first_name, p.last_name, p.id; -- id breaks ties so the page can fetch past 1000 rows in stable pages
 end;
 $$;
 grant execute on function public.platform_people(uuid) to authenticated;

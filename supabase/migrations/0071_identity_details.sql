@@ -33,11 +33,13 @@ end;
 $$;
 grant execute on function public.person_identity(uuid, uuid[]) to authenticated;
 
--- The family (or the person themselves), or a unit admin for someone in their unit.
+-- The family (or the person themselves), or a unit admin for someone in their unit. The admin also needs
+-- private-detail access (current YPT, two-step), the same as reading these fields in person_identity().
 create or replace function public.set_person_identity(p_org uuid, p_person uuid, p_nickname text, p_pronouns text, p_gender text, p_note text)
 returns void language plpgsql security definer set search_path = public as $$
 begin
-  if not (public.can_act_for(p_person) or (public.is_org_admin(p_org) and public.person_in_org(p_person, p_org))) then
+  if not (public.can_act_for(p_person)
+          or (public.is_org_admin(p_org) and public.has_perm(p_org, 'members.private') and public.person_in_org(p_person, p_org))) then
     raise exception 'Only the family or a unit admin can change this';
   end if;
   if p_gender is not null and p_gender not in ('male', 'female') then raise exception 'Choose male or female, or leave it blank'; end if;

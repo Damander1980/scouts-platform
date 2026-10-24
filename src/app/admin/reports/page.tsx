@@ -3,6 +3,7 @@ import { requireLeader } from "@/lib/context";
 import PrintButton from "@/components/PrintButton";
 import { ROLE_LABELS } from "@/lib/context";
 import { fmtDate } from "@/components/ui";
+import { rsvpPrivate } from "@/lib/rsvpPrivate";
 
 // Ready-made printable lists, like TroopWebHost's directories and reports. Roster-level data only;
 // contact details and health status stay on their own permission-checked pages.
@@ -65,7 +66,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   } else if (r === "sizes") {
     body = <Table head={["Name", "Youth or adult", "Shirt size"]} rows={members.map((m) => [name(m), m.persons.type === "youth" ? "Scout" : "Adult", m.uniform_size ?? ""])} />;
   } else if (r === "dietary") {
-    const { data: rs } = await supabase.from("rsvps").select("person_id, dietary, rsvp_at, events!inner(org_id)").eq("events.org_id", orgId).not("dietary", "is", null).order("rsvp_at", { ascending: false });
+    const rs = (await rsvpPrivate(supabase, { org: orgId })).filter((x) => x.dietary);
     const latest = new Map<string, string>();
     for (const x of (rs ?? []) as { person_id: string; dietary: string | null }[]) if (x.dietary?.trim() && !latest.has(x.person_id)) latest.set(x.person_id, x.dietary.trim());
     body = <Table head={["Name", "Most recent allergy or dietary note"]} rows={[...latest.entries()].map(([pid, d]) => [nameOf[pid] ?? "", d]).filter((x) => x[0]).sort((a, b) => a[0].localeCompare(b[0]))} />;

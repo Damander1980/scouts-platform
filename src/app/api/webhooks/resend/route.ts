@@ -31,6 +31,12 @@ export async function POST(request: Request) {
   const db = adminClient();
   if (!reason || !db) return NextResponse.json({ ok: true });
   const rows = (event.data?.to ?? []).map((e) => ({ email: e.trim().toLowerCase(), reason, detail: event.data?.bounce?.message?.slice(0, 300) ?? null }));
-  if (rows.length) await db.from("email_suppressions").upsert(rows, { onConflict: "email" });
+  // A spam complaint always wins; a later bounce never turns a complaint into a hold an admin could lift.
+  if (rows.length) {
+    const { error } = reason === "complaint"
+      ? await db.from("email_suppressions").upsert(rows, { onConflict: "email" })
+      : await db.from("email_suppressions").upsert(rows, { onConflict: "email", ignoreDuplicates: true });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 }); // the provider retries
+  }
   return NextResponse.json({ ok: true });
 }

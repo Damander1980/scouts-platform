@@ -17,7 +17,10 @@ begin
   if not (public.can_act_for(p_person) or public.is_org_leader(e.org_id) or public.is_org_leader(pay_org)) then raise exception 'Not allowed'; end if;
   if p_status not in ('going','not_going') then raise exception 'Bad status'; end if;
   select * into prev from public.rsvps where event_id = p_event and person_id = p_person;
-  if now() > coalesce(e.end_at, e.start_at) and not (public.is_org_leader(e.org_id) or public.is_org_leader(pay_org)) then
+  -- A sign-up still waiting for a parent's OK was never charged, so a parent can still decline it afterwards
+  -- (otherwise it would sit "waiting for approval" forever).
+  if now() > coalesce(e.end_at, e.start_at) and not (public.is_org_leader(e.org_id) or public.is_org_leader(pay_org))
+     and not (p_status = 'not_going' and coalesce(prev.rsvp_approval_status, '') = 'pending') then
     raise exception 'This event is over. Ask a leader if something needs to change.';
   end if;
   -- The deadline closes NEW sign-ups only. Families can still cancel (the refund rule decides any
@@ -98,7 +101,8 @@ begin
   end if;
 
   -- Fill any open spots from the waitlist, charged through each person's own unit.
-  perform public.rsvp_promote(p_event, me);
+  -- Not once the event is over: nobody is moved off the waitlist (and charged) after the fact.
+  if now() <= coalesce(e.end_at, e.start_at) then perform public.rsvp_promote(p_event, me); end if;
   select status into final_status from public.rsvps where event_id = p_event and person_id = p_person;
 
   insert into public.audit_log (org_id, actor_id, action, target_type, target_id, payload)
@@ -109,6 +113,8 @@ $$;
 
 -- A weekly series kept only the title and place; everything else the leader filled in (description,
 -- who can see it, cost, cap, permission slip, service hours) was dropped. The rest now comes along.
+-- The old six-argument version is dropped so a stale caller can't still create series without the extras.
+drop function if exists public.create_weekly_series(uuid, text, text, timestamptz, int, date);
 create or replace function public.create_weekly_series(p_org uuid, p_title text, p_location text, p_first timestamptz, p_minutes int, p_until date, p_extra jsonb)
 returns int language plpgsql security definer set search_path = public as $$
 declare s uuid := gen_random_uuid(); tz text := public.unit_tz(p_org); local_t timestamp; t timestamptz; n int := 0;

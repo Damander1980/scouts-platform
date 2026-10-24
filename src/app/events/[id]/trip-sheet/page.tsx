@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { rsvpPrivate } from "@/lib/rsvpPrivate";
 import Link from "next/link";
 import { requirePerm } from "@/lib/context";
 import PrintButton from "@/components/PrintButton";
@@ -24,14 +25,15 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
 
   const [{ data: plan }, { data: going }, { data: forms }, { data: ms }, { data: pm }, { data: canMedical }] = await Promise.all([
     supabase.from("trip_plans").select("*").eq("event_id", id).maybeSingle(),
-    supabase.from("rsvps").select("person_id, driver_seats, dietary, persons(first_name, last_name, type)").eq("event_id", id).eq("status", "going"),
+    supabase.from("rsvps").select("person_id, driver_seats, persons(first_name, last_name, type)").eq("event_id", id).eq("status", "going"),
     supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId),
     supabase.from("memberships").select("person_id, ypt_expires").eq("org_id", orgId),
     supabase.from("patrol_members").select("person_id, patrols(name)").eq("org_id", orgId).is("end_date", null),
     supabase.rpc("has_perm", { org: orgId, perm: "medical.view" }),
   ]);
 
-  const rows = ((going ?? []) as unknown as Going[]).sort((a, b) => a.persons.last_name.localeCompare(b.persons.last_name));
+  const dietOf = Object.fromEntries((await rsvpPrivate(supabase, { events: [id] })).map((r) => [r.person_id, r.dietary]));
+  const rows = ((going ?? []) as unknown as Going[]).map((g) => ({ ...g, dietary: dietOf[g.person_id] ?? null })).sort((a, b) => a.persons.last_name.localeCompare(b.persons.last_name));
   const youth = rows.filter((r) => r.persons.type === "youth");
   const adults = rows.filter((r) => r.persons.type === "adult");
   const tripDay = new Date(ev.end_at ?? ev.start_at);
