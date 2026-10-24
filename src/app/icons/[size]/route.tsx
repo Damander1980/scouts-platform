@@ -2,9 +2,10 @@ import { ImageResponse } from "next/og";
 
 export async function GET(request: Request, { params }: { params: Promise<{ size: string }> }) {
   const { size } = await params;
-  const px = size === "512" ? 512 : size === "180" ? 180 : 192;
+  // 1024 is the app-store icon; 2732 the native apps' splash screen (a small mark on a large square).
+  const px = ({ "180": 180, "512": 512, "1024": 1024, "2732": 2732 } as Record<string, number>)[size] ?? 192;
   const maskable = new URL(request.url).searchParams.get("maskable") === "1";
-  const inner = Math.round(px * (maskable ? 0.52 : 0.64));
+  const inner = Math.round(px * (px === 2732 ? 0.2 : maskable ? 0.52 : 0.64));
   return new ImageResponse(
     (
       // Mountain mark on gold (our own mark; deliberately not a fleur-de-lis, which is Scouting America's).
