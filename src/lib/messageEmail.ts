@@ -16,7 +16,7 @@ async function resend(payload: Record<string, unknown>) {
     method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify(payload),
   });
   const body = await res.json().catch(() => ({}));
-  return { status: res.ok ? ("sent" as const) : ("failed" as const), id: body?.id as string | undefined };
+  return { status: res.ok ? ("sent" as const) : ("failed" as const), id: body?.id as string | undefined, code: res.status };
 }
 
 /**
@@ -97,9 +97,11 @@ export async function deliverMessage(messageId: string) {
       html,
       ...(fullEmail && senderEmail && !youthInvolved ? { reply_to: senderEmail } : {}),
       headers: { "List-Unsubscribe": `<${SITE_URL}/api/unsubscribe?p=${p.id}&t=${unsubscribeToken(p.id)}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
-    }).catch(() => ({ status: "failed" as const, id: undefined }));
+    }).catch(() => ({ status: "failed" as const, id: undefined, code: 0 }));
     let res = await send();
-    for (let i = 0; res.status === "failed" && i < 2; i++) {
+    // Only hiccups are worth retrying (network error, 429, 5xx); a bad address (4xx) will never succeed.
+    const transient = (c?: number) => c === 0 || c === 429 || (c !== undefined && c >= 500);
+    for (let i = 0; res.status === "failed" && transient((res as { code?: number }).code) && i < 2; i++) {
       await new Promise((ok) => setTimeout(ok, 800 * (i + 1)));
       res = await send();
     }

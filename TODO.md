@@ -16,7 +16,7 @@ Build order (Floyd, 2026-10-19): **PC web platform first, then the app, iOS last
 - [ ] **Push migrations 0042-0063** (`npx supabase db push`): 0042 admins need current YPT and
       private kid data needs a two-step session; 0043 Scoutbook upload tracking; 0044 linked-unit
       sign-ups; 0045 encrypted Scoutbook login storage (UI stays hidden until NEXT_PUBLIC_SCOUTBOOK_SYNC=on); 0046 Eagle project tracker; 0047 Patrol Leaders' Council space; 0048 trip duty rosters; 0049 message families who owe; 0050 merge duplicate people; 0051 Scoutbook activity log import; 0052 database hardening; 0053 sign-up/waitlist fixes; 0054 notices sent once; 0055 cross-troop security guards (important); 0056 message guards; 0057-0058 money fixes; 0059 public site guards; 0060 import/attendance fixes; 0061 Eagle/PLC guards; 0062 advancement sign-off guards (important); 0063 memberships can't be repointed (important), patrol guard, new phone needs new SMS consent.
-      0066 message groups (all Scouts, all parents, all adults); 0065 tetanus and swim-check dates on Forms & safety; 0064 platform owner view at /platform (all troops and users; kids first name + last initial).
+      0067 review fixes (merge keeps approver, import skips undated rows); 0066 message groups (all Scouts, all parents, all adults); 0065 tetanus and swim-check dates on Forms & safety; 0064 platform owner view at /platform (all troops and users; kids first name + last initial).
       Until pushed, those features stay hidden or fall back to the old behavior.
 - [ ] First time in Leader tools you'll set up two-step sign-in with an authenticator app.
 

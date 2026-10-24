@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireStaff } from "@/lib/context";
-import { Chip, fmtDate, fmtTime } from "@/components/ui";
+import { Chip, TIME_ZONE, fmtDate, fmtTime } from "@/components/ui";
 
 // Plain-language view of the audit log for unit admins: role changes, looks at private details,
 // Scoutbook exports and more. The log itself can't be edited (SPEC: Trust and data protection).
@@ -32,6 +32,16 @@ const LABEL: Record<string, string> = {
 const SENSITIVE = new Set(["person.merged", "private.viewed", "membership.changed", "position.assigned", "position.removed", "child_login.invited", "child_login.linked",
   "deletion.requested", "deletion.confirmed", "deletion.canceled", "scoutbook.connected", "scoutbook.disconnected"]);
 
+// First instant of a calendar day (YYYY-MM-DD) in the unit's zone, as an ISO string for the database.
+function startOfDay(day: string) {
+  const [y, m, d] = day.split("-").map(Number);
+  const wall = Date.UTC(y, m - 1, d); // the wanted wall-clock time, as if it were UTC
+  const offsetAt = (instant: number) => new Date(new Date(instant).toLocaleString("en-US", { timeZone: TIME_ZONE })).getTime() - new Date(new Date(instant).toLocaleString("en-US", { timeZone: "UTC" })).getTime();
+  let t = wall - offsetAt(wall);
+  t = wall - offsetAt(t); // settle across a daylight-saving change
+  return new Date(t).toISOString();
+}
+
 function detail(r: Row) {
   const p = r.payload ?? {};
   if (r.action === "private.viewed" && typeof p.count === "number") return `${p.count} ${p.count === 1 ? "person" : "people"}`;
@@ -47,16 +57,24 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   const day = /^\d{4}-\d{2}-\d{2}$/;
   let q = supabase.from("audit_log").select("id, actor_id, action, target_type, payload, created_at").eq("org_id", current.org.id).order("created_at", { ascending: false }).limit(300);
   if (only === "sensitive") q = q.in("action", [...SENSITIVE]);
-  if (from && day.test(from)) q = q.gte("created_at", `${from}T00:00:00`);
-  if (to && day.test(to)) q = q.lte("created_at", `${to}T23:59:59`);
+  if (from && day.test(from)) q = q.gte("created_at", startOfDay(from));
+  if (to && day.test(to)) q = q.lt("created_at", startOfDay(new Date(Date.parse(`${to}T12:00:00Z`) + 86400000).toISOString().slice(0, 10)));
+  // Narrow by person in the query itself, so the 300-row cap applies to that person's actions, not to everyone's.
+  const whoText = (who ?? "").trim().toLowerCase();
+  let whoNone = false;
+  if (whoText) {
+    const tok = whoText.split(/s+/)[0].replace(/[^a-z0-9'-]/g, "");
+    const { data: cands } = tok ? await supabase.from("persons").select("id, first_name, last_name").or(`first_name.ilike.%${tok}%,last_name.ilike.%${tok}%`).limit(200) : { data: [] };
+    const hit = ((cands ?? []) as { id: string; first_name: string; last_name: string }[]).filter((c) => `${c.first_name} ${c.last_name}`.toLowerCase().includes(whoText)).map((c) => c.id);
+    if (hit.length) q = q.in("actor_id", hit); else whoNone = true;
+  }
   // "kind" is the first part of an action name, e.g. membership, rsvp, event, form.
   if (kind && /^[a-z_]+$/.test(kind)) q = q.like("action", `${kind}.%`);
-  const { data } = await q;
-  let rows = (data ?? []) as Row[];
+  const { data } = whoNone ? { data: [] } : await q;
+  const rows = (data ?? []) as Row[];
   const ids = [...new Set(rows.map((r) => r.actor_id).filter(Boolean))] as string[];
   const { data: names } = ids.length ? await supabase.rpc("person_names", { p_ids: ids }) : { data: [] };
   const nameOf = Object.fromEntries(((names ?? []) as { id: string; first_name: string; last_name: string }[]).map((n) => [n.id, `${n.first_name} ${n.last_name}`]));
-  if (who?.trim()) rows = rows.filter((r) => (r.actor_id ? nameOf[r.actor_id] ?? "" : "system").toLowerCase().includes(who.trim().toLowerCase()));
   const kinds = [...new Set((data ?? []).map((r) => String(r.action).split(".")[0]))].sort();
   const filtered = !!(from || to || kind || who?.trim());
 

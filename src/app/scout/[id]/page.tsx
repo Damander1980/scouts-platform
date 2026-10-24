@@ -36,9 +36,9 @@ export default async function ScoutOverviewPage({ params }: { params: Promise<{ 
     supabase.from("leadership_positions").select("title, start_date, end_date").eq("org_id", orgId).eq("person_id", id).order("start_date", { ascending: false }),
     supabase.from("scout_advancement").select("status, completed_at, advancement_items(name, kind)").eq("person_id", id),
     canMedical ? supabase.from("forms").select("type, expires_at").eq("org_id", orgId).eq("person_id", id) : Promise.resolve({ data: [] }),
-    supabase.from("household_members").select("household_id").eq("person_id", id),
+    supabase.from("household_members").select("household_id, households!inner(org_id)").eq("person_id", id).eq("households.org_id", orgId),
     canPrivate ? supabase.rpc("person_private", { p_org: orgId, p_ids: [id] }).maybeSingle<{ birthdate: string | null }>() : Promise.resolve({ data: null }),
-    supabase.from("attendance").select("events(overnight_nights, service_hours, miles, canceled)").eq("org_id", orgId).eq("person_id", id).eq("present", true),
+    supabase.from("attendance").select("confirmed, method, events(kind, overnight_nights, service_hours, miles, canceled)").eq("org_id", orgId).eq("person_id", id).eq("present", true),
     supabase.from("scout_certifications").select("status, certifications(name)").eq("org_id", orgId).eq("person_id", id),
   ]);
 
@@ -48,7 +48,9 @@ export default async function ScoutOverviewPage({ params }: { params: Promise<{ 
     : { data: [] };
   const guardians = ((members ?? []) as unknown as { person_id: string; is_guardian: boolean; persons: { first_name: string; last_name: string } }[])
     .filter((x) => x.is_guardian && x.person_id !== id);
-  const balance = canMoney && householdIds.length ? await householdBalance(supabase, householdIds[0], orgId) : null;
+  // The family this unit bills (a Scout can be in a second household, or one in a linked unit).
+  const { data: billedHousehold } = canMoney ? await supabase.rpc("person_household_in", { pid: id, org: orgId }) : { data: null };
+  const balance = canMoney && billedHousehold ? await householdBalance(supabase, billedHousehold as string, orgId) : null;
 
   const ranks = ((rankRows ?? []) as unknown as { status: string; completed_at: string | null; advancement_items: { name: string; kind: string } | null }[])
     .filter((r) => r.advancement_items?.kind === "rank" && r.status === "completed")
@@ -56,9 +58,11 @@ export default async function ScoutOverviewPage({ params }: { params: Promise<{ 
   const badgesEarned = ((rankRows ?? []) as unknown as { status: string; advancement_items: { kind: string } | null }[])
     .filter((r) => r.advancement_items?.kind === "badge" && r.status === "completed").length;
 
-  type Ev = { overnight_nights: number; service_hours: number; miles: number; canceled: boolean };
-  const events = ((att ?? []) as unknown as { events: Ev | null }[]).map((a) => a.events).filter((e): e is Ev => !!e && !e.canceled);
-  const nights = events.reduce((s, e) => s + Number(e.overnight_nights || 0), 0);
+  // Same rule as the attendance report: a QR self check-in counts only once a leader confirms it.
+  type Ev = { kind: string; overnight_nights: number; service_hours: number; miles: number; canceled: boolean };
+  const events = ((att ?? []) as unknown as { confirmed: boolean | null; method: string | null; events: Ev | null }[])
+    .filter((a) => a.confirmed !== false || (a.method ?? "") !== "qr").map((a) => a.events).filter((e): e is Ev => !!e && !e.canceled);
+  const nights = events.filter((e) => e.kind !== "service").reduce((s, e) => s + Number(e.overnight_nights || 0), 0);
   const service = events.reduce((s, e) => s + Number(e.service_hours || 0), 0);
 
   const today = isoDay();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Chip, ErrorBox, money } from "@/components/ui";
@@ -53,6 +53,13 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(push, 600);
   };
+  // Leaving the page (or closing the tab) inside the debounce window must not drop the last edit.
+  useEffect(() => {
+    const flush = () => { if (timer.current) clearTimeout(timer.current); void push(); };
+    window.addEventListener("pagehide", flush);
+    return () => { window.removeEventListener("pagehide", flush); flush(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const list = (k: keyof Plan) => plan[k] ?? [];
   const add = (k: keyof Plan, item: Partial<Item>) => save({ ...plan, [k]: [...list(k), { id: uid(), text: "", ...item }] });
   const update = (k: keyof Plan, id: string, patch: Partial<Item>) => save({ ...plan, [k]: list(k).map((x) => (x.id === id ? { ...x, ...patch } : x)) });

@@ -33,8 +33,13 @@ function inQuietHours(start: string, end: string, tz: string) {
 
 // Marks a one-time system notice as sent; false if it already was (a unique index makes this race-free).
 export async function claimOnce(db: NonNullable<ReturnType<typeof adminClient>>, key: string) {
+  // Look first so this still dedupes before the unique index exists; the index closes the race once it does.
+  const { data: seen } = await db.from("notification_log").select("id").eq("category", key).eq("channel", "system").limit(1);
+  if (seen?.length) return false;
   const { error } = await db.from("notification_log").insert({ category: key, channel: "system", status: "done" });
-  return !error;
+  if (!error) return true;
+  if (error.code === "23505") return false; // someone else just claimed it
+  throw new Error(`Could not record notice ${key}: ${error.message}`); // a real failure must not look like "already sent"
 }
 
 const esc = (t: string) => t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);

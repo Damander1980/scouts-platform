@@ -20,8 +20,13 @@ export async function POST(request: Request) {
   const { data: canEvents } = await supabase.rpc("has_perm", { org: ev.org_id, perm: "events.manage" });
   if (!isLeader && !canEvents) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  // One notice per actual new time/place: repeat saves or POSTs don't text families again.
-  if (!(await claimOnce(db, `change:${ev.id}:${ev.start_at}|${ev.end_at ?? ""}|${ev.location ?? ""}`))) return NextResponse.json({ notified: 0 });
+  // One notice per actual new time/place: repeat saves or POSTs don't text families again, but moving the
+  // time away and back sends a fresh notice (the key carries how many notices this event has had).
+  const prefix = `change:${ev.id}:`;
+  const sig = `${ev.start_at}|${ev.end_at ?? ""}|${ev.location ?? ""}`;
+  const { data: prior } = await db.from("notification_log").select("category").eq("channel", "system").like("category", `${prefix}%`).order("created_at", { ascending: false });
+  if (prior?.[0] && prior[0].category.slice(prefix.length).split("#")[0] === sig) return NextResponse.json({ notified: 0 });
+  if (!(await claimOnce(db, `${prefix}${sig}#${prior?.length ?? 0}`))) return NextResponse.json({ notified: 0 });
 
   const { data: rs } = await db.from("rsvps").select("person_id, persons(type)").eq("event_id", ev.id).in("status", ["going", "waitlisted"]);
   const ids = new Set<string>();
