@@ -59,7 +59,7 @@ export async function deliverMessage(messageId: string) {
   const word = "Troop";
   const unit = `${word} ${org.unit_number ?? ""}`.trim();
   const fromName = `${unit} - ${sender.first_name} ${sender.last_name}`.replace(/["<>]/g, "");
-  const fromAddr = process.env.EMAIL_FROM_ADDRESS || "mail@scoutplatform.app";
+  const fromAddr = process.env.EMAIL_FROM_ADDRESS || "mail@ourtroopmanager.com";
   const senderEmail = sender.email || (sender.users as unknown as { email: string } | null)?.email || null;
   const link = `${SITE_URL}/messages/${messageId}`;
   const directNames = all.filter((r) => r.copy_reason === "direct").map((r) => `${r.persons.first_name} ${r.persons.last_name}`).sort();

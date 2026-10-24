@@ -10,4 +10,4 @@ Decisions made (Floyd): flat $125/year per unit; two-way Scoutbook sync wanted (
 
 More decisions 2026-10-21: troop chooses whether families or the troop pay card fees; troop chooses which payment methods it accepts (Stripe, cash/check or both); every payer is an individual account and parents can pay for their kids, including on linked-unit events; unit admins also need current YPT to see private kid data; two-step verification required for admins, leaders and treasurers; 30-day free trial; Scouts BSA troops only (Cub, Venturing, Sea Scout, Trail Life and AHG code removed 2026-10-21; add back later as separate work); support reply within 24-48 business hours; no setup-time numbers in marketing.
 
-Open: product name/domain not decided; verify Scoutbook import findings with Troop 999 leaders.
+Domain: ourtroopmanager.com registered (Floyd, 2026-10-23). Open: product name (domain suggests "Our Troop Manager"; app still says ScoutPlatform); verify Scoutbook import findings with Troop 999 leaders.

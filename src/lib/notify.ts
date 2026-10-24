@@ -10,7 +10,7 @@ async function sendEmail(to: string, subject: string, html: string, personId?: s
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.EMAIL_FROM || "ScoutPlatform <notify@scoutplatform.app>", to, subject, html,
+    body: JSON.stringify({ from: process.env.EMAIL_FROM || "ScoutPlatform <notify@ourtroopmanager.com>", to, subject, html,
       ...(personId ? { headers: { "List-Unsubscribe": `<${SITE_URL}/api/unsubscribe?p=${personId}&t=${unsubscribeToken(personId)}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } } : {}) }),
   });
   const body = await res.json().catch(() => ({}));

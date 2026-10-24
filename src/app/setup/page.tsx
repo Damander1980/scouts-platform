@@ -170,7 +170,7 @@ export default function SetupPage() {
                   Your page address
                 </span>
                 <span className="font-display font-bold text-xl break-all">
-                  scoutplatform.app/{slug.toLowerCase()}
+                  ourtroopmanager.com/{slug.toLowerCase()}
                 </span>
                 <span className="text-sm text-smoke">
                   Free with your plan. Families come here to RSVP and pay.
