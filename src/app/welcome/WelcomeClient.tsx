@@ -261,7 +261,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
               </form>
             )}
 
-            {!requested && (
+            {!requested && !hasTroop && (
               <div className="card flex flex-col gap-2">
                 <div className="font-bold text-[17px]">Starting a new troop?</div>
                 <p className="text-[14px] text-smoke m-0">Set it up yourself. You become its first admin.</p>

@@ -101,7 +101,7 @@ export default function AppShell({
               </button>
             ))}
             <Link href="/welcome?step=troop" className="px-3 py-2.5 text-[14px] font-bold no-underline min-h-[44px] flex items-center" style={{ color: "#D7E0EE" }}>
-              + Join or start another troop
+              + Join another troop
             </Link>
           </div>
         )}

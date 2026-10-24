@@ -2,7 +2,7 @@
 
 import StateSelect from "@/components/StateSelect";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -29,6 +29,23 @@ export default function SetupPage() {
   const [error, setError] = useState("");
   // Once the troop exists, a retry after a later step fails must not create a second one.
   const [createdOrg, setCreatedOrg] = useState<string | null>(null);
+
+  // Someone who already runs a troop can't start another (the database refuses too).
+  const [runs, setRuns] = useState<string | null>(null);
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: owner } = await supabase.rpc("am_platform_owner");
+      if (owner) return;
+      const { data: me } = await supabase.from("persons").select("id").eq("user_id", user.id).maybeSingle();
+      if (!me) return;
+      const { data: ms } = await supabase.from("memberships").select("organizations(name)").eq("person_id", me.id).eq("is_admin", true).eq("status", "active").limit(1);
+      const name = (ms?.[0]?.organizations as unknown as { name: string } | null)?.name;
+      if (name) setRuns(name);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const unit = UNIT_TYPES.find((u) => u.id === unitId)!;
   const slug = makeSlug(unit.word, number, city);
@@ -79,6 +96,18 @@ export default function SetupPage() {
     2: `Name your ${unit.word.toLowerCase()}`,
     3: "Bring your data",
   };
+
+  if (runs) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-5" style={{ background: "#E9E3D6" }}>
+        <div className="w-full max-w-[460px] bg-white rounded-[20px] p-8 flex flex-col gap-4">
+          <h1 className="font-display font-extrabold text-[28px] m-0">You already run {runs}</h1>
+          <p className="text-[15px] text-smoke m-0">Each admin can start one troop. To help another troop, ask its admin for the join link.</p>
+          <a href="/admin" className="btn-primary no-underline text-center">Go to Leader tools</a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-canvas flex items-start sm:items-center justify-center sm:py-10">
