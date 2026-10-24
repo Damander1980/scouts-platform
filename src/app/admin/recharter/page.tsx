@@ -15,6 +15,7 @@ export default async function RecharterPage({ searchParams }: { searchParams: Pr
   ]);
 
   const people: Person[] = ((ms ?? []) as unknown as { role: string; ypt_expires: string | null; registration_expires: string | null; persons: { id: string; first_name: string; last_name: string; type: string } }[])
+    .filter((m) => m.persons)
     .map((m) => ({ id: m.persons.id, name: `${m.persons.first_name} ${m.persons.last_name}`, last: m.persons.last_name, type: m.persons.type, role: ROLE_LABELS[m.role] ?? m.role, ypt: m.ypt_expires, reg: m.registration_expires }))
     .sort((a, b) => a.type.localeCompare(b.type) || a.last.localeCompare(b.last));
 

@@ -11,6 +11,7 @@ export default async function GearPage() {
     supabase.from("documents").select("id, title, url, category, visibility").eq("org_id", orgId).order("category").order("title"),
   ]);
   const people = ((members ?? []) as unknown as { person_id: string; persons: { first_name: string; last_name: string } }[])
+    .filter((m) => m.persons)
     .map((m) => ({ id: m.person_id, name: `${m.persons.first_name} ${m.persons.last_name}` })).sort((a, b) => a.name.localeCompare(b.name));
   return <GearClient orgId={orgId} items={items ?? []} outs={outs ?? []} people={people} docs={docs ?? []} />;
 }

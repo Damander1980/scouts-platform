@@ -193,17 +193,22 @@ export default function SiteEditor({ orgId, slug, isAdmin, site: initial, settin
                         <div className="max-h-40 overflow-y-auto border border-border rounded-lg p-2 bg-white">
                           {people.filter((p) => p.type === "youth").map((p) => (
                             <label key={p.id} className="flex items-center gap-2 text-[12px]">
-                              <input type="checkbox" checked={ph.tagged.includes(p.id)} disabled={busy} onChange={(e) => run(async () => {
+                              <input type="checkbox" checked={ph.tagged.includes(p.id)} disabled={busy} onChange={(e) => {
+                                // Read the tick now: React puts the controlled box back to its old state right after
+                                // this handler, so after the await below e.target.checked would be the old value.
+                                const checked = e.target.checked;
+                                run(async () => {
                                 // Read the current tags first: two quick taps must not drop one (an untagged no-consent
                                 // Scout would leave the photo public).
                                 const { data: cur, error: rErr } = await supabase.from("photos").select("tagged").eq("id", ph.id).single();
                                 if (rErr) throw rErr;
                                 const have: string[] = cur?.tagged ?? [];
-                                const next = e.target.checked ? [...new Set([...have, p.id])] : have.filter((x) => x !== p.id);
+                                const next = checked ? [...new Set([...have, p.id])] : have.filter((x) => x !== p.id);
                                 const { data: done, error } = await supabase.from("photos").update({ tagged: next }).eq("id", ph.id).select("id");
                                 if (error) throw error;
                                 if (!done?.length) throw new Error("That photo didn't update. Reload and try again.");
-                              })} />
+                                });
+                              }} />
                               {p.name} {!p.consent && <span style={{ color: "#5E4400" }}>(no consent)</span>}
                             </label>
                           ))}

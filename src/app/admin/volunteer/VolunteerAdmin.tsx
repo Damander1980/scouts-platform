@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Field, TIME_ZONE } from "@/components/ui";
+import { Chip, ErrorBox, Field, TIME_ZONE, fromZonedInput } from "@/components/ui";
 
 type Shift = { id: string; title: string; location: string | null; starts_at: string; ends_at: string; slots: number };
 type Poll = { id: string; question: string; options: string[]; audience: string; closes_at: string | null };
@@ -28,7 +28,7 @@ export default function VolunteerAdmin({ orgId, shifts, signups, polls, votes }:
       <section className="flex flex-col gap-2">
         <div className="font-bold text-[16px]">Volunteer shifts</div>
         <form className="card grid sm:grid-cols-5 gap-2 items-end" onSubmit={(e) => { e.preventDefault(); run(async () => {
-          const { error } = await supabase.from("shifts").insert({ org_id: orgId, title: s.title, location: s.location || null, starts_at: new Date(s.start).toISOString(), ends_at: new Date(s.end).toISOString(), slots: parseInt(s.slots) || 1 });
+          const { error } = await supabase.from("shifts").insert({ org_id: orgId, title: s.title, location: s.location || null, starts_at: fromZonedInput(s.start), ends_at: fromZonedInput(s.end), slots: parseInt(s.slots) || 1 });
           if (error) throw error; setS({ ...s, title: "" });
         }); }}>
           <Field label="Shift"><input className="input" value={s.title} onChange={(e) => setS({ ...s, title: e.target.value })} required placeholder="Popcorn booth at Kroger" /></Field>
@@ -58,7 +58,7 @@ export default function VolunteerAdmin({ orgId, shifts, signups, polls, votes }:
           if (options.length < 2) throw new Error("Give at least two choices, one per line.");
           const { data: { user } } = await supabase.auth.getUser();
           const { data: me } = await supabase.from("persons").select("id").eq("user_id", user!.id).single();
-          const { error } = await supabase.from("polls").insert({ org_id: orgId, question: p.question, options, audience: p.audience, closes_at: p.closes ? new Date(p.closes).toISOString() : null, created_by: me!.id });
+          const { error } = await supabase.from("polls").insert({ org_id: orgId, question: p.question, options, audience: p.audience, closes_at: fromZonedInput(p.closes), created_by: me!.id });
           if (error) throw error; setP({ question: "", options: "", audience: "all", closes: "" });
         }); }}>
           <Field label="Question"><input className="input" value={p.question} onChange={(e) => setP({ ...p, question: e.target.value })} required placeholder="Where should spring campout be?" /></Field>

@@ -6,7 +6,8 @@ import { Chip, fmtDate, fmtTime } from "@/components/ui";
 import ReplyBox from "./ReplyBox";
 
 const AUDIENCE: Record<string, string> = {
-  troop: "Whole unit", patrol: "Patrol", event: "Everyone going to an event", nonresponders: "Families who hadn't replied",
+  troop: "Whole unit", scouts: "All Scouts", parents: "All parents and guardians", adults: "All adults",
+  owing: "Families who owe money", patrol: "Patrol", event: "Everyone going to an event", nonresponders: "Families who hadn't replied",
   people: "Selected people", leaders: "Leaders", reply: "Reply to group",
 };
 
@@ -19,11 +20,11 @@ export default async function MessagePage({ params }: { params: Promise<{ id: st
   if (!msg || msg.org_id !== current.org.id) notFound();
   const rootId = msg.parent_id ?? msg.id;
 
-  const [{ data: thread }, { data: mine }] = await Promise.all([
-    supabase.from("message_log").select("id, sender_id, body, subject, created_at, audience").or(`id.eq.${rootId},parent_id.eq.${rootId}`).order("created_at"),
-    supabase.from("message_recipients").select("message_id, read_at").eq("person_id", person.id),
-  ]);
+  const { data: thread } = await supabase.from("message_log").select("id, sender_id, body, subject, created_at, audience").or(`id.eq.${rootId},parent_id.eq.${rootId}`).order("created_at");
   const visible = (thread ?? []);
+  // Only this thread's rows: loading every message the person ever got would hit the row cap for busy members.
+  const { data: mine } = await supabase.from("message_recipients").select("message_id, read_at").eq("person_id", person.id)
+    .in("message_id", [...new Set([id, ...visible.map((v) => v.id)])]);
   const iReceived = (mine ?? []).some((r) => r.message_id === id);
   if (!iReceived && isAdmin) await supabase.rpc("log_message_view", { p_org: current.org.id });
 

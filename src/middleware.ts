@@ -43,7 +43,10 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = user ? "/home" : "/login";
     url.search = "";
-    return NextResponse.redirect(url);
+    // Carry over any session cookies getUser() just refreshed, or the rotated sign-in is lost.
+    const res = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((c) => res.cookies.set(c));
+    return res;
   }
 
   if (isAppRoute && !user) {

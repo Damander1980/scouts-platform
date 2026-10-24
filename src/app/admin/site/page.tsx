@@ -11,6 +11,7 @@ export default async function SitePage() {
     supabase.from("contact_requests").select("id, name, email, phone, message, handled, created_at, to_person").eq("org_id", orgId).order("created_at", { ascending: false }).limit(50),
   ]);
   const people = ((members ?? []) as unknown as { person_id: string; role: string; persons: { first_name: string; last_name: string; type: string; photo_consent: boolean | null } }[])
+    .filter((m) => m.persons)
     .map((m) => ({ id: m.person_id, name: `${m.persons.first_name} ${m.persons.last_name}`, type: m.persons.type, consent: m.persons.photo_consent, role: m.role }))
     .sort((a, b) => a.name.localeCompare(b.name));
   return (

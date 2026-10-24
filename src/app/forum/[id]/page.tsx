@@ -16,6 +16,7 @@ export default async function TopicPage({ params }: { params: Promise<{ id: stri
     supabase.from("memberships").select("person_id, persons(first_name, last_name, nickname, type)").eq("org_id", current.org.id),
   ]);
   const who = Object.fromEntries(((ms ?? []) as unknown as { person_id: string; persons: { first_name: string; last_name: string; nickname: string | null; type: string } }[])
+    .filter((m) => m.persons)
     .map((m) => [m.person_id, { name: `${m.persons.nickname || m.persons.first_name} ${m.persons.last_name}`, youth: m.persons.type === "youth" }]));
   const canModerate = ctx.isLeader || ctx.isAdmin;
 

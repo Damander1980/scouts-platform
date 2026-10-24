@@ -72,7 +72,7 @@ export default function MoneyClient(props: {
               const res = await fetch("/api/stripe/connect", { method: "POST" });
               const body = await res.json();
               if (!body.url) throw new Error(body.error ?? "Couldn't start Stripe setup");
-              await openOutside(body.url);
+              await openOutside(body.url, () => router.refresh());
             })}>Connect bank account</button>
           )}
         </div>

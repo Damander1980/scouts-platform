@@ -14,11 +14,14 @@ export default async function MessagesPage() {
   const ctx = await requireOrg();
   const { supabase, person, current } = ctx;
 
+  // Newest 200 in this troop: filter and order on the message itself (message ids are random, so ordering
+  // by them and filtering the troop after the limit would show an arbitrary 200).
   const { data } = await supabase.from("message_recipients")
-    .select("read_at, copy_reason, message_log(id, org_id, subject, body, sender_id, created_at, audience)")
-    .eq("person_id", person.id).order("message_id", { ascending: false }).limit(200);
+    .select("read_at, copy_reason, message_log!inner(id, org_id, subject, body, sender_id, created_at, audience)")
+    .eq("person_id", person.id).eq("message_log.org_id", current.org.id)
+    .order("message_log(created_at)", { ascending: false }).limit(200);
   const rows = ((data ?? []) as unknown as Row[])
-    .filter((r) => r.message_log && r.message_log.org_id === current.org.id)
+    .filter((r) => r.message_log)
     .sort((a, b) => b.message_log!.created_at.localeCompare(a.message_log!.created_at));
 
   const senderIds = [...new Set(rows.map((r) => r.message_log!.sender_id).filter(Boolean))] as string[];

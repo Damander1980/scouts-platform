@@ -27,7 +27,8 @@ export default function PayClient({ orgId, balance, online, prefs, scoutBalances
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amountCents: cents }),
     });
     const body = await res.json().catch(() => ({}));
-    if (body.url) { await openOutside(body.url); setBusy(false); }
+    // In the apps the payment page is a sheet over this one; show the new balance once it's closed.
+    if (body.url) { await openOutside(body.url, () => router.refresh()); setBusy(false); }
     else { setError(body.error ?? "Couldn't start the payment."); setBusy(false); }
   }
 

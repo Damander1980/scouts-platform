@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient, createEmailLinkClient } from "@/lib/supabase/client";
 import Mark from "@/components/Mark";
 import PasswordInput from "@/components/PasswordInput";
-import { APP_SCHEME, isNativeApp, openOutside } from "@/lib/native";
+import { APP_SCHEME, hasInAppSheet, openOutside } from "@/lib/native";
 import { safeNext } from "@/lib/safeNext";
 
 type Mode = "signin" | "signup" | "forgot";
@@ -59,7 +59,7 @@ export default function LoginPage() {
   async function google() {
     // In the iOS/Android apps Google refuses sign-in inside the app's web view, so it opens in the secure
     // system sheet and comes back through the app's own address (NativeBridge finishes it).
-    if (isNativeApp()) {
+    if (hasInAppSheet()) {
       const { data, error } = await createClient().auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: `${APP_SCHEME}://auth/callback?next=${encodeURIComponent(next)}`, skipBrowserRedirect: true },

@@ -12,7 +12,8 @@ export default async function SkillsPage({ searchParams }: { searchParams: Promi
     supabase.from("adult_skills").select("person_id, skills, other, can_drive, updated_at").eq("org_id", orgId),
     supabase.from("memberships").select("person_id, persons(first_name, last_name, type)").eq("org_id", orgId).eq("status", "active"),
   ]);
-  const people = (ms ?? []) as unknown as { person_id: string; persons: { first_name: string; last_name: string; type: string } }[];
+  const people = ((ms ?? []) as unknown as { person_id: string; persons: { first_name: string; last_name: string; type: string } }[])
+    .filter((m) => m.persons);
   const nameOf = Object.fromEntries(people.map((m) => [m.person_id, `${m.persons.first_name} ${m.persons.last_name}`]));
   const all = (rows ?? []).filter((r) => nameOf[r.person_id]);
   const shown = all.filter((r) => (!skill || r.skills.includes(skill)) && (!drive || r.can_drive))
