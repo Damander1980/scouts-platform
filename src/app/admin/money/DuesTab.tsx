@@ -72,7 +72,8 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
   // The plan in view right now (run() reads it after an await, when its own closure may be stale).
   // Updated together with the state, so it is current before React re-renders.
   const selectedRef = useRef(selected);
-  const setSelected = (id: string | null) => { selectedRef.current = id; setSelectedState(id); };
+  // An open Waive / reduce form belongs to the plan it was opened on, so switching plans closes it.
+  const setSelected = (id: string | null) => { selectedRef.current = id; setSelectedState(id); setAdj(null); };
   const [troop, setTroop] = useState("our troop");
   const [kind, setKind] = useState<Template>("yearly");
   const [note, setNote] = useState({ subject: "", body: "" });
@@ -91,10 +92,14 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
 
   useEffect(() => {
     if (!selected) { setRows([]); return; }
+    // Switching plans quickly: a slower answer for the previous plan must not replace this one's list.
+    let live = true;
     supabase.rpc("dues_status", { p_plan: selected }).then(({ data, error: dErr }) => {
+      if (!live) return;
       if (dErr) setError(`Couldn't load who owes dues: ${dErr.message}`); // never show an empty list as "nobody owes"
       setRows((data ?? []) as Row[]);
     });
+    return () => { live = false; };
   }, [selected, supabase]);
 
   const run = async (fn: () => Promise<void>, msg?: string) => {
@@ -182,7 +187,8 @@ export default function DuesTab({ orgId, plans, canEdit }: { orgId: string; plan
               // Parents of the families this plan charged (a reminder: only those still owing). Before the database
               // update (0077) the server doesn't know these audiences, so fall back to every family that owes.
               const send = (audience: string, ref: string | null) => supabase.rpc("send_message", { p_org: orgId, p_subject: note.subject || null, p_body: note.body, p_audience: audience, p_ref: ref, p_person_ids: null });
-              let { data: mid, error } = await send(kind === "reminder" ? "dues_owing" : "dues", plan.id);
+              // A welcome goes only to the families just charged; a reminder only to those still owing.
+              let { data: mid, error } = await send(kind === "reminder" ? "dues_owing" : kind === "welcome" ? "dues_recent" : "dues", plan.id);
               if (error && /unknown audience/i.test(error.message)) ({ data: mid, error } = await send("owing", null));
               if (error) throw new Error(charged ? `Charged ${charged} ${charged === 1 ? "family" : "families"}, but the message didn't send: ${error.message}` : error.message);
               fetch("/api/notify/message", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messageId: mid }) }).catch(() => {});

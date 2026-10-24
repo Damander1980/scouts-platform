@@ -24,7 +24,7 @@ const CATEGORIES = ["Dues", "Camping", "Equipment", "Advancement & awards", "Tra
 const dollars = (s: string) => Math.round(parseFloat(s || "0") * 100);
 
 export default function MoneyClient(props: {
-  orgId: string; myPersonId: string; isTreasurer: boolean; paymentsConfigured: boolean; stripeConnected: boolean; connectState: string | null;
+  orgId: string; myPersonId: string; isTreasurer: boolean; isAdmin: boolean; paymentsConfigured: boolean; stripeConnected: boolean; connectState: string | null;
   initialTab: string; balances: Balance[]; households: Household[]; expenses: Expense[]; budgets: Budget[]; transactions: Tx[];
   duesPlans: DuesPlan[]; campaigns: Campaign[]; goals: Goal[]; donations: Donation[]; fundraisers: Fundraiser[]; sales: Sale[]; scouts: { id: string; name: string }[];
 }) {
@@ -61,10 +61,12 @@ export default function MoneyClient(props: {
           <div>
             <div className="font-bold text-[15px]">Accept online payments</div>
             <div className="text-[13px] text-smoke">
-              {props.paymentsConfigured ? "Connect your unit's bank account through Stripe. Money goes straight to the unit; we never hold it." : "Online payments will turn on once the platform's Stripe keys are added."}
+              {!props.paymentsConfigured ? "Online payments will turn on once the platform's Stripe keys are added."
+                : props.isAdmin ? "Connect your unit's bank account through Stripe. Money goes straight to the unit; we never hold it."
+                : "A unit admin connects the unit's bank account through Stripe. Money goes straight to the unit; we never hold it."}
             </div>
           </div>
-          {props.paymentsConfigured && (
+          {props.paymentsConfigured && props.isAdmin && (
             <button className="btn-primary" disabled={busy} onClick={() => run(async () => {
               const res = await fetch("/api/stripe/connect", { method: "POST" });
               const body = await res.json();
@@ -366,6 +368,7 @@ function Fundraisers(p: Parameters<typeof MoneyClient>[0] & { busy: boolean; run
   const supabase = createClient();
   const [f, setF] = useState({ name: "", kind: "product", goal: "", target: "", share: "0", approved: "", start: "", end: "" });
   const [sale, setSale] = useState<{ fid: string; scout: string; amount: string; customer: string }>({ fid: "", scout: "", amount: "", customer: "" });
+  const [approval, setApproval] = useState<Record<string, string>>({});
   return (
     <div className="flex flex-col gap-4">
       <div className="card text-[13px]" style={{ background: "#F8F5EE" }}>
@@ -383,10 +386,12 @@ function Fundraisers(p: Parameters<typeof MoneyClient>[0] & { busy: boolean; run
             {!fr.money_earning_approved_on && p.isTreasurer && (
               <div className="flex gap-2 items-center flex-wrap">
                 <Chip tone="orange">Needs council approval date</Chip>
-                <input type="date" className="input h-10 min-h-0" onChange={(e) => e.target.value && p.run(async () => {
-                  const { error } = await supabase.from("fundraisers").update({ money_earning_approved_on: e.target.value }).eq("id", fr.id);
+                {/* Saved on Save, not on every change: typing a year fires changes like 0002-10-24 along the way. */}
+                <input type="date" aria-label="Council approval date" className="input w-auto" value={approval[fr.id] ?? ""} onChange={(e) => setApproval({ ...approval, [fr.id]: e.target.value })} />
+                <button className="btn-secondary" disabled={p.busy || !approval[fr.id]} onClick={() => p.run(async () => {
+                  const { error } = await supabase.from("fundraisers").update({ money_earning_approved_on: approval[fr.id] }).eq("id", fr.id);
                   if (error) throw error;
-                }, "Approval recorded.")} />
+                }, "Approval recorded.")}>Save</button>
               </div>
             )}
             {byScout.length > 0 && <div className="flex gap-1.5 flex-wrap">{byScout.map(([sid, cents]) => <Chip key={sid}>{p.scouts.find((x) => x.id === sid)?.name ?? "Scout"}: {money(cents)}</Chip>)}</div>}

@@ -77,7 +77,11 @@ export async function POST(request: Request) {
   if (event.type === "charge.refunded") {
     const charge = event.data.object as Stripe.Charge;
     const pi = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
-    if (pi) {
+    // One locked database step does the read-then-write (migration 0078), so two refund events at once can't
+    // both credit the family. The code below is the fallback until that update is pushed.
+    const locked = pi ? await db.rpc("record_card_refund", { p_pi: pi, p_total_refunded: charge.amount_refunded }) : null;
+    if (locked && locked.error && locked.error.code !== "PGRST202") return NextResponse.json({ error: "refund write failed" }, { status: 500 });
+    if (pi && locked?.error) {
       const { data: orig } = await db.from("ledger_entries").select("org_id, household_id, amount_cents").eq("stripe_pi_id", pi).eq("type", "payment").maybeSingle();
       // amount_refunded is the running total for the charge, so record only what's new since the
       // refunds already on the ledger (partial refunds arrive as separate events).

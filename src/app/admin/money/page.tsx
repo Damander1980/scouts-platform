@@ -4,13 +4,13 @@ import MoneyClient from "./MoneyClient";
 
 export default async function MoneyPage({ searchParams }: { searchParams: Promise<{ tab?: string; connect?: string }> }) {
   const { tab, connect } = await searchParams;
-  const { supabase, current, person } = await requirePerm("money.view", "money.manage", "fundraising.manage");
+  const { supabase, current, person, isAdmin } = await requirePerm("money.view", "money.manage", "fundraising.manage");
   const orgId = current.org.id;
 
   const year = new Date().getFullYear();
   const [
     { data: isTreasurer }, { data: balances }, { data: households }, { data: expenses }, { data: budgets },
-    { data: duesPlans }, { data: tx }, { data: campaigns }, { data: goals }, { data: donations }, { data: fundraisers }, { data: sales }, { data: org }, { data: scouts },
+    { data: duesPlans }, { data: tx }, { data: campaigns }, { data: goals }, { data: donations }, { data: fundraisers }, { data: sales }, { data: stripeRow }, { data: scouts },
   ] = await Promise.all([
     supabase.rpc("is_treasurer", { org: orgId }),
     supabase.rpc("unit_balances", { p_org: orgId }),
@@ -24,20 +24,19 @@ export default async function MoneyPage({ searchParams }: { searchParams: Promis
     supabase.from("donations").select("*").eq("org_id", orgId),
     supabase.from("fundraisers").select("id, name, goal_id, target_cents, scout_share_pct, starts_on, ends_on, money_earning_approved_on").eq("org_id", orgId).order("created_at", { ascending: false }),
     supabase.from("fundraiser_sales").select("fundraiser_id, scout_id, amount_cents").eq("org_id", orgId),
-    supabase.rpc("public_unit", { p_slug: current.org.slug }),
+    supabase.from("organizations").select("stripe_account_id").eq("id", orgId).maybeSingle(),
     supabase.from("memberships").select("person_id, persons(first_name, last_name, type)").eq("org_id", orgId).eq("status", "active"),
   ]);
 
   const people = ((scouts ?? []) as unknown as { person_id: string; persons: { first_name: string; last_name: string; type: string } }[]);
   const nameOf = Object.fromEntries(people.map((p) => [p.person_id, `${p.persons.first_name} ${p.persons.last_name}`]));
-  const { data: stripeRow } = await supabase.from("organizations").select("stripe_account_id").eq("id", orgId).maybeSingle();
-  void org;
 
   return (
     <MoneyClient
       orgId={orgId}
       myPersonId={person.id}
       isTreasurer={!!isTreasurer}
+      isAdmin={isAdmin}
       paymentsConfigured={paymentsEnabled()}
       stripeConnected={!!stripeRow?.stripe_account_id}
       connectState={connect ?? null}

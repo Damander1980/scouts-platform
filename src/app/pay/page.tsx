@@ -9,8 +9,11 @@ import { paymentPrefs } from "@/lib/fees";
 export default async function PayPage({ searchParams }: { searchParams: Promise<{ paid?: string }> }) {
   const { paid } = await searchParams;
   const ctx = await requireOrg();
-  const { supabase, current, householdId } = ctx;
+  const { supabase, current } = ctx;
   const orgId = current.org.id;
+  // The family this unit bills (same as checkout), not just the payer's first household (they may also be in another unit).
+  const { data: billed } = await supabase.rpc("person_household_in", { pid: ctx.person.id, org: orgId });
+  const householdId = (billed as string | null) ?? ctx.householdId;
 
   const [balance, { data: lines }, family] = await Promise.all([
     householdBalance(supabase, householdId, orgId),

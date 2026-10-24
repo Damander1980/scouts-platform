@@ -7,6 +7,9 @@ import { adminClient, SITE_URL } from "@/lib/admin";
 export async function POST() {
   const ctx = await getContext();
   if (!ctx.current || !ctx.isAdmin) return NextResponse.json({ error: "Only unit admins can connect payments" }, { status: 403 });
+  // Admins need two-step verification this session, like the rest of the unit tools (this attaches the unit's bank).
+  const { data: aal } = await ctx.supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.currentLevel !== "aal2") return NextResponse.json({ error: "Finish two-step verification first, then connect the bank account." }, { status: 403 });
   const s = stripe();
   const db = adminClient();
   if (!s || !db) return NextResponse.json({ error: "Payments aren't configured on this server yet." }, { status: 503 });

@@ -53,15 +53,38 @@ export default async function TreasurerReport({ searchParams }: { searchParams: 
   const r = range(period);
   const startAt = fromZonedInput(`${r.start}T00:00`)!, endAt = fromZonedInput(`${r.end}T00:00`)!;
 
-  const [{ data: ledger }, { data: tx }, { data: balances }, { data: budgets }] = await Promise.all([
-    supabase.from("ledger_entries").select("amount_cents, type, method, created_at, events(title)").eq("org_id", orgId).gte("created_at", startAt).lt("created_at", endAt),
-    supabase.from("unit_transactions").select("kind, category, amount_cents, occurred_on").eq("org_id", orgId).gte("occurred_on", r.start).lt("occurred_on", r.end),
+  // The API returns at most 1000 rows per call; a year of ledger lines can run past that, so read page by page.
+  const PAGE = 1000;
+  const allLedger = async () => {
+    const out: unknown[] = [];
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase.from("ledger_entries").select("amount_cents, type, method, created_at, events(title)")
+        .eq("org_id", orgId).gte("created_at", startAt).lt("created_at", endAt).order("created_at").order("id").range(from, from + PAGE - 1);
+      if (error) throw error;
+      out.push(...(data ?? []));
+      if ((data ?? []).length < PAGE) return out;
+    }
+  };
+  const allTx = async () => {
+    const out: Tx[] = [];
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase.from("unit_transactions").select("kind, category, amount_cents, occurred_on")
+        .eq("org_id", orgId).gte("occurred_on", r.start).lt("occurred_on", r.end).order("occurred_on").order("id").range(from, from + PAGE - 1);
+      if (error) throw error;
+      out.push(...((data ?? []) as Tx[]));
+      if ((data ?? []).length < PAGE) return out;
+    }
+  };
+  const [ledger, tx, { data: balances }, { data: budgets }] = await Promise.all([
+    allLedger(),
+    allTx(),
     supabase.rpc("unit_balances", { p_org: orgId }),
-    supabase.from("budgets").select("fiscal_year, starts_on, ends_on, approved_at, budget_lines(kind, category, planned_cents)").eq("org_id", orgId).lte("starts_on", r.end).gte("ends_on", r.start).order("starts_on", { ascending: false }).limit(1),
+    // r.end is exclusive: a budget that starts on it (next year's) doesn't cover this period.
+    supabase.from("budgets").select("fiscal_year, starts_on, ends_on, approved_at, budget_lines(kind, category, planned_cents)").eq("org_id", orgId).lt("starts_on", r.end).gte("ends_on", r.start).order("starts_on", { ascending: false }).limit(1),
   ]);
 
-  const L = (ledger ?? []) as unknown as Ledger[];
-  const T = (tx ?? []) as Tx[];
+  const L = ledger as unknown as Ledger[];
+  const T = tx;
   const payments = L.filter((l) => l.type === "payment");
   const refunds = L.filter((l) => l.type === "refund");
   const charges = L.filter((l) => l.type === "charge");

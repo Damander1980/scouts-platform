@@ -1,5 +1,6 @@
 -- Dues notices go to the families a plan actually charged ("dues"), or those of them who still owe
 -- ("dues_owing"), not to every family with any balance (code review, 2026-10-24). p_ref is the plan.
+-- "dues_recent": only families charged in the last 15 minutes, for welcoming the Scouts just charged.
 create or replace function public.send_message(
   p_org uuid, p_subject text, p_body text, p_audience text, p_ref uuid, p_person_ids uuid[]
 ) returns uuid language plpgsql security definer set search_path = public as $$
@@ -15,7 +16,7 @@ begin
   if p_audience in ('troop','nonresponders','event','people','scouts','parents','adults') and not leader then
     raise exception 'Only leaders can send to that group. You can message your leaders or reply to a message.';
   end if;
-  if p_audience in ('dues', 'dues_owing') then
+  if p_audience in ('dues', 'dues_owing', 'dues_recent') then
     if not (leader or public.has_perm(p_org, 'money.manage')) then raise exception 'Only leaders or the treasurer can message about dues'; end if;
     if not exists (select 1 from public.dues_plans where id = p_ref and org_id = p_org) then raise exception 'That charge is not in this unit'; end if;
   end if;
@@ -71,13 +72,14 @@ begin
       join public.household_members kid on kid.person_id = m.person_id
       join public.household_members g on g.household_id = kid.household_id and g.is_guardian
       where m.org_id = p_org and m.status = 'active';
-  elsif p_audience in ('dues', 'dues_owing') then
+  elsif p_audience in ('dues', 'dues_owing', 'dues_recent') then
     -- Parents and guardians of families this plan charged (never the Scouts themselves).
     insert into _rcpt select distinct hm.person_id, 'direct'
       from public.ledger_entries l
       join public.household_members hm on hm.household_id = l.household_id and hm.is_guardian
       where l.org_id = p_org and l.dues_plan_id = p_ref and l.type = 'charge'
-        and (p_audience = 'dues'
+        and (p_audience <> 'dues_recent' or l.created_at > now() - interval '15 minutes')
+        and (p_audience in ('dues', 'dues_recent')
              or (select coalesce(sum(x.amount_cents), 0) from public.ledger_entries x where x.household_id = l.household_id and x.org_id = p_org) > 0);
   elsif p_audience = 'owing' then
     -- Parents and guardians of families with a balance due (never the Scouts themselves).
