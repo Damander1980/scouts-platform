@@ -6,7 +6,7 @@ Steps that need your logins. Everything else is done in the code.
 ```
 npx supabase db push
 ```
-Pushes migrations 0042-0075. The site works without them, but the newer features stay hidden.
+Pushes migrations 0042-0076. The site works without them, but the newer features stay hidden.
 
 ## 2. Cloudflare (the site runs on Cloudflare Workers, next to the domain)
 Config is in `wrangler.jsonc`; the build adapter is OpenNext. The site address and time zone are already set there.

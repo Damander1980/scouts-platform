@@ -19,7 +19,7 @@ type Donation = { campaign_id: string | null; amount_cents: number; source: stri
 type Fundraiser = { id: string; name: string; goal_id: string | null; target_cents: number | null; scout_share_pct: number; starts_on: string | null; ends_on: string | null; money_earning_approved_on?: string | null };
 type Sale = { fundraiser_id: string; scout_id: string | null; amount_cents: number };
 
-const TABS: [string, string][] = [["balances", "Families"], ["dues", "Dues"], ["expenses", "Reimbursements"], ["budget", "Budget"], ["fundraising", "Fundraising"]];
+const TABS: [string, string][] = [["balances", "Families"], ["dues", "Dues and charges"], ["expenses", "Reimbursements"], ["budget", "Budget"], ["fundraising", "Fundraising"]];
 const CATEGORIES = ["Dues", "Camping", "Equipment", "Advancement & awards", "Training", "Fundraising", "Donations", "Program supplies", "Insurance & recharter", "Other"];
 const dollars = (s: string) => Math.round(parseFloat(s || "0") * 100);
 

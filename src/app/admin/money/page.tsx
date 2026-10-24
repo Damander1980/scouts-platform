@@ -17,7 +17,7 @@ export default async function MoneyPage({ searchParams }: { searchParams: Promis
     supabase.rpc("unit_households", { p_org: orgId }),
     supabase.from("expense_requests").select("id, requested_by, category, amount_cents, description, receipt_path, status, created_at, approved_by, events(title)").eq("org_id", orgId).order("created_at", { ascending: false }).limit(100),
     supabase.from("budgets").select("id, fiscal_year, starts_on, ends_on, approved_at, alert_pct, budget_lines(id, kind, category, planned_cents)").eq("org_id", orgId).order("starts_on", { ascending: false }),
-    supabase.from("dues_plans").select("id, name, school_year, amount_cents, due_on, applies_to").eq("org_id", orgId).order("created_at", { ascending: false }),
+    supabase.from("dues_plans").select("*").eq("org_id", orgId).order("created_at", { ascending: false }),
     supabase.from("unit_transactions").select("kind, category, amount_cents, occurred_on").eq("org_id", orgId).gte("occurred_on", `${year - 1}-01-01`),
     supabase.from("donation_campaigns").select("id, slug, title, description, target_cents, active, goal_id").eq("org_id", orgId).order("created_at", { ascending: false }),
     supabase.from("fundraising_goals").select("id, title, description, target_cents, deadline, is_public").eq("org_id", orgId).order("created_at", { ascending: false }),
