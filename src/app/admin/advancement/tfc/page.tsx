@@ -4,8 +4,6 @@ import { loadCatalog } from "@/lib/advancement";
 import { TFC_RANKS, trailToFirstClass } from "@/lib/tfc";
 import type { Progress } from "@/components/AdvancementClient";
 import PrintButton from "@/components/PrintButton";
-import { starterModules } from "@/lib/skillTopics";
-import ModuleLibrary, { type Module, type Session } from "./ModuleLibrary";
 
 // Every Scout still on the Trail to First Class, and the requirements most of them still need,
 // so the troop can plan meetings and campouts around them.
@@ -60,13 +58,6 @@ export default async function TfcTracker() {
   const need = new Map<string, number>();
   for (const x of onTrail) for (const r of x.tfc.all) if (r.status === "todo") need.set(r.id, (need.get(r.id) ?? 0) + 1);
   const allReqs = onTrail[0]?.tfc.all ?? trailToFirstClass(rankItems, {}, new Set()).all;
-  const [{ data: mods }, { data: sess }] = await Promise.all([
-    supabase.from("skill_modules").select("id, title, requirement_ids, notes, links, sort").eq("org_id", orgId).order("sort").order("created_at"),
-    supabase.from("skill_sessions").select("id, module_id, on_date").eq("org_id", orgId).order("on_date"),
-  ]);
-  const rankOrder = rankItems.map((i) => i.name);
-  const planReqs = rankOrder.map((rank) => ({ rank, items: allReqs.filter((r) => r.rankName === rank)
-    .map((r) => ({ id: r.id, label: `${r.rankName} ${r.number}`, text: r.text, need: need.get(r.id) ?? 0 })) })).filter((g) => g.items.length);
   const mostNeeded = allReqs.map((r) => ({ r, n: need.get(r.id) ?? 0 })).filter((x) => x.n > 0).sort((a, b) => b.n - a.n).slice(0, 12);
 
   return (
@@ -102,8 +93,13 @@ export default async function TfcTracker() {
         </section>
       )}
 
-      <ModuleLibrary orgId={orgId} reqs={planReqs} modules={(mods ?? []) as Module[]} sessions={(sess ?? []) as Session[]}
-        scoutsOnTrail={onTrail.length} starter={starterModules(allReqs)} />
+      <section className="card flex items-center gap-3 flex-wrap">
+        <div className="flex-1 min-w-[220px]">
+          <div className="font-bold text-[17px]">Plan what the next meeting teaches</div>
+          <p className="text-[13px] text-smoke m-0">Skill modules (knots, first aid, cooking...) for any rank or merit badge, scheduled on meeting dates. Scouts see them ahead of time with videos.</p>
+        </div>
+        <Link href="/admin/advancement/skills" className="btn-primary no-underline">Skill modules</Link>
+      </section>
 
       {onTrail.length > 0 && (
         <section className="card p-0 overflow-x-auto">

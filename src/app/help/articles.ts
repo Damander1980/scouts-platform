@@ -318,6 +318,22 @@ export const SECTIONS: Section[] = [
         ],
       },
       {
+        slug: "trail-to-first-class", title: "Trail to First Class and skill modules", who: "Leaders and Scouts",
+        summary: "See where new Scouts stand, plan what each meeting teaches, and let Scouts practice ahead.",
+        body: [
+          { p: "New Scouts usually work on Scout, Tenderfoot, Second Class and First Class together in their first year. Each Scout's advancement page shows how far along they are, what to work on next, and what's waiting for a sign-off." },
+          { h: "For leaders" },
+          { steps: [
+            "Advancement → Trail to First Class lists every Scout still on the trail and the requirements most of them still need, so you can teach one thing that moves the whole group forward.",
+            "Advancement → Skill modules is your troop's library of skills (knots, first aid, cooking, navigation...). Start with the ready-made Trail to First Class set or the Eagle-required merit badge set, then edit any of them.",
+            "A module can cover requirements from any rank or merit badge. Search to find them, and add notes (what to bring) and links to videos or guides.",
+            "Give a module a meeting date to schedule it.",
+          ] },
+          { h: "For Scouts" },
+          { p: "Scheduled skills show at the top of your advancement page under Coming up at meetings, with what's done, what's waiting and what's left for you, plus the leader's videos and a Find a video search for each requirement. Practice before the meeting and you'll be ready to get it signed off." },
+        ],
+      },
+      {
         slug: "merit-badges", title: "Merit badges and counselors", who: "Leaders",
         summary: "Scouts ask to start a badge, a leader approves and assigns a counselor.",
         body: [

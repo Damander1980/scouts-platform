@@ -50,7 +50,10 @@ export default function AdvancementAdmin({ orgId, scoutbookPending = null, unitT
           <h1 className="font-display font-extrabold text-[32px] m-0">Advancement</h1>
           <p className="text-[14px] text-smoke m-0 mt-1">Sign-offs, merit badge requests, every Scout&apos;s progress, and what to buy for the next Court of Honor.</p>
         </div>
-        <a className="btn-primary no-underline" href="/admin/advancement/tfc">Trail to First Class</a>
+        <div className="flex gap-2 flex-wrap">
+          <a className="btn-secondary no-underline" href="/admin/advancement/skills">Skill modules</a>
+          <a className="btn-primary no-underline" href="/admin/advancement/tfc">Trail to First Class</a>
+        </div>
       </div>
       <ErrorBox>{error}</ErrorBox>
       <ScoutbookSync pending={scoutbookPending} />

@@ -9,15 +9,17 @@ export type PlanReq = { id: string; label: string; text: string; need: number };
 export type Link = { label: string; url: string };
 export type Module = { id: string; title: string; requirement_ids: string[]; notes: string | null; links: Link[]; sort: number };
 export type Session = { id: string; module_id: string; on_date: string };
-type Starter = { title: string; requirement_ids: string[]; sort: number };
+export type ReqGroup = { name: string; kind: "rank" | "badge"; eagle?: boolean; items: PlanReq[] };
+export type Starter = { title: string; requirement_ids: string[]; sort: number };
 
 const EMPTY = { title: "", reqs: [] as string[], notes: "", links: [] as Link[] };
 const okUrl = (u: string) => /^https?:\/\/\S+$/i.test(u.trim());
 
 // Reusable skill modules ("Knots", "First aid"...) set up once, edited any time, and put on meeting dates.
-export default function ModuleLibrary({ orgId, reqs, modules, sessions, scoutsOnTrail, starter }: {
-  orgId: string; reqs: { rank: string; items: PlanReq[] }[]; modules: Module[]; sessions: Session[]; scoutsOnTrail: number; starter: Starter[];
+export default function ModuleLibrary({ orgId, reqs, modules, sessions, scoutsTotal, starter, badgeStarter = [] }: {
+  orgId: string; reqs: ReqGroup[]; modules: Module[]; sessions: Session[]; scoutsTotal: number; starter: Starter[]; badgeStarter?: Starter[];
 }) {
+  const [q, setQ] = useState("");
   const supabase = createClient();
   const router = useRouter();
   const [editing, setEditing] = useState<string | null>(null); // module id, or "new"
@@ -59,10 +61,21 @@ export default function ModuleLibrary({ orgId, reqs, modules, sessions, scoutsOn
     });
   };
 
-  const addStarters = () => run(async () => {
-    check(await supabase.from("skill_modules").insert(starter.map((s) => ({ ...s, org_id: orgId, links: [] }))).select("id"));
+  const addStarters = (list: Starter[]) => run(async () => {
+    check(await supabase.from("skill_modules").insert(list.map((s, i) => ({ ...s, sort: modules.length + i, org_id: orgId, links: [] }))).select("id"));
     router.refresh();
   });
+  const haveTitles = new Set(modules.map((m) => m.title.toLowerCase()));
+  const newBadgeStarters = badgeStarter.filter((s) => !haveTitles.has(s.title.toLowerCase()));
+  // Ranks are always listed; a merit badge shows when searched for or when something in it is already picked.
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const hit = (s: string) => words.every((w) => s.toLowerCase().includes(w));
+  const shownGroups = reqs.map((g) => {
+    const groupHit = words.length > 0 && hit(g.name);
+    const items = !words.length || groupHit ? g.items : g.items.filter((r) => hit(`${r.label} ${r.text}`));
+    const visible = g.kind === "rank" ? items.length > 0 : (words.length > 0 && items.length > 0) || g.items.some((r) => f.reqs.includes(r.id));
+    return { ...g, items: g.kind === "badge" && !words.length ? g.items.filter((r) => f.reqs.includes(r.id)) : items, visible };
+  }).filter((g) => g.visible);
 
   const remove = (m: Module) => {
     if (!window.confirm(`Delete "${m.title}"? Its scheduled dates go too.`)) return;
@@ -88,7 +101,7 @@ export default function ModuleLibrary({ orgId, reqs, modules, sessions, scoutsOn
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <div className="font-bold text-[17px]">Coming up</div>
-            <p className="text-[13px] text-smoke m-0">Scheduled skills show on every trail Scout&apos;s advancement page, with videos, so they can practice before the meeting.</p>
+            <p className="text-[13px] text-smoke m-0">Scheduled skills show on each Scout&apos;s advancement page with their own progress and videos, so they can practice before the meeting.</p>
           </div>
         </div>
         {upcoming.length === 0 && <div className="text-[14px] text-smoke">Nothing scheduled. Pick a module below and give it a meeting date.</div>}
@@ -110,7 +123,8 @@ export default function ModuleLibrary({ orgId, reqs, modules, sessions, scoutsOn
             <p className="text-[13px] text-smoke m-0">Each module is a skill your troop teaches, with the requirements it covers, what to bring, and videos or guides. Set it up once and reuse it every year.</p>
           </div>
           <div className="flex gap-2 flex-wrap">
-            {modules.length === 0 && starter.length > 0 && <button className="btn-primary" disabled={busy} onClick={addStarters}>Add {starter.length} starter modules</button>}
+            {modules.length === 0 && starter.length > 0 && <button className="btn-primary" disabled={busy} onClick={() => addStarters(starter)}>Add {starter.length} Trail to First Class modules</button>}
+            {newBadgeStarters.length > 0 && <button className="btn-secondary" disabled={busy} onClick={() => addStarters(newBadgeStarters)}>Add {newBadgeStarters.length} Eagle-required merit badge modules</button>}
             {editing === null && <button className={modules.length ? "btn-primary" : "btn-secondary"} disabled={busy} onClick={() => startEdit()}>+ New module</button>}
           </div>
         </div>
@@ -119,16 +133,24 @@ export default function ModuleLibrary({ orgId, reqs, modules, sessions, scoutsOn
           <form onSubmit={save} className="flex flex-col gap-3 rounded-xl p-4" style={{ background: "#F8F5EE" }}>
             <Field label="Module name"><input className="input" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="e.g. Knots: square knot and two half-hitches" maxLength={80} required /></Field>
             <div className="flex flex-col gap-2">
-              <div className="font-bold text-[14px]">Requirements it covers <span className="font-normal text-smoke">(how many trail Scouts still need each)</span></div>
-              <div className="max-h-80 overflow-y-auto flex flex-col gap-3 bg-white rounded-xl p-3">
-                {reqs.map((g) => (
-                  <div key={g.rank} className="flex flex-col gap-1">
-                    <div className="eyebrow text-forest">{g.rank}</div>
+              <div className="font-bold text-[14px]">Requirements it covers <span className="font-normal text-smoke">(how many Scouts still need each; {f.reqs.length} picked)</span></div>
+              <input className="input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search ranks, merit badges or requirements, e.g. first aid, knot, Star" aria-label="Search requirements" />
+              <div className="max-h-96 overflow-y-auto flex flex-col gap-3 bg-white rounded-xl p-3">
+                {shownGroups.length === 0 && <div className="text-[14px] text-smoke">Nothing matches. Try a merit badge name.</div>}
+                {shownGroups.map((g) => (
+                  <div key={g.name} className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="eyebrow text-forest flex-1">{g.name}{g.eagle ? " · Eagle required" : ""}</span>
+                      <button type="button" className="btn-ghost text-[13px]" onClick={() => {
+                        const ids = g.items.map((r) => r.id); const allIn = ids.every((id) => f.reqs.includes(id));
+                        setF({ ...f, reqs: allIn ? f.reqs.filter((x) => !ids.includes(x)) : [...new Set([...f.reqs, ...ids])] });
+                      }}>{g.items.every((r) => f.reqs.includes(r.id)) ? "Clear these" : "Select all"}</button>
+                    </div>
                     {g.items.map((r) => (
                       <label key={r.id} className="flex items-start gap-2 text-[14px] min-h-[44px] py-1">
                         <input type="checkbox" className="w-5 h-5 mt-0.5 flex-none" checked={f.reqs.includes(r.id)}
                           onChange={(e) => setF({ ...f, reqs: e.target.checked ? [...f.reqs, r.id] : f.reqs.filter((x) => x !== r.id) })} />
-                        <span><b>{r.label}</b> {r.text} {r.need > 0 && <span className="text-[12px] font-bold" style={{ color: "#5E4400" }}>· {r.need}/{scoutsOnTrail} need it</span>}</span>
+                        <span><b>{r.label}</b> {r.text} {r.need > 0 && <span className="text-[12px] font-bold" style={{ color: "#5E4400" }}>· {r.need}/{scoutsTotal} need it</span>}</span>
                       </label>
                     ))}
                   </div>

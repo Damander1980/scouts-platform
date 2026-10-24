@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import AdvancementClient, { type Progress, type Tracked } from "@/components/AdvancementClient";
 import { loadCatalog } from "@/lib/advancement";
 import { trailToFirstClass } from "@/lib/tfc";
-import TfcPanel, { type Coming } from "@/components/TfcPanel";
+import TfcPanel, { ComingUp, type Coming } from "@/components/TfcPanel";
 import { isoDay } from "@/components/ui";
 import { cookies } from "next/headers";
 import { ORG_COOKIE } from "@/lib/context";
@@ -111,9 +111,15 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
   const completedRanks = new Set(items.filter((i) => i.kind === "rank" && i.program === "scouts_bsa"
     && (rankEarned[i.code] || (tracked ?? []).some((x) => x.item_id === i.id && x.status === "completed"))).map((i) => i.code));
   const tfc = trailToFirstClass(items, progress, completedRanks);
-  const { data: sessRows } = tfc.finished ? { data: [] } : await supabase.from("skill_sessions")
+  const { data: sessRows } = await supabase.from("skill_sessions")
     .select("on_date, skill_modules(title, requirement_ids, notes, links)").eq("org_id", orgId).gte("on_date", isoDay()).order("on_date").limit(3);
-  const reqOf = Object.fromEntries(tfc.all.map((r) => [r.id, r]));
+  // Any rank or merit badge requirement a module covers, with this Scout's status on it.
+  const tfcStatus = Object.fromEntries(tfc.all.map((r) => [r.id, r.status]));
+  const doneItems = new Set((tracked ?? []).filter((x) => x.status === "completed").map((x) => x.item_id));
+  const reqOf = Object.fromEntries(items.flatMap((i) => i.requirements.map((r) => [r.id, {
+    id: r.id, rankName: i.name, number: r.number, text: r.text,
+    status: (tfcStatus[r.id] ?? (doneItems.has(i.id) || progress[r.id]?.approved_by ? "done" : progress[r.id]?.completed_at ? "waiting" : "todo")) as "done" | "waiting" | "todo",
+  }])));
   const coming: Coming[] = ((sessRows ?? []) as unknown as { on_date: string; skill_modules: { title: string; requirement_ids: string[]; notes: string | null; links: { label: string; url: string }[] } | null }[])
     .filter((s) => s.skill_modules).map((s) => ({
       date: s.on_date, title: s.skill_modules!.title, notes: s.skill_modules!.notes, links: s.skill_modules!.links ?? [],
@@ -133,7 +139,7 @@ export default async function ScoutAdvancementPage({ params }: { params: Promise
       viewerPersonId={viewer.id}
       counselorBadgeIds={counselorBadgeIds}
       extras={{ birthdate: who?.birthdate ?? null, rankEarned, positions: positions ?? [], credits, serviceEvents, counselors: counselorList, eagle }}
-      top={<TfcPanel tfc={tfc} coming={coming} firstName={scout.first_name} self={viewer.id === id} />}
+      top={<><ComingUp coming={coming} /><TfcPanel tfc={tfc} firstName={scout.first_name} self={viewer.id === id} /></>}
     />
   );
 }

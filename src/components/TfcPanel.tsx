@@ -9,7 +9,7 @@ const safeUrl = (u: string) => /^https?:\/\//i.test(u);
 const short = (t: string) => (t.length > 150 ? `${t.slice(0, 147).trimEnd()}…` : t);
 
 // A new Scout's view of the Trail to First Class: how far along, and what to work on next, in plain words.
-export default function TfcPanel({ tfc, coming = [], firstName, self }: { tfc: Tfc; coming?: Coming[]; firstName: string; self: boolean }) {
+export default function TfcPanel({ tfc, firstName, self }: { tfc: Tfc; firstName: string; self: boolean }) {
   if (!tfc.ranks.length || tfc.finished) return null;
   const pct = tfc.total ? Math.round((tfc.done / tfc.total) * 100) : 0;
   return (
@@ -39,30 +39,6 @@ export default function TfcPanel({ tfc, coming = [], firstName, self }: { tfc: T
         ))}
       </div>
 
-      {coming.map((c) => (
-        <div key={c.date + c.title} className="rounded-2xl p-4 flex flex-col gap-2.5" style={{ background: "#F5B700", color: "#101B2D" }}>
-          <div className="eyebrow">Coming up · {fmtDate(c.date + "T12:00:00", { weekday: "long", month: "short", day: "numeric" })}</div>
-          <div className="font-display font-extrabold text-[20px] leading-tight">{c.title}</div>
-          {c.notes && <div className="text-[14px]">{c.notes}</div>}
-          {c.links.filter((l) => safeUrl(l.url)).length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              {c.links.filter((l) => safeUrl(l.url)).map((l) => (
-                <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="min-h-[44px] px-4 rounded-full font-bold text-[14px] flex items-center no-underline" style={{ background: "#101B2D", color: "white" }}>▶ {l.label}</a>
-              ))}
-            </div>
-          )}
-          <ul className="m-0 p-0 list-none flex flex-col gap-1.5">
-            {c.reqs.map((r) => (
-              <li key={r.id} className="flex gap-2 items-start text-[14px] rounded-xl px-3 py-2" style={{ background: "rgba(255,255,255,.55)" }}>
-                <span className="font-bold flex-none" aria-label={r.status}>{r.status === "done" ? "✓" : r.status === "waiting" ? "…" : "○"}</span>
-                <span className="flex-1"><b>{r.label}</b> {short(r.text)}{r.status === "done" ? " (done)" : r.status === "waiting" ? " (waiting for sign-off)" : ""}</span>
-                {r.status === "todo" && <a href={videoSearch(r.text)} target="_blank" rel="noopener noreferrer" className="text-[13px] font-bold flex-none min-h-[44px] flex items-center" style={{ color: "#12355F" }}>Find a video</a>}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-
       {tfc.next.length > 0 && (
         <div className="flex flex-col gap-2">
           <div className="font-bold text-[16px]">{self ? "Work on these next" : `What ${firstName} can work on next`}</div>
@@ -84,6 +60,40 @@ export default function TfcPanel({ tfc, coming = [], firstName, self }: { tfc: T
           <b className="text-white">{tfc.waiting.length} waiting for a leader&apos;s sign-off:</b> {tfc.waiting.slice(0, 6).map((r) => `${r.rankName} ${r.number}`).join(", ")}{tfc.waiting.length > 6 ? "…" : ""}
         </div>
       )}
+    </section>
+  );
+}
+
+// Skill sessions the troop has scheduled, for any rank or merit badge, with this Scout's own progress on each.
+export function ComingUp({ coming }: { coming: Coming[] }) {
+  if (!coming.length) return null;
+  return (
+    <section className="flex flex-col gap-3 mb-6">
+      <div className="eyebrow text-forest">Coming up at meetings</div>
+        {coming.map((c) => (
+          <div key={c.date + c.title} className="rounded-2xl p-4 flex flex-col gap-2.5" style={{ background: "#F5B700", color: "#101B2D" }}>
+            <div className="eyebrow">Coming up · {fmtDate(c.date + "T12:00:00", { weekday: "long", month: "short", day: "numeric" })}</div>
+            <div className="font-display font-extrabold text-[20px] leading-tight">{c.title}</div>
+            {c.notes && <div className="text-[14px]">{c.notes}</div>}
+            {c.links.filter((l) => safeUrl(l.url)).length > 0 && (
+              <div className="flex gap-2 flex-wrap">
+                {c.links.filter((l) => safeUrl(l.url)).map((l) => (
+                  <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="min-h-[44px] px-4 rounded-full font-bold text-[14px] flex items-center no-underline" style={{ background: "#101B2D", color: "white" }}>▶ {l.label}</a>
+                ))}
+              </div>
+            )}
+            <ul className="m-0 p-0 list-none flex flex-col gap-1.5">
+              {c.reqs.map((r) => (
+                <li key={r.id} className="flex gap-2 items-start text-[14px] rounded-xl px-3 py-2" style={{ background: "rgba(255,255,255,.55)" }}>
+                  <span className="font-bold flex-none" aria-label={r.status}>{r.status === "done" ? "✓" : r.status === "waiting" ? "…" : "○"}</span>
+                  <span className="flex-1"><b>{r.label}</b> {short(r.text)}{r.status === "done" ? " (done)" : r.status === "waiting" ? " (waiting for sign-off)" : ""}</span>
+                  {r.status === "todo" && <a href={videoSearch(r.text)} target="_blank" rel="noopener noreferrer" className="text-[13px] font-bold flex-none min-h-[44px] flex items-center" style={{ color: "#12355F" }}>Find a video</a>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+
     </section>
   );
 }
