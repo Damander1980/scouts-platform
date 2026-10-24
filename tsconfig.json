@@ -35,6 +35,8 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
+    "custom-worker.ts",
+    ".open-next",
     "node_modules"
   ]
 }

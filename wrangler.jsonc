@@ -1,0 +1,22 @@
+// Cloudflare Workers config for ourtroopmanager.com (built with OpenNext: `npm run deploy`).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ourtroopmanager",
+  "main": "custom-worker.ts",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "ourtroopmanager" }],
+  "routes": [
+    { "pattern": "ourtroopmanager.com", "custom_domain": true },
+    { "pattern": "www.ourtroopmanager.com", "custom_domain": true }
+  ],
+  // Daily reminders (deadlines, health forms, YPT) at 14:00 UTC, as on vercel.json.
+  "triggers": { "crons": ["0 14 * * *"] },
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://ourtroopmanager.com",
+    "NEXT_PUBLIC_SITE_HOST": "ourtroopmanager.com",
+    "NEXT_PUBLIC_TIME_ZONE": "America/Chicago"
+  },
+  "observability": { "enabled": true }
+}

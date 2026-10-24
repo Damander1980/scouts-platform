@@ -8,23 +8,17 @@ npx supabase db push
 ```
 Pushes migrations 0042-0071. The site works without them, but the newer features stay hidden.
 
-## 2. Vercel project (10 minutes)
-1. Go to vercel.com (you're already signed in there for the domain), Add New → Project.
-2. Import the GitHub repo **Damander1980/scouts-platform**. Framework: Next.js (detected). Leave build settings as they are.
-3. Before the first deploy, open **Environment Variables** and add these (copy values from `.env.local`, except the two marked):
+## 2. Cloudflare (the site runs on Cloudflare Workers, next to the domain)
+Config is in `wrangler.jsonc`; the build adapter is OpenNext. The site address and time zone are already set there.
+1. Sign Cloudflare's command-line tool in to your account (opens a browser; click Allow):
+   `npx wrangler login`
+2. Upload the two secrets (the service key and the reminder-job password) from the prepared, git-ignored file:
+   `npx wrangler secret bulk .env.cloudflare-secrets.local`
+3. Build and publish:
+   `npm run deploy`
+   This also attaches ourtroopmanager.com and www.ourtroopmanager.com and turns on the daily reminder job.
 
-| Name | Value |
-|---|---|
-| NEXT_PUBLIC_SUPABASE_URL | from .env.local |
-| NEXT_PUBLIC_SUPABASE_ANON_KEY | from .env.local |
-| SUPABASE_SERVICE_ROLE_KEY | from .env.local (keep secret) |
-| CRON_SECRET | from .env.local |
-| NEXT_PUBLIC_SITE_URL | **https://ourtroopmanager.com** |
-| NEXT_PUBLIC_SITE_HOST | **ourtroopmanager.com** |
-| NEXT_PUBLIC_TIME_ZONE | America/Chicago |
-
-4. Deploy. The daily reminder job (vercel.json) is picked up automatically.
-5. Project → Settings → Domains → add **ourtroopmanager.com** and **www.ourtroopmanager.com** (redirect www to the bare domain). Vercel sets the DNS itself because the domain is registered there.
+Build-time settings come from `.env.production.local` (git-ignored, already filled in). Bundle is about 2.8 MB compressed; the free Workers plan allows 3 MB, so move to Workers Paid ($5/month) when it grows.
 
 ## 3. Supabase sign-in settings (2 minutes)
 Supabase dashboard → Authentication → URL Configuration:
@@ -35,16 +29,16 @@ Google sign-in: in Google Cloud Console, add `https://ourtroopmanager.com` to th
 
 ## 4. Email (Resend, 15 minutes)
 1. Create a Resend account and add the domain **ourtroopmanager.com**.
-2. Copy the DNS records Resend shows into Vercel → Domains → ourtroopmanager.com → DNS records. Wait for Resend to say Verified.
-3. Add to Vercel env vars: `RESEND_API_KEY`, `EMAIL_FROM` = `Our Troop Manager <notify@ourtroopmanager.com>`, `EMAIL_FROM_ADDRESS` = `mail@ourtroopmanager.com`.
+2. Copy the DNS records Resend shows into Cloudflare → ourtroopmanager.com → DNS. Wait for Resend to say Verified.
+3. Add as Cloudflare secrets (`npx wrangler secret put NAME`): `RESEND_API_KEY`, `EMAIL_FROM` = `Our Troop Manager <notify@ourtroopmanager.com>`, `EMAIL_FROM_ADDRESS` = `mail@ourtroopmanager.com`.
 4. Resend → Webhooks → add `https://ourtroopmanager.com/api/webhooks/resend` for **email.bounced** and **email.complained**; put its signing secret in `RESEND_WEBHOOK_SECRET`.
-5. Redeploy (Vercel → Deployments → Redeploy) so the new variables load.
+5. Run `npm run deploy` again (EMAIL_FROM values can go in wrangler.jsonc vars instead).
 
 ## 5. Payments (Stripe)
 1. Create a Stripe account with Connect enabled.
-2. Add `STRIPE_SECRET_KEY` to Vercel.
+2. Add `STRIPE_SECRET_KEY` as a Cloudflare secret.
 3. Stripe → Developers → Webhooks → add `https://ourtroopmanager.com/api/stripe/webhook`; put its secret in `STRIPE_WEBHOOK_SECRET`.
-4. Redeploy. Each troop's treasurer then connects their bank on Money.
+4. Run `npm run deploy`. Each troop's treasurer then connects their bank on Money.
 
 ## 6. Texts (Twilio, later)
 `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM`; point the number's incoming-message webhook at `https://ourtroopmanager.com/api/sms/inbound`. Carrier (10DLC) registration takes a few weeks, so start it early.
