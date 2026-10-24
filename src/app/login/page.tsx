@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient, createEmailLinkClient } from "@/lib/supabase/client";
 import Mark from "@/components/Mark";
 import PasswordInput from "@/components/PasswordInput";
+import { APP_SCHEME, isNativeApp, openOutside } from "@/lib/native";
 import { safeNext } from "@/lib/safeNext";
 
 type Mode = "signin" | "signup" | "forgot";
@@ -56,6 +57,17 @@ export default function LoginPage() {
   }
 
   async function google() {
+    // In the iOS/Android apps Google refuses sign-in inside the app's web view, so it opens in the secure
+    // system sheet and comes back through the app's own address (NativeBridge finishes it).
+    if (isNativeApp()) {
+      const { data, error } = await createClient().auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${APP_SCHEME}://auth/callback?next=${encodeURIComponent(next)}`, skipBrowserRedirect: true },
+      });
+      if (error || !data?.url) { setError(error?.message ?? "Couldn't start Google sign-in."); return; }
+      await openOutside(data.url);
+      return;
+    }
     await createClient().auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
@@ -67,7 +79,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-wrap" style={{ background: "#E9E3D6" }}>
-      <div className="text-white flex flex-col justify-between gap-10 px-10 py-12 relative overflow-hidden" style={{ flex: "1 1 420px", background: "var(--topo-dark), radial-gradient(120% 100% at 0% 100%, #1B4A80 0%, #12355F 45%, #0C2442 100%)", backgroundSize: "520px 520px, auto", boxShadow: "inset -4px 0 0 #F5B700" }}>
+      <div className="web-only text-white flex flex-col justify-between gap-10 px-10 py-12 relative overflow-hidden" style={{ flex: "1 1 420px", background: "var(--topo-dark), radial-gradient(120% 100% at 0% 100%, #1B4A80 0%, #12355F 45%, #0C2442 100%)", backgroundSize: "520px 520px, auto", boxShadow: "inset -4px 0 0 #F5B700" }}>
         {/* A dashed trail climbing to the summit marker: the brand's signature, quietly. */}
         <svg aria-hidden="true" viewBox="0 0 400 600" preserveAspectRatio="xMaxYMax slice" className="absolute inset-0 w-full h-full pointer-events-none"><path d="M40 620 C120 540 90 480 180 440 S300 360 260 280 S330 150 350 90" fill="none" stroke="#F5B700" strokeWidth="3" strokeDasharray="2 12" strokeLinecap="round" opacity=".7"/><path d="M350 72l9 16h-18z" fill="#F5B700"/></svg>
         <a href="/" className="relative flex items-center gap-3 no-underline text-white">
@@ -82,7 +94,12 @@ export default function LoginPage() {
       </div>
 
       <div className="flex items-center justify-center px-5 py-12" style={{ flex: "1 1 480px" }}>
-        <div className="w-full max-w-[420px] bg-white rounded-[20px] p-8 flex flex-col gap-5"
+        <div className="w-full max-w-[420px] flex flex-col gap-6">
+        <div className="app-only flex-col items-center gap-3 pt-4">
+          <Mark size={72} />
+          <span className="font-display font-extrabold text-[24px]">Our Troop Manager</span>
+        </div>
+        <div className="w-full bg-white rounded-[20px] p-8 flex flex-col gap-5"
           style={{ boxShadow: "0 1px 2px rgba(16,27,45,.06), 0 14px 36px rgba(16,27,45,.12)" }}>
           <h2 className="font-display font-extrabold text-[28px] m-0">{title}</h2>
 
@@ -134,6 +151,7 @@ export default function LoginPage() {
             {mode === "signin" && <>New here? <button type="button" onClick={() => switchMode("signup")} className="font-bold text-forest bg-transparent border-none cursor-pointer min-h-[44px] text-[14px]">Create an account</button></>}
             {mode !== "signin" && <button type="button" onClick={() => switchMode("signin")} className="font-bold text-forest bg-transparent border-none cursor-pointer min-h-[44px] text-[14px]">Back to sign in</button>}
           </p>
+        </div>
         </div>
       </div>
     </div>

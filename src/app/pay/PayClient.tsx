@@ -1,4 +1,5 @@
 "use client";
+import { openOutside } from "@/lib/native";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -26,7 +27,7 @@ export default function PayClient({ orgId, balance, online, prefs, scoutBalances
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amountCents: cents }),
     });
     const body = await res.json().catch(() => ({}));
-    if (body.url) window.location.href = body.url;
+    if (body.url) { await openOutside(body.url); setBusy(false); }
     else { setError(body.error ?? "Couldn't start the payment."); setBusy(false); }
   }
 

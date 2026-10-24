@@ -23,7 +23,7 @@ Build-time settings come from `.env.production.local` (git-ignored, already fill
 ## 3. Supabase sign-in settings (2 minutes)
 Supabase dashboard → Authentication → URL Configuration:
 - Site URL: `https://ourtroopmanager.com`
-- Redirect URLs: add `https://ourtroopmanager.com/**`
+- Redirect URLs: add `https://ourtroopmanager.com/**` and `com.ourtroopmanager.app://**` (the second lets Google sign-in return to the iPhone/Android app)
 
 Google sign-in: in Google Cloud Console, add `https://ourtroopmanager.com` to the OAuth client's authorized origins.
 

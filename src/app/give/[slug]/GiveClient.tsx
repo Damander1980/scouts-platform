@@ -1,4 +1,5 @@
 "use client";
+import { openOutside } from "@/lib/native";
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
@@ -26,7 +27,7 @@ export default function GiveClient({ campaign: c, thanks, booth, source }: { cam
     const cents = custom ? Math.round(parseFloat(custom) * 100) : amount;
     const res = await fetch("/api/stripe/donate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campaign: c.slug, amountCents: cents, source, coverFee: cover }) });
     const body = await res.json().catch(() => ({}));
-    if (body.url) window.location.href = body.url; else { setError(body.error ?? "Couldn't start checkout"); setBusy(false); }
+    if (body.url) { await openOutside(body.url); setBusy(false); } else { setError(body.error ?? "Couldn't start checkout"); setBusy(false); }
   }
 
   if (booth && qr) {

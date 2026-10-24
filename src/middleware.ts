@@ -38,6 +38,14 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isAppRoute = APP_PREFIXES.some((p) => path === p || path.startsWith(p.endsWith("/") ? p : p + "/") || path === p.replace(/\/$/, ""));
 
+  // The iOS/Android apps (their user agent carries OurTroopManagerApp) never show the marketing home page.
+  if (path === "/" && (request.headers.get("user-agent") ?? "").includes("OurTroopManagerApp")) {
+    const url = request.nextUrl.clone();
+    url.pathname = user ? "/home" : "/login";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
   if (isAppRoute && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

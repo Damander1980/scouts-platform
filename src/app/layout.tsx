@@ -1,3 +1,4 @@
+import NativeBridge from "@/components/NativeBridge";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import RegisterSW from "@/components/RegisterSW";
@@ -20,9 +21,15 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Inside the iOS/Android apps (their user agent carries OurTroopManagerApp): mark the page before it
+            paints, so website-only parts (marketing, "Sign in / Start free") never flash. */}
+        <script dangerouslySetInnerHTML={{ __html: "if(/OurTroopManagerApp/.test(navigator.userAgent))document.documentElement.dataset.app='1'" }} />
+      </head>
       <body className="antialiased">
         {children}
         <RegisterSW />
+        <NativeBridge />
       </body>
     </html>
   );

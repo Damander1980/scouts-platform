@@ -1,4 +1,5 @@
 "use client";
+import { openOutside } from "@/lib/native";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -71,7 +72,7 @@ export default function MoneyClient(props: {
               const res = await fetch("/api/stripe/connect", { method: "POST" });
               const body = await res.json();
               if (!body.url) throw new Error(body.error ?? "Couldn't start Stripe setup");
-              window.location.href = body.url;
+              await openOutside(body.url);
             })}>Connect bank account</button>
           )}
         </div>

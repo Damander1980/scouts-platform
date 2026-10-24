@@ -110,3 +110,8 @@ input[type="date"], input[type="datetime-local"], input[type="time"], input[type
 input[type="date"]::-webkit-date-and-time-value,
 input[type="datetime-local"]::-webkit-date-and-time-value,
 input[type="time"]::-webkit-date-and-time-value { text-align: left; }
+
+/* Inside the iOS/Android apps: hide parts that only make sense on the website. */
+html[data-app] .web-only { display: none !important; }
+.app-only { display: none; }
+html[data-app] .app-only { display: flex; }
