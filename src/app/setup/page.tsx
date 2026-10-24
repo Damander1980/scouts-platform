@@ -28,6 +28,8 @@ export default function SetupPage() {
   const [nextAction, setNextAction] = useState<"import" | "dashboard">("dashboard");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  // Once the troop exists, a retry after a later step fails must not create a second one.
+  const [createdOrg, setCreatedOrg] = useState<string | null>(null);
 
   const unit = UNIT_TYPES.find((u) => u.id === unitId)!;
   const slug = makeSlug(unit.word, number, city);
@@ -40,25 +42,30 @@ export default function SetupPage() {
       if (!user) { router.push("/login?next=/setup"); return; }
 
       const { data: me } = await supabase.from("persons").select("id").eq("user_id", user.id).maybeSingle();
-      if (!me) {
+      let personId = me?.id as string | undefined;
+      if (!personId) {
         const meta = user.user_metadata ?? {};
         const full = String(meta.full_name ?? "").trim();
-        const { error: pErr } = await supabase.rpc("ensure_person", {
+        const { data: newId, error: pErr } = await supabase.rpc("ensure_person", {
           p_first: full.split(" ")[0] || "Leader", p_last: full.split(" ").slice(1).join(" "),
         });
         if (pErr) throw pErr;
+        personId = newId as string;
       }
 
-      const { data: orgId, error: orgErr } = await supabase.rpc("create_organization", {
-        p_type: unitId, p_number: number, p_city: city, p_state: state, p_word: unit.word,
-      });
-      if (orgErr) throw orgErr;
+      let orgId = createdOrg;
+      if (!orgId) {
+        const { data, error: orgErr } = await supabase.rpc("create_organization", {
+          p_type: unitId, p_number: number, p_city: city, p_state: state, p_word: unit.word,
+        });
+        if (orgErr) throw orgErr;
+        orgId = data as string;
+        setCreatedOrg(orgId);
+      }
 
       // Admins need current YPT to see kids' private details, so record it now if given.
       if (ypt) {
-        const { data: me2, error: meErr } = await supabase.from("persons").select("id").eq("user_id", user.id).single();
-        if (meErr) throw meErr;
-        const { error: yErr } = await supabase.from("memberships").update({ ypt_expires: ypt }).eq("org_id", orgId).eq("person_id", me2.id);
+        const { error: yErr } = await supabase.from("memberships").update({ ypt_expires: ypt }).eq("org_id", orgId).eq("person_id", personId);
         if (yErr) throw yErr;
       }
 

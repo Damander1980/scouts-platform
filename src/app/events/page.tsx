@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireOrg } from "@/lib/context";
 import Shell from "@/components/Shell";
 import MonthGrid from "./MonthGrid";
-import { Empty, LinkButton, PageTitle, TIME_ZONE, dayOfMonth, fmtDate, fmtTime, money } from "@/components/ui";
+import { Empty, LinkButton, PageTitle, TIME_ZONE, dayOfMonth, fmtDate, fmtTime, isoDay, money } from "@/components/ui";
 
 const KIND_LABEL: Record<string, string> = {
   meeting: "Meeting", campout: "Campout", service: "Service", fundraiser: "Fundraiser", event: "Event", high_adventure: "High adventure",
@@ -37,18 +37,27 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   if (linked.length) {
     let sq = supabase.from("events").select("id, title, start_at, end_at, location, cost_cents, kind, canceled, cap, org_id")
       .in("org_id", linked.map((l) => l.org_id)).eq("share_linked", true);
-    sq = monthView ? sq.gte("start_at", winStart).lt("start_at", winEnd).limit(300)
-      : past ? sq.lt("start_at", now).limit(50) : sq.gte("start_at", now).limit(100);
+    // Ordered like our own list, so the limit keeps the nearest events rather than an arbitrary set.
+    sq = monthView ? sq.gte("start_at", winStart).lt("start_at", winEnd).order("start_at").limit(300)
+      : past ? sq.lt("start_at", now).order("start_at", { ascending: false }).limit(50) : sq.gte("start_at", now).order("start_at").limit(100);
     shared = ((await sq).data ?? []) as typeof shared;
   }
   const events = [...(own ?? []).map((e) => ({ ...e, org_id: current.org.id })), ...shared]
     .sort((a, b) => past ? b.start_at.localeCompare(a.start_at) : a.start_at.localeCompare(b.start_at));
 
   const ids = (own ?? []).map((e) => e.id);
-  const { data: going } = ids.length
-    ? await supabase.from("rsvps").select("event_id").in("event_id", ids).eq("status", "going")
-    : { data: [] as { event_id: string }[] };
-  const goingCount = (id: string) => (going ?? []).filter((r) => r.event_id === id).length;
+  // Up to 300 events in month view can have more than 1000 sign-ups, so page through them.
+  const goingBy = new Map<string, number>();
+  if (ids.length) {
+    const PAGE = 1000;
+    for (let from = 0; ; from += PAGE) {
+      const { data } = await supabase.from("rsvps").select("event_id").in("event_id", ids).eq("status", "going")
+        .order("event_id").order("person_id").range(from, from + PAGE - 1);
+      for (const r of data ?? []) goingBy.set(r.event_id, (goingBy.get(r.event_id) ?? 0) + 1);
+      if (!data || data.length < PAGE) break;
+    }
+  }
+  const goingCount = (id: string) => goingBy.get(id) ?? 0;
 
   const byMonth = new Map<string, typeof events>();
   for (const e of events) {
@@ -79,7 +88,8 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
           <h2 className="eyebrow m-0 text-smoke">{month}</h2>
           <div className="card p-0 overflow-hidden">
             {list.map((e) => {
-              const multi = e.end_at && new Date(e.end_at).toDateString() !== new Date(e.start_at).toDateString();
+              // Compare calendar days in the unit's time zone (the server runs in UTC, where a 5-8pm meeting spans two days).
+              const multi = e.end_at && isoDay(new Date(e.end_at)) !== isoDay(new Date(e.start_at));
               const host = e.org_id !== current.org.id ? hostName[e.org_id] : null;
               return (
                 <Link key={e.id} href={`/events/${e.id}`} className="flex items-center gap-4 px-5 py-3.5 no-underline text-ink border-b border-[#EAE4D6] last:border-0"

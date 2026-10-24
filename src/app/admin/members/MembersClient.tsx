@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, Field, fmtDate } from "@/components/ui";
+import { Chip, ErrorBox, Field, fmtDate, ageFrom } from "@/components/ui";
 import { checkSaved } from "@/lib/saved";
 
 const ROLES = [
@@ -29,11 +29,7 @@ export type Badge = { id: string; name: string; eagle_required: boolean };
 export type CounselorAssignment = { person_id: string; item_id: string };
 export type JoinRequest = { id: string; created_at: string; requester: string; people: { id: string; name: string; type: string; birthdate: string | null }[] };
 
-function age(b: string | null) {
-  if (!b) return null;
-  const d = new Date(b), n = new Date();
-  return n.getFullYear() - d.getFullYear() - (n < new Date(n.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0);
-}
+const age = ageFrom;
 
 export default function MembersClient({
   members: initial, orgId, myRole, badges = [], counselorAssignments = [], demo = false,

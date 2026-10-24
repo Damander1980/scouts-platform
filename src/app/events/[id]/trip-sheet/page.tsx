@@ -4,7 +4,7 @@ import Link from "next/link";
 import { requirePerm } from "@/lib/context";
 import PrintButton from "@/components/PrintButton";
 import type { Plan } from "../plan/TripPlanClient";
-import { TIME_ZONE } from "@/components/ui";
+import { TIME_ZONE, isoDay } from "@/components/ui";
 
 // Printable trip sheet. Scouting America retired the old tour permit / tour plan in 2019;
 // this sheet carries what leaders still need on paper: details, itinerary, who is going,
@@ -23,14 +23,20 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
   const { data: ev } = await supabase.from("events").select("id, title, description, location, start_at, end_at").eq("id", id).eq("org_id", orgId).maybeSingle();
   if (!ev) notFound();
 
-  const [{ data: plan }, { data: going }, { data: forms }, { data: ms }, { data: pm }, { data: canMedical }] = await Promise.all([
+  const [{ data: plan }, { data: going }, { data: ms }, { data: pm }, { data: canMedical }, { data: ageFlags }] = await Promise.all([
     supabase.from("trip_plans").select("*").eq("event_id", id).maybeSingle(),
     supabase.from("rsvps").select("person_id, driver_seats, persons(first_name, last_name, type)").eq("event_id", id).eq("status", "going"),
-    supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId),
     supabase.from("memberships").select("person_id, ypt_expires").eq("org_id", orgId),
     supabase.from("patrol_members").select("person_id, patrols(name)").eq("org_id", orgId).is("end_date", null),
     supabase.rpc("has_perm", { org: orgId, perm: "medical.view" }),
+    supabase.rpc("member_age_flags", { p_org: orgId, p_on: isoDay(new Date(ev.start_at)) }),
   ]);
+  // Only the forms of people going, so a large unit's form list can't run past the 1000-row page.
+  const goingIds = ((going ?? []) as { person_id: string }[]).map((g) => g.person_id);
+  const { data: forms } = goingIds.length
+    ? await supabase.from("forms").select("person_id, type, expires_at").eq("org_id", orgId).in("person_id", goingIds)
+    : { data: [] as { person_id: string; type: string; expires_at: string | null }[] };
+  const over21 = new Set(((ageFlags ?? []) as { person_id: string; adult_21: boolean }[]).filter((a) => a.adult_21).map((a) => a.person_id));
 
   const dietOf = Object.fromEntries((await rsvpPrivate(supabase, { events: [id] })).map((r) => [r.person_id, r.dietary]));
   const rows = ((going ?? []) as unknown as Going[]).map((g) => ({ ...g, dietary: dietOf[g.person_id] ?? null })).sort((a, b) => a.persons.last_name.localeCompare(b.persons.last_name));
@@ -42,12 +48,14 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
   const patrolOf = Object.fromEntries((pm ?? []).map((p) => [p.person_id, (p.patrols as unknown as { name: string } | null)?.name ?? ""]));
   const showForms = !!canMedical;
   const form = (pid: string, t: string) => {
-    const f = (forms ?? []).find((x) => x.person_id === pid && x.type === t);
-    if (!f) return "Needed";
-    return !f.expires_at || new Date(f.expires_at) >= tripDay ? "On file" : "Expires before trip";
+    // A person can have several forms of one type (an old one and a renewal): any one valid for the trip counts.
+    const fs = (forms ?? []).filter((x) => x.person_id === pid && x.type === t);
+    if (!fs.length) return "Needed";
+    return fs.some((f) => !f.expires_at || new Date(f.expires_at) >= tripDay) ? "On file" : "Expires before trip";
   };
 
-  const trainedAdults = adults.filter((a) => yptOk(a.person_id)).length;
+  // Same rule as the event page: two registered adults 21 or older, each with current YPT.
+  const trainedAdults = adults.filter((a) => yptOk(a.person_id) && over21.has(a.person_id)).length;
   const twoDeep = trainedAdults >= 2;
   const seats = rows.reduce((s, r) => s + (r.driver_seats || 0), 0);
   const drivers = rows.filter((r) => r.driver_seats > 0);
@@ -84,7 +92,7 @@ export default async function TripSheet({ params }: { params: Promise<{ id: stri
         <div className="card"><div className="eyebrow text-smoke">Two-deep</div><div className="font-extrabold text-[22px]" style={{ color: twoDeep ? "#12355F" : "#A52A1C" }}>{twoDeep ? "Yes" : "No"}</div></div>
       </div>
       {!twoDeep && <div className="card font-bold" style={{ background: "#FFF6D6", color: "#5E4400" }}>
-        Only {trainedAdults} adult{trainedAdults === 1 ? "" : "s"} going {trainedAdults === 1 ? "has" : "have"} YPT current through the trip. Two-deep leadership needs at least two registered adults with current YPT, one of them 21 or older.
+        Only {trainedAdults} adult{trainedAdults === 1 ? "" : "s"} 21 or older going {trainedAdults === 1 ? "has" : "have"} YPT current through the trip. Two-deep leadership needs at least two registered adults 21 or older with current YPT.
       </div>}
 
       {p.itinerary?.length > 0 && (

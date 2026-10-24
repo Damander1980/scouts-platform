@@ -87,6 +87,15 @@ export function fmtDate(iso: string, opts: Intl.DateTimeFormatOptions = { weekda
   return new Date(iso).toLocaleDateString("en-US", { timeZone: DATE_ONLY.test(iso) ? "UTC" : TIME_ZONE, ...opts });
 }
 
+// Age today from a YYYY-MM-DD birthday, by calendar date in the unit's time zone (reading the birthday as a
+// Date would make it UTC midnight, the evening before in US time zones, so ages turned over a day early).
+export function ageFrom(birth: string | null) {
+  if (!birth) return null;
+  const [y, m, d] = birth.slice(0, 10).split("-").map(Number);
+  const [ty, tm, td] = isoDay().split("-").map(Number);
+  return ty - y - (tm < m || (tm === m && td < d) ? 1 : 0);
+}
+
 // A calendar date (YYYY-MM-DD) in the unit's time zone; toISOString() would give tomorrow after 7pm Central.
 export function isoDay(d: Date = new Date()) {
   return d.toLocaleDateString("en-CA", { timeZone: TIME_ZONE });

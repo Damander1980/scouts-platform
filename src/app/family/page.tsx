@@ -1,18 +1,14 @@
 import Link from "next/link";
 import { requireOrg, ROLE_LABELS } from "@/lib/context";
 import Shell from "@/components/Shell";
-import { Chip, LinkButton, PageTitle, SectionLabel, money } from "@/components/ui";
+import { Chip, LinkButton, PageTitle, SectionLabel, money, ageFrom } from "@/components/ui";
 import { householdBalance, loadFamily } from "@/lib/family";
 import FamilyTools from "./FamilyTools";
 import PhotoConsent from "./PhotoConsent";
 import ChildLogin from "./ChildLogin";
 import AboutPerson from "./AboutPerson";
 
-function age(b: string | null) {
-  if (!b) return null;
-  const d = new Date(b), n = new Date();
-  return n.getFullYear() - d.getFullYear() - (n < new Date(n.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0);
-}
+const age = ageFrom;
 
 export default async function FamilyPage() {
   const ctx = await requireOrg();
@@ -21,18 +17,19 @@ export default async function FamilyPage() {
   const [family, balance] = await Promise.all([loadFamily(supabase, orgId), householdBalance(supabase, householdId, orgId)]);
 
   const ids = family.map((f) => f.id);
-  const [{ data: certs }] = await Promise.all([
-    supabase.from("scout_certifications").select("person_id, status, certifications(name)").eq("org_id", orgId).in("person_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]),
-  ]);
-
-  const { data: consents } = ids.length ? await supabase.from("persons").select("id, photo_consent").in("id", ids) : { data: [] };
+  // Independent lookups for the family, run together.
+  const none = Promise.resolve({ data: [] as never[] });
+  const [{ data: certs }, { data: consents }, { data: idRows }, { data: logins }] = ids.length ? await Promise.all([
+    supabase.from("scout_certifications").select("person_id, status, certifications(name)").eq("org_id", orgId).in("person_id", ids),
+    supabase.from("persons").select("id, photo_consent").in("id", ids),
+    supabase.rpc("person_identity", { p_org: orgId, p_ids: ids }),
+    supabase.rpc("child_login_status", { p_ids: ids }),
+  ]) : await Promise.all([none, none, none, none]);
   const consentOf = Object.fromEntries((consents ?? []).map((c) => [c.id, c.photo_consent as boolean | null]));
 
-  const { data: idRows } = ids.length ? await supabase.rpc("person_identity", { p_org: orgId, p_ids: ids }) : { data: [] };
   const identityOf = Object.fromEntries(((idRows ?? []) as { id: string; nickname: string | null; pronouns: string | null; registered_gender: string | null; accommodation_note: string | null }[])
     .map((r) => [r.id, { nickname: r.nickname ?? "", pronouns: r.pronouns ?? "", gender: (r.registered_gender ?? "") as "" | "male" | "female", note: r.accommodation_note ?? "" }]));
 
-  const { data: logins } = ids.length ? await supabase.rpc("child_login_status", { p_ids: ids }) : { data: [] };
   const loginOf = Object.fromEntries(((logins ?? []) as { person_id: string; email: string | null; linked: boolean }[]).map((l) => [l.person_id, l]));
 
   return (

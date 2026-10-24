@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chip, ErrorBox, money } from "@/components/ui";
+import { Chip, ErrorBox, isoDay, money } from "@/components/ui";
 
 type Item = { id: string; text: string; done?: boolean; who?: string; due?: string; day?: string; time?: string; amount?: number; kind?: "per_person" | "flat"; patrol?: string; meal?: string; qty?: string; per?: number };
 export type Plan = { itinerary: Item[]; costs: Item[]; meals: Item[]; packing: Item[]; tasks: Item[]; permits: Item[]; duties?: Item[] };
@@ -138,15 +138,15 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
               <div className="font-bold">{p.name} <span className="text-smoke font-normal">· {p.going} going</span></div>
               {meals.map((m) => (
                 <div key={m.id} className="flex gap-2 flex-wrap items-center text-[14px]">
-                  <input aria-label="Sat breakfast" className="input w-32 h-9 min-h-0" value={m.meal ?? ""} onChange={(e) => update("meals", m.id, { meal: e.target.value })} placeholder="Sat breakfast" />
-                  <input aria-label="Pancake mix" className="input flex-1 min-w-[140px] h-9 min-h-0" value={m.text} onChange={(e) => update("meals", m.id, { text: e.target.value })} placeholder="Pancake mix" />
-                  <input aria-label="per" className="input w-20 h-9 min-h-0" inputMode="decimal" value={m.per ?? ""} onChange={(e) => update("meals", m.id, { per: parseFloat(e.target.value || "0") })} placeholder="per" />
-                  <input aria-label="cups" className="input w-20 h-9 min-h-0" value={m.qty ?? ""} onChange={(e) => update("meals", m.id, { qty: e.target.value })} placeholder="cups" />
+                  <input aria-label="Sat breakfast" className="input w-32 h-9 min-h-0" disabled={!canEdit} value={m.meal ?? ""} onChange={(e) => update("meals", m.id, { meal: e.target.value })} placeholder="Sat breakfast" />
+                  <input aria-label="Pancake mix" className="input flex-1 min-w-[140px] h-9 min-h-0" disabled={!canEdit} value={m.text} onChange={(e) => update("meals", m.id, { text: e.target.value })} placeholder="Pancake mix" />
+                  <input aria-label="per" className="input w-20 h-9 min-h-0" inputMode="decimal" disabled={!canEdit} value={m.per ?? ""} onChange={(e) => update("meals", m.id, { per: parseFloat(e.target.value || "0") })} placeholder="per" />
+                  <input aria-label="cups" className="input w-20 h-9 min-h-0" disabled={!canEdit} value={m.qty ?? ""} onChange={(e) => update("meals", m.id, { qty: e.target.value })} placeholder="cups" />
                   <Chip tone="green">Buy {Math.ceil((m.per ?? 0) * p.going * 10) / 10} {m.qty}</Chip>
-                  <button className="btn-ghost" onClick={() => remove("meals", m.id)}>×</button>
+                  {canEdit && <button className="btn-ghost" onClick={() => remove("meals", m.id)}>×</button>}
                 </div>
               ))}
-              <button className="btn-ghost self-start text-[13px]" onClick={() => add("meals", { patrol: p.id })}>+ Add food item</button>
+              {canEdit && <button className="btn-ghost self-start text-[13px]" onClick={() => add("meals", { patrol: p.id })}>+ Add food item</button>}
             </div>
           );
         })}
@@ -219,7 +219,8 @@ export default function TripPlanClient({ eventId, orgId, canEdit, title, costCen
               <option value="">Unassigned</option>{adults.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
             <input className="input w-40 h-10 min-h-0" type="date" disabled={!canEdit} value={t.due ?? ""} onChange={(e) => update("tasks", t.id, { due: e.target.value })} />
-            {t.due && !t.done && new Date(t.due) < new Date() && <Chip tone="red">Overdue</Chip>}
+            {/* Due dates are calendar days: compare as days in the unit's time zone, not UTC midnight. */}
+            {t.due && !t.done && t.due < isoDay() && <Chip tone="red">Overdue</Chip>}
             {canEdit && <button className="btn-ghost" onClick={() => remove("tasks", t.id)}>×</button>}
           </div>
         ))}

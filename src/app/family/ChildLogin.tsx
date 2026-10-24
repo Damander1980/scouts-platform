@@ -33,7 +33,7 @@ export default function ChildLogin({ personId, name, age, email, linked }: { per
     return (
       <div className="flex items-center gap-2 text-[13px] flex-wrap">
         <span>{name} has their own login{email ? ` (${email})` : ""}.</span>
-        <button className="btn-ghost text-[13px] min-h-0 px-0" disabled={busy} onClick={async () => {
+        <button className="btn-ghost text-[13px] min-h-[44px] px-0" disabled={busy} onClick={async () => {
           setBusy(true); const { error } = await supabase.rpc("revoke_child_login", { p_person: personId });
           if (error) setError(error.message); else router.refresh(); setBusy(false);
         }}>Remove login</button>
@@ -43,7 +43,7 @@ export default function ChildLogin({ personId, name, age, email, linked }: { per
   }
   if (email) {
     return <div className="text-[13px]">Waiting for {name} to sign in with <b>{email}</b>. They open the sign-in page, choose Create an account with that email, and pick their own password.{" "}
-      <button className="btn-ghost text-[13px] min-h-0 px-0" disabled={busy} onClick={async () => {
+      <button className="btn-ghost text-[13px] min-h-[44px] px-0" disabled={busy} onClick={async () => {
         setBusy(true); const { error } = await supabase.rpc("revoke_child_login", { p_person: personId });
         if (error) setError(error.message); else router.refresh(); setBusy(false);
       }}>Cancel</button>{error && <span className="block text-[13px] font-bold" style={{ color: "#A52A1C" }}>{error}</span>}</div>;
@@ -51,7 +51,7 @@ export default function ChildLogin({ personId, name, age, email, linked }: { per
   return (
     <div className="flex flex-col gap-2">
       {!open ? (
-        <button className="btn-secondary self-start min-h-[36px] text-[13px]" onClick={() => setOpen(true)}>Give {name} their own login</button>
+        <button className="btn-secondary self-start min-h-[44px] text-[13px]" onClick={() => setOpen(true)}>Give {name} their own login</button>
       ) : (
         <div className="rounded-xl p-3 flex flex-col gap-2" style={{ background: "#F8F5EE" }}>
           <div className="text-[13px]">Scouts take responsibility for their own sign-ups, advancement and messages. {name} signs in with their own email and password.</div>

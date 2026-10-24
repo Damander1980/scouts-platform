@@ -20,7 +20,9 @@ export default function LeaderEventTools({ eventId, canceled, ratioOk, adults, t
     const { error } = await supabase.rpc("cancel_event", { p_event: eventId, p_reason: null });
     if (error) { setError(error.message); setCanceling(false); setConfirming(false); return; }
     // Tell everyone signed up right away (urgent notice; server checks leader rights and sends once).
-    await fetch("/api/notify/cancel", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId }) }).catch(() => {});
+    // fetch only rejects on a network failure; a 4xx/5xx reply also means nobody was told.
+    const res = await fetch("/api/notify/cancel", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventId }) }).catch(() => null);
+    if (!res?.ok) setError("The event is canceled and families were credited, but the cancellation notice didn't send. Use Message who's going to tell them.");
     router.refresh();
   }
 

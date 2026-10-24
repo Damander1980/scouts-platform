@@ -4,7 +4,7 @@ import { useState } from "react";
 import Mark from "@/components/Mark";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ErrorBox, Field } from "@/components/ui";
+import { ErrorBox, Field, ageFrom } from "@/components/ui";
 import { childLoginConsent } from "@/app/family/ChildLogin";
 import { EMPTY_IDENTITY, IdentityFields, hasIdentity, saveIdentity, type Identity } from "@/components/IdentityFields";
 
@@ -12,11 +12,7 @@ export type FamilyPerson = { id: string; first_name: string; last_name: string; 
 export type PendingJoin = { id: string; org_name: string; created_at: string };
 type FoundOrg = { id: string; name: string; type: string; city: string | null; state: string | null };
 
-function age(birth: string | null) {
-  if (!birth) return null;
-  const b = new Date(birth), n = new Date();
-  return n.getFullYear() - b.getFullYear() - (n < new Date(n.getFullYear(), b.getMonth(), b.getDate()) ? 1 : 0);
-}
+const age = ageFrom;
 
 export default function WelcomeClient({ initialStep, person, family: initialFamily, pending, hasTroop, inviteCode }: {
   initialStep: "name" | "family" | "troop";
@@ -41,6 +37,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
   const [kidEmail, setKidEmail] = useState("");
   const [kidConsent, setKidConsent] = useState(false);
   const [familyCode, setFamilyCode] = useState("");
+  const [claimCode, setClaimCode] = useState("");
 
   const [code, setCode] = useState(inviteCode);
   const [found, setFound] = useState<FoundOrg | null>(null);
@@ -193,12 +190,12 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
               <div className="flex flex-col gap-3 mt-3">
                 <p className="text-[13px] text-smoke m-0">Use it if your troop already added your family. You will be linked to your existing record.</p>
                 <div className="flex gap-2">
-                  <input aria-label="Claim code" className="input flex-1" value={familyCode} onChange={(e) => setFamilyCode(e.target.value)} placeholder="Claim code" />
-                  <button type="button" className="btn-secondary" disabled={busy || !familyCode} onClick={() => run(async () => {
-                    const { data, error } = await supabase.rpc("claim_record", { p_code: familyCode });
+                  <input aria-label="Claim code" className="input flex-1" value={claimCode} onChange={(e) => setClaimCode(e.target.value)} placeholder="Claim code" />
+                  <button type="button" className="btn-secondary" disabled={busy || !claimCode} onClick={() => run(async () => {
+                    const { data, error } = await supabase.rpc("claim_record", { p_code: claimCode });
                     if (error) throw error;
                     if (!data) throw new Error("That claim code didn't work. It may have expired (codes last 14 days) or been used already. Ask your leader for a new one.");
-                    setFamilyCode("");
+                    setClaimCode("");
                     router.push("/home");
                   })}>Claim</button>
                 </div>
@@ -216,8 +213,9 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
               </div>
             </details>
 
-            <button className="btn-primary" onClick={() => (hasTroop ? router.push("/dashboard") : setStep("troop"))}>
-              {hasTroop ? "Done" : "Continue"}
+            {/* An invite link still goes on to the troop step for someone already in another troop. */}
+            <button className="btn-primary" onClick={() => (hasTroop && !inviteCode ? router.push("/dashboard") : setStep("troop"))}>
+              {hasTroop && !inviteCode ? "Done" : "Continue"}
             </button>
           </>
         )}
@@ -266,7 +264,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
             {!requested && (
               <div className="card flex flex-col gap-2">
                 <div className="font-bold text-[17px]">Starting a new troop?</div>
-                <p className="text-[14px] text-smoke m-0">Set it up in about five minutes. You become its first admin.</p>
+                <p className="text-[14px] text-smoke m-0">Set it up yourself. You become its first admin.</p>
                 <a href="/setup" className="btn-secondary no-underline">Start a troop</a>
               </div>
             )}

@@ -2,17 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePerm, ROLE_LABELS } from "@/lib/context";
 import Shell from "@/components/Shell";
-import { Chip, PageTitle, SectionLabel, fmtDate, isoDay, money } from "@/components/ui";
+import { Chip, PageTitle, SectionLabel, fmtDate, isoDay, money, ageFrom } from "@/components/ui";
 import { householdBalance } from "@/lib/family";
 
 const FORM_LABEL: [string, string][] = [["health_ab", "Health A+B"], ["health_c", "Health C"], ["tetanus", "Tetanus"], ["swim_check", "Swim check"], ["permission", "Permission slip"]];
 const SWIM: Record<string, string> = { swimmer: "Swimmer", beginner: "Beginner", nonswimmer: "Non-swimmer" };
 
-function age(b: string | null) {
-  if (!b) return null;
-  const d = new Date(b), n = new Date();
-  return n.getFullYear() - d.getFullYear() - (n < new Date(n.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0);
-}
+const age = ageFrom;
 
 // One page per member for leaders: who they are, where they stand, and what's due. Each block only
 // appears for leaders whose position allows it (private details, health status, money).
