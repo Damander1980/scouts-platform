@@ -5,6 +5,8 @@ import Mark from "@/components/Mark";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ErrorBox, Field } from "@/components/ui";
+import { childLoginConsent } from "@/app/family/ChildLogin";
+import { EMPTY_IDENTITY, IdentityFields, hasIdentity, saveIdentity, type Identity } from "@/components/IdentityFields";
 
 export type FamilyPerson = { id: string; first_name: string; last_name: string; type: string; birthdate: string | null };
 export type PendingJoin = { id: string; org_name: string; created_at: string };
@@ -34,6 +36,10 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
   const [kidFirst, setKidFirst] = useState("");
   const [kidLast, setKidLast] = useState(person?.last_name ?? "");
   const [kidBirth, setKidBirth] = useState("");
+  const [meId, setMeId] = useState<Identity>(EMPTY_IDENTITY);
+  const [kidId, setKidId] = useState<Identity>(EMPTY_IDENTITY);
+  const [kidEmail, setKidEmail] = useState("");
+  const [kidConsent, setKidConsent] = useState(false);
   const [familyCode, setFamilyCode] = useState("");
 
   const [code, setCode] = useState(inviteCode);
@@ -55,6 +61,10 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
   const saveName = () => run(async () => {
     const { error } = await supabase.rpc("ensure_person", { p_first: first, p_last: last });
     if (error) throw error;
+    if (hasIdentity(meId)) {
+      const { data: myId } = await supabase.rpc("my_person_id");
+      if (myId) await saveIdentity(supabase, null, myId as string, meId);
+    }
     if (!kidLast) setKidLast(last);
     await reloadFamily();
     setStep("family");
@@ -63,9 +73,15 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
   const addKid = (e: React.FormEvent) => {
     e.preventDefault();
     run(async () => {
-      const { error } = await supabase.rpc("add_child", { p_first: kidFirst, p_last: kidLast, p_birthdate: kidBirth || null });
+      const { data: newKid, error } = await supabase.rpc("add_child", { p_first: kidFirst, p_last: kidLast, p_birthdate: kidBirth || null });
       if (error) throw error;
-      setKidFirst(""); setKidBirth("");
+      if (newKid && hasIdentity(kidId)) await saveIdentity(supabase, null, newKid as string, kidId);
+      // Optional: the child's own email becomes their own login once the parent consents.
+      if (newKid && kidEmail.trim()) {
+        const { error: le } = await supabase.rpc("invite_child_login", { p_person: newKid, p_email: kidEmail.trim(), p_consent_text: childLoginConsent(kidFirst) });
+        if (le) throw new Error(`${kidFirst} was added, but their login wasn't set up: ${le.message}. You can do it later on your Family page.`);
+      }
+      setKidFirst(""); setKidBirth(""); setKidId(EMPTY_IDENTITY); setKidEmail(""); setKidConsent(false);
       await reloadFamily();
     });
   };
@@ -124,6 +140,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
             <p className="text-[15px] text-smoke m-0">Parents and leaders: use your own name. You will add your kids next.</p>
             <Field label="First name"><input className="input" value={first} onChange={(e) => setFirst(e.target.value)} required autoFocus autoComplete="given-name" /></Field>
             <Field label="Last name"><input className="input" value={last} onChange={(e) => setLast(e.target.value)} required autoComplete="family-name" /></Field>
+            <IdentityFields value={meId} onChange={setMeId} youth={false} compact />
             <button className="btn-primary" disabled={busy}>{busy ? "Saving…" : "Continue"}</button>
           </form>
         )}
@@ -148,7 +165,7 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
 
             <form onSubmit={addKid} className="card flex flex-col gap-3">
               <div className="font-bold text-[15px]">Add a child</div>
-              <p className="text-[13px] text-smoke m-0">After this step, open your Family page to give each child their own login with their own email. Parents still handle payments and permission.</p>
+              <p className="text-[13px] text-smoke m-0">Add each child in your family. A child with their own email gets their own login; without one, you handle everything from your account. Parents still handle payments and permission.</p>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="First name"><input className="input" value={kidFirst} onChange={(e) => setKidFirst(e.target.value)} required /></Field>
                 <Field label="Last name"><input className="input" value={kidLast} onChange={(e) => setKidLast(e.target.value)} required /></Field>
@@ -156,7 +173,17 @@ export default function WelcomeClient({ initialStep, person, family: initialFami
               <Field label="Birthday" hint="Used for rank age rules.">
                 <input className="input" type="date" value={kidBirth} onChange={(e) => setKidBirth(e.target.value)} />
               </Field>
-              <button className="btn-secondary" disabled={busy}>Add child</button>
+              <IdentityFields value={kidId} onChange={setKidId} />
+              <Field label="Their own email (optional)" hint="If they have one, they get their own login for sign-ups, advancement and messages. No email is fine: you can do everything for them from your account.">
+                <input className="input" type="email" value={kidEmail} onChange={(e) => { setKidEmail(e.target.value); if (!e.target.value) setKidConsent(false); }} autoComplete="off" />
+              </Field>
+              {kidEmail.trim() && (
+                <label className="flex items-start gap-3 text-[13px]">
+                  <input type="checkbox" className="w-5 h-5 mt-0.5 flex-none" checked={kidConsent} onChange={(e) => setKidConsent(e.target.checked)} required />
+                  <span>{childLoginConsent(kidFirst || "my child")}</span>
+                </label>
+              )}
+              <button className="btn-secondary" disabled={busy || (!!kidEmail.trim() && !kidConsent)}>Add child</button>
             </form>
 
             <details className="card">

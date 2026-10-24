@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ErrorBox, Field } from "@/components/ui";
+import { EMPTY_IDENTITY, IdentityFields, hasIdentity, saveIdentity } from "@/components/IdentityFields";
 
 export default function FamilyTools({ defaultLast, notInTroop, orgId }: {
   defaultLast: string; notInTroop: { id: string; name: string }[]; orgId: string;
@@ -13,6 +14,7 @@ export default function FamilyTools({ defaultLast, notInTroop, orgId }: {
   const [first, setFirst] = useState("");
   const [last, setLast] = useState(defaultLast);
   const [birth, setBirth] = useState("");
+  const [ident, setIdent] = useState(EMPTY_IDENTITY);
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
@@ -30,9 +32,10 @@ export default function FamilyTools({ defaultLast, notInTroop, orgId }: {
       {msg && <div className="card md:col-span-2 font-bold" style={{ background: "#EEE8D9" }}>{msg}</div>}
 
       <form className="card flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); run(async () => {
-        const { error } = await supabase.rpc("add_child", { p_first: first, p_last: last, p_birthdate: birth || null });
+        const { data: kid, error } = await supabase.rpc("add_child", { p_first: first, p_last: last, p_birthdate: birth || null });
         if (error) throw error;
-        setFirst(""); setBirth(""); setMsg("Child added. Ask to add them to the troop below.");
+        if (kid && hasIdentity(ident)) await saveIdentity(supabase, orgId, kid as string, ident);
+        setFirst(""); setBirth(""); setIdent(EMPTY_IDENTITY); setMsg("Child added. Ask to add them to the troop below.");
         router.refresh();
       }); }}>
         <div className="font-bold text-[16px]">Add a child</div>
@@ -41,6 +44,7 @@ export default function FamilyTools({ defaultLast, notInTroop, orgId }: {
           <Field label="Last name"><input className="input" value={last} onChange={(e) => setLast(e.target.value)} required /></Field>
         </div>
         <Field label="Birthday"><input className="input" type="date" value={birth} onChange={(e) => setBirth(e.target.value)} /></Field>
+        <IdentityFields value={ident} onChange={setIdent} compact />
         <button className="btn-secondary" disabled={busy}>Add</button>
       </form>
 

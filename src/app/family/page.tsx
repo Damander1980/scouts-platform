@@ -6,6 +6,7 @@ import { householdBalance, loadFamily } from "@/lib/family";
 import FamilyTools from "./FamilyTools";
 import PhotoConsent from "./PhotoConsent";
 import ChildLogin from "./ChildLogin";
+import AboutPerson from "./AboutPerson";
 
 function age(b: string | null) {
   if (!b) return null;
@@ -26,6 +27,10 @@ export default async function FamilyPage() {
 
   const { data: consents } = ids.length ? await supabase.from("persons").select("id, photo_consent").in("id", ids) : { data: [] };
   const consentOf = Object.fromEntries((consents ?? []).map((c) => [c.id, c.photo_consent as boolean | null]));
+
+  const { data: idRows } = ids.length ? await supabase.rpc("person_identity", { p_org: orgId, p_ids: ids }) : { data: [] };
+  const identityOf = Object.fromEntries(((idRows ?? []) as { id: string; nickname: string | null; pronouns: string | null; registered_gender: string | null; accommodation_note: string | null }[])
+    .map((r) => [r.id, { nickname: r.nickname ?? "", pronouns: r.pronouns ?? "", gender: (r.registered_gender ?? "") as "" | "male" | "female", note: r.accommodation_note ?? "" }]));
 
   const { data: logins } = ids.length ? await supabase.rpc("child_login_status", { p_ids: ids }) : { data: [] };
   const loginOf = Object.fromEntries(((logins ?? []) as { person_id: string; email: string | null; linked: boolean }[]).map((l) => [l.person_id, l]));
@@ -72,6 +77,8 @@ export default async function FamilyPage() {
                   {p.type === "youth" && a !== null && a >= 18 && <Chip tone="orange">Turned 18: ask a leader to update role</Chip>}
                 </div>
               )}
+              <AboutPerson orgId={orgId} personId={p.id} name={p.first_name} youth={p.type === "youth"}
+                initial={identityOf[p.id] ?? { nickname: "", pronouns: "", gender: "", note: "" }} />
               {p.type === "youth" && <ChildLogin personId={p.id} name={p.first_name} age={a} email={loginOf[p.id]?.email ?? null} linked={!!loginOf[p.id]?.linked} />}
               {p.type === "youth" && <PhotoConsent personId={p.id} name={p.first_name} initial={consentOf[p.id] ?? null} />}
             </div>

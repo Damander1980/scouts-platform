@@ -42,6 +42,10 @@ export default async function ScoutOverviewPage({ params }: { params: Promise<{ 
     supabase.from("scout_certifications").select("status, certifications(name)").eq("org_id", orgId).eq("person_id", id),
   ]);
 
+  // Goes-by and pronouns are shared with the troop; registration gender and the housing note are private.
+  const { data: pubId } = await supabase.from("persons").select("nickname, pronouns").eq("id", id).maybeSingle();
+  const { data: privId } = canPrivate ? await supabase.rpc("person_identity", { p_org: orgId, p_ids: [id] }).maybeSingle<{ registered_gender: string | null; accommodation_note: string | null }>() : { data: null };
+
   const householdIds = ((hh ?? []) as { household_id: string }[]).map((h) => h.household_id);
   const { data: members } = householdIds.length
     ? await supabase.from("household_members").select("household_id, person_id, is_guardian, persons(first_name, last_name)").in("household_id", householdIds)
@@ -108,6 +112,16 @@ export default async function ScoutOverviewPage({ params }: { params: Promise<{ 
             </div>
           )}
         </div>
+
+        {(pubId?.nickname || pubId?.pronouns || privId?.registered_gender || privId?.accommodation_note) && (
+          <div className="card flex flex-col gap-2">
+            <SectionLabel>About</SectionLabel>
+            {pubId?.nickname && <div className="text-[15px]">Goes by <b>{pubId.nickname}</b></div>}
+            {pubId?.pronouns && <div className="text-[15px]">Pronouns: <b>{pubId.pronouns}</b></div>}
+            {privId?.registered_gender && <div className="text-[15px]">Gender on registration: <b>{privId.registered_gender === "male" ? "Male" : "Female"}</b></div>}
+            {privId?.accommodation_note && <div className="text-[15px]">For tents and cabins: {privId.accommodation_note}</div>}
+          </div>
+        )}
 
         <div className="card flex flex-col gap-2">
           <SectionLabel>Family</SectionLabel>

@@ -116,8 +116,16 @@ export const SECTIONS: Section[] = [
             "Give the code to the other parent. After they sign in, they enter it to join your family.",
           ] },
           { note: "Family codes work once and expire after 14 days." },
+          { h: "Names, pronouns and gender" },
+          { p: "When you sign up or add someone, and any time later under Edit about on Family, you can add the name they go by, their pronouns, the gender on their Scouting America registration, and anything leaders should know for tents or cabins." },
+          { list: [
+            "Goes-by names and pronouns are shown to the troop next to the name.",
+            "The registration gender is there because troops are registered as boy or girl troops and Scoutbook needs it. It's private: only your family and leaders with private-detail access (current YPT) see it, and every look is logged.",
+            "The tent and cabin note is private the same way.",
+            "All of it is optional, and nothing in the app is blocked or sorted by it.",
+          ] },
           { h: "Scouts with their own login" },
-          { p: "Every Scout can have their own account. For Scouts under 13, a parent creates it from Family with consent. Scouts 13 and up do most things themselves; parents keep the final say on paid sign-ups if the troop chooses." },
+          { p: "When you add a child at sign-up, you can enter their own email if they have one. With your consent, they get their own login for sign-ups, advancement and messages. No email is fine: you can do everything for them from your account, and you get copies of every message to them. You can also set up their login later on Family. Scouts 13 and up do most things themselves; parents keep the final say on paid sign-ups if the troop chooses." },
         ],
       },
       {

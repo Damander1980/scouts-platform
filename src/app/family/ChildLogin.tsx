@@ -4,6 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+// The parent's consent for a child's own login (required for children under 13). Also used at sign-up.
+export function childLoginConsent(name: string) {
+  return `I am ${name}'s parent or legal guardian. I give permission for ${name} to have their own ScoutPlatform login using the email I entered, ` +
+    `and for ScoutPlatform to collect the information ${name} enters in order to run their Scouting activities. I understand every message ${name} sends or receives ` +
+    `is saved and copied to me and to unit leaders, and I can remove ${name}'s login or request deletion of their data at any time.`;
+}
+
 export default function ChildLogin({ personId, name, age, email, linked }: { personId: string; name: string; age: number | null; email: string | null; linked: boolean }) {
   const supabase = createClient();
   const router = useRouter();
@@ -13,10 +20,7 @@ export default function ChildLogin({ personId, name, age, email, linked }: { per
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const under13 = age !== null && age < 13;
-  const consent =
-    `I am ${name}'s parent or legal guardian. I give permission for ${name} to have their own ScoutPlatform login using the email I entered, ` +
-    `and for ScoutPlatform to collect the information ${name} enters in order to run their Scouting activities. I understand every message ${name} sends or receives ` +
-    `is saved and copied to me and to unit leaders, and I can remove ${name}'s login or request deletion of their data at any time.`;
+  const consent = childLoginConsent(name);
 
   async function save() {
     setBusy(true); setError("");
