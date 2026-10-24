@@ -19,7 +19,10 @@ export async function POST(request: Request) {
   if (prefs.methods === "cash") return NextResponse.json({ error: "Your unit takes cash or check only. Pay the treasurer or a leader." }, { status: 409 });
   if (!org?.stripe_account_id) return NextResponse.json({ error: "Your unit hasn't connected a bank account yet. Pay the treasurer directly for now." }, { status: 409 });
 
-  const balance = await householdBalance(ctx.supabase, ctx.householdId, org.id);
+  // The family this unit bills, not just the payer's first household (they may also be in another unit).
+  const { data: billed } = ctx.person ? await ctx.supabase.rpc("person_household_in", { pid: ctx.person.id, org: org.id }) : { data: null };
+  const householdId = (billed as string | null) ?? ctx.householdId;
+  const balance = await householdBalance(ctx.supabase, householdId, org.id);
   if (balance <= 0) return NextResponse.json({ error: "You don't owe anything right now." }, { status: 400 });
   // Card payments must be at least 50 cents (Stripe's minimum), and never more than what's owed.
   if (balance < 50) return NextResponse.json({ error: "Balances under 50 cents can't go on a card. Pay the treasurer in person." }, { status: 400 });
@@ -35,8 +38,8 @@ export async function POST(request: Request) {
     customer_email: ctx.user.email ?? undefined,
     success_url: `${SITE_URL}/pay?paid=1`,
     cancel_url: `${SITE_URL}/pay`,
-    metadata: { kind: "balance", org_id: org.id, household_id: ctx.householdId, amount_cents: String(amount), person_id: ctx.person?.id ?? "" },
-    payment_intent_data: { metadata: { kind: "balance", org_id: org.id, household_id: ctx.householdId } },
+    metadata: { kind: "balance", org_id: org.id, household_id: householdId, amount_cents: String(amount), person_id: ctx.person?.id ?? "" },
+    payment_intent_data: { metadata: { kind: "balance", org_id: org.id, household_id: householdId } },
   }, { stripeAccount: org.stripe_account_id });
 
   return NextResponse.json({ url: session.url });
